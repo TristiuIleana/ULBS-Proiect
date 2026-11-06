@@ -1,0 +1,11 @@
+# Claude Code agent configuration
+.claude/*
+!.claude/skills/
+!.claude/agents/
+.claude/worktrees/
+
+# Antigravity agent configuration
+.agents/worktrees/
+
+# Graffino setup source repository
+Graffino-Agentic-Coding-Setup-Skill-develop/
