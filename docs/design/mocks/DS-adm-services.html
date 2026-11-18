@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock: DS-adm-services — Gestiune Servicii & Etape Split</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ----------------------------------------------------
+       DESIGN TOKENS (conform docs/design/DESIGN.md)
+       ---------------------------------------------------- */
+    :root, [data-theme="light"] {
+      --bg-app: #FAF7F2;
+      --surface-card: #FFFFFF;
+      --surface-subtle: #F4EFEA;
+      --surface-hover: #EFE9E2;
+      
+      --text-primary: #2B2523;
+      --text-secondary: #615651;
+      --text-muted: #8E827B;
+      
+      --border-subtle: #E8E2D9;
+      --border-strong: #D5CBC0;
+      
+      --primary: #C48B71;
+      --primary-hover: #B07D62;
+      --primary-subtle: #F9EFEA;
+      --secondary: #9E6B55;
+      --highlight-gold: #D4AF37;
+      
+      /* Culori semantice */
+      --success: #4E7A5D;
+      --success-bg: #EDF4EF;
+      --warning: #C98A2C;
+      --warning-bg: #FAF2E4;
+      --destructive: #B84A39;
+      --destructive-bg: #F8ECE9;
+      --info: #5F758E;
+      --info-bg: #EFF3F7;
+
+      /* Umbre calde */
+      --shadow-subtle: 0 2px 8px -2px rgba(43, 37, 35, 0.05);
+      --shadow-card: 0 6px 20px -4px rgba(43, 37, 35, 0.08);
+      --shadow-dropdown: 0 12px 32px -6px rgba(43, 37, 35, 0.12);
+      --shadow-focus: 0 0 0 3px rgba(196, 139, 113, 0.25);
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #1A1716;
+      --surface-card: #241F1D;
+      --surface-subtle: #2E2825;
+      --surface-hover: #3A332F;
+      
+      --text-primary: #F5F2EB;
+      --text-secondary: #C7BFB7;
+      --text-muted: #8E847C;
+      
+      --border-subtle: #38302C;
+      --border-strong: #4D433E;
+      
+      --primary: #D49D85;
+      --primary-hover: #C48B71;
+      --primary-subtle: #332621;
+      --secondary: #B07D62;
+      --highlight-gold: #E0C070;
+      
+      /* Culori semantice */
+      --success: #6FA07F;
+      --success-bg: #1E2D23;
+      --warning: #E2A346;
+      --warning-bg: #2E2415;
+      --destructive: #D96B5A;
+      --destructive-bg: #2E1916;
+      --info: #8197AF;
+      --info-bg: #1B242D;
+
+      /* Umbre calde */
+      --shadow-subtle: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+      --shadow-card: 0 6px 20px -4px rgba(0, 0, 0, 0.5);
+      --shadow-dropdown: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
+      --shadow-focus: 0 0 0 3px rgba(212, 157, 133, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 13.5px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* BARA DE CONTROL A MOCK-ULUI */
+    .mock-toolbar {
+      background: var(--surface-card);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .mock-badge {
+      background: var(--primary-subtle);
+      color: var(--secondary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .mock-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .mock-btn {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .mock-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+
+    .mock-btn.active {
+      background: var(--primary);
+      border-color: var(--primary-hover);
+      color: #FFFFFF;
+    }
+
+    /* ANTET ADMIN SALON */
+    .admin-navbar {
+      background: var(--surface-card);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .admin-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .admin-nav-links {
+      display: flex;
+      gap: 8px;
+    }
+
+    .nav-tab-link {
+      padding: 6px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .nav-tab-link:hover {
+      background: var(--surface-subtle);
+      color: var(--text-primary);
+    }
+
+    .nav-tab-link.active {
+      background: var(--primary-subtle);
+      color: var(--secondary);
+    }
+
+    /* CONTAINER PRINCIPAL */
+    .services-main {
+      flex: 1;
+      max-width: 1080px;
+      width: 100%;
+      margin: 28px auto;
+      padding: 0 24px;
+    }
+
+    /* HEADER SECȚIUNE */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .section-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .btn-primary-action {
+      background: var(--primary);
+      color: #FFFFFF;
+      border: 1px solid var(--primary-hover);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .btn-primary-action:hover {
+      background: var(--primary-hover);
+    }
+
+    /* FILTRE CATEGORII */
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+
+    .filter-tab {
+      padding: 7px 16px;
+      border-radius: 20px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-subtle);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .filter-tab:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+
+    .filter-tab.active {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary-hover);
+    }
+
+    /* CARDURI SERVICII */
+    .services-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .service-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 20px 24px;
+      box-shadow: var(--shadow-subtle);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .service-card:hover {
+      box-shadow: var(--shadow-card);
+      border-color: var(--border-strong);
+    }
+
+    .service-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .service-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .service-badges {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge-category {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--primary-subtle);
+      color: var(--secondary);
+    }
+
+    .badge-split {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--info-bg);
+      color: var(--info);
+      border: 1px dashed var(--info);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-standard {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--surface-subtle);
+      color: var(--text-muted);
+    }
+
+    .service-price-block {
+      text-align: right;
+    }
+
+    .service-price {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .service-duration {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .service-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin: 10px 0 16px;
+    }
+
+    /* SECȚIUNE ETAPE SPLIT (TIMELINE) */
+    .split-timeline-box {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-top: 14px;
+    }
+
+    .split-timeline-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .split-timeline-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .split-interleave-hint {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .timeline-bar {
+      display: flex;
+      height: 38px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+      margin-bottom: 10px;
+    }
+
+    .timeline-segment {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 0 4px;
+      text-align: center;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      position: relative;
+    }
+
+    .seg-busy {
+      background: var(--primary);
+      color: #FFFFFF;
+    }
+
+    .seg-idle {
+      background: var(--success-bg);
+      color: var(--success);
+      border-left: 1px dashed var(--success);
+      border-right: 1px dashed var(--success);
+    }
+
+    .stages-legend {
+      display: flex;
+      gap: 16px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-bullet {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* BUTOANE ACȚIUNE CARD */
+    .card-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .btn-card-action {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-card);
+      color: var(--text-secondary);
+    }
+
+    .btn-card-action:hover {
+      background: var(--surface-subtle);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+
+    .btn-edit-primary {
+      color: var(--primary);
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+
+    .btn-edit-primary:hover {
+      background: var(--primary);
+      color: #FFFFFF;
+    }
+
+    /* MODALE (EDITARE / CONFIGURARE SPLIT) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 23, 22, 0.65);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card-large {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      max-width: 680px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-dropdown);
+      animation: popIn 0.2s ease-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--surface-card);
+      z-index: 10;
+    }
+
+    .modal-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 540px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-subtle);
+      color: var(--text-primary);
+      font-size: 13.5px;
+      outline: none;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-focus);
+    }
+
+    /* CONFIGURATOR ETAPE SPLIT */
+    .split-toggle-container {
+      background: var(--primary-subtle);
+      border: 1px solid var(--border-subtle);
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stage-builder-box {
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stage-row {
+      display: grid;
+      grid-template-columns: 30px 1fr 90px 150px 32px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+      background: var(--surface-card);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 580px) {
+      .stage-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stage-num {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .stage-del-btn {
+      background: none;
+      border: none;
+      color: var(--destructive);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stage-summary-calc {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--surface-card);
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      font-size: 12.5px;
+      margin-top: 10px;
+    }
+
+    .modal-footer {
+      padding: 18px 24px;
+      background: var(--surface-subtle);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      position: sticky;
+      bottom: 0;
+    }
+
+    /* STĂRI PREVIEW TOOLBAR */
+    .state-view-panel {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+    }
+
+    .state-view-panel.active {
+      display: block;
+    }
+
+    /* TOAST NOTIFICARE */
+    .toast-notification {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface-card);
+      border: 1px solid var(--success);
+      box-shadow: var(--shadow-dropdown);
+      padding: 14px 20px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      z-index: 300;
+      display: none;
+      animation: slideIn 0.25s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .mock-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARA DE CONTROL A MOCK-ULUI -->
+  <header class="mock-toolbar">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span class="mock-badge">DS-adm-services</span>
+      <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Gestiune Servicii & Etape Split</span>
+    </div>
+
+    <div class="mock-controls">
+      <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">STARE:</span>
+      <button class="mock-btn active" id="btn-state-default" onclick="switchState('default')">Interactiv (Implicit)</button>
+      <button class="mock-btn" id="btn-state-empty" onclick="switchState('empty')">Fără Servicii (Empty)</button>
+      <button class="mock-btn" id="btn-state-loading" onclick="switchState('loading')">Se încarcă</button>
+      <button class="mock-btn" id="btn-state-error" onclick="switchState('error')">Eroare Salvare</button>
+      <button class="mock-btn" id="btn-state-success" onclick="switchState('success')">Succes (Notificare)</button>
+
+      <div class="theme-toggle">
+        <button class="mock-btn" id="theme-btn" onclick="toggleTheme()">☀️ Mod Luminos</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ANTET ADMIN SALON -->
+  <nav class="admin-navbar">
+    <div class="admin-brand">
+      <span style="font-size:20px;">🌿</span>
+      <span class="admin-title">Beauty Studio Admin</span>
+    </div>
+    <div class="admin-nav-links">
+      <a href="DS-adm-calendar.html" class="nav-tab-link">📅 Calendar Recepție</a>
+      <a href="DS-adm-services.html" class="nav-tab-link active">✂️ Gestiune Servicii</a>
+      <a href="DS-adm-login.html" class="nav-tab-link">🔒 Deconectare</a>
+    </div>
+  </nav>
+
+  <!-- CONTAINER PRINCIPAL -->
+  <main class="services-main">
+
+    <!-- 1. VIZUALIZARE PRINCIPALĂ (DEFAULT / INTERACTIV) -->
+    <div id="view-content-default">
+      
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Catalog Servicii & Etape Split</h1>
+          <p class="section-subtitle">
+            Configurează prețurile, duratele și fragmentează serviciile complexe în etape pentru optimizarea intercalării la recepție.
+          </p>
+        </div>
+        <button class="btn-primary-action" onclick="openAddServiceModal()">
+          <span>+</span> Adaugă Serviciu Nou
+        </button>
+      </div>
+
+      <!-- Filtre pe categorii -->
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterServices('all', this)">Toate Serviciile (6)</button>
+        <button class="filter-tab" onclick="filterServices('brows', this)">🌿 Sprâncene (3)</button>
+        <button class="filter-tab" onclick="filterServices('makeup', this)">💄 Make-up (3)</button>
+      </div>
+
+      <!-- Lista de Servicii -->
+      <div class="services-grid" id="services-list-container">
+
+        <!-- SERVICIUL 1: LAMINARE SPRÂNCENE (SERVICIU SPLIT) -->
+        <div class="service-card" data-category="brows">
+          <div class="service-card-header">
+            <div>
+              <div class="service-name">Laminare sprâncene</div>
+              <div class="service-badges">
+                <span class="badge-category">Sprâncene</span>
+                <span class="badge-split">⚡ Serviciu Split (5 Etape)</span>
+              </div>
+            </div>
+            <div class="service-price-block">
+              <div class="service-price">180 RON</div>
+              <div class="service-duration">Durată totală: 90 min</div>
+            </div>
+          </div>
+
+          <div class="service-desc">
+            Procedură completă de curbare, fixare și stilizare a firului de păr. Include 2 pauze mari de acțiune chimică în care specialista este liberă să intercaleze un pensat simplu pentru altă clientă.
+          </div>
+
+          <!-- TIMELINE ETAPE SPLIT -->
+          <div class="split-timeline-box">
+            <div class="split-timeline-header">
+              <span class="split-timeline-title">Etape Tehnice & Ferestre de Intercalare Recepție:</span>
+              <span class="split-interleave-hint">✓ Permite 2 intercalări (45 min libere în total)</span>
+            </div>
+
+            <!-- Bară grafică proporțională din 90 min -->
+            <div class="timeline-bar">
+              <div class="timeline-segment seg-busy" style="width: 16.6%;" title="Etapa 1: Aplicare sol. 1 (15 min)">
+                1. Aplicare (15m)
+              </div>
+              <div class="timeline-segment seg-idle" style="width: 22.2%;" title="Etapa 2: Acțiune sol. 1 (20 min) - LIBER">
+                2. Acțiune (20m) 🔓
+              </div>
+              <div class="timeline-segment seg-busy" style="width: 16.6%;" title="Etapa 3: Aplicare sol. 2 & fixare (15 min)">
+                3. Fixare (15m)
+              </div>
+              <div class="timeline-segment seg-idle" style="width: 27.8%;" title="Etapa 4: Acțiune sol. 2 & vopsea (25 min) - LIBER">
+                4. Acțiune/Vopsea (25m) 🔓
+              </div>
+              <div class="timeline-segment seg-busy" style="width: 16.8%;" title="Etapa 5: Curățare & Keratină (15 min)">
+                5. Finalizare (15m)
+              </div>
+            </div>
+
+            <div class="stages-legend">
+              <div class="legend-item">
+                <span class="legend-bullet" style="background:var(--primary);"></span>
+                <span>Specialistă Ocupată (45 min total)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-bullet" style="background:var(--success);"></span>
+                <span>Specialistă Liberă / Pauză Acțiune (45 min total — Intercalare permisă)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn-card-action btn-edit-primary" onclick="openEditSplitModal()">
+              ⚙️ Configurează Etape Split
+            </button>
+            <button class="btn-card-action" onclick="alert('Modifică preț sau durată!')">Editează Detalii</button>
+            <button class="btn-card-action" style="color:var(--destructive);" onclick="alert('Serviciile active din catalog nu pot fi șterse dacă au programări viitoare!')">Dezactivează</button>
+          </div>
+        </div>
+
+        <!-- SERVICIUL 2: PENSAT CU VOPSIT -->
+        <div class="service-card" data-category="brows">
+          <div class="service-card-header">
+            <div>
+              <div class="service-name">Pensat cu vopsit</div>
+              <div class="service-badges">
+                <span class="badge-category">Sprâncene</span>
+                <span class="badge-standard">Serviciu Continuu</span>
+              </div>
+            </div>
+            <div class="service-price-block">
+              <div class="service-price">70 RON</div>
+              <div class="service-duration">Durată totală: 30 min</div>
+            </div>
+          </div>
+          <div class="service-desc">
+            Definire formă sprâncene conform fizionomiei și vopsire profesională cu nuanțator rezistent. Lucru continuu.
+          </div>
+          <div class="card-actions">
+            <button class="btn-card-action btn-edit-primary" onclick="alert('Editare Pensat cu Vopsit')">Editează Serviciu</button>
+          </div>
+        </div>
+
+        <!-- SERVICIUL 3: PENSAT SIMPLU (IDEAL PENTRU INTERCALĂRI) -->
+        <div class="service-card" data-category="brows">
+          <div class="service-card-header">
+            <div>
+              <div class="service-name">Pensat simplu (fără vopsit)</div>
+              <div class="service-badges">
+                <span class="badge-category">Sprâncene</span>
+                <span class="badge-standard">Serviciu Continuu (20 min)</span>
+                <span style="font-size:11px; color:var(--success); font-weight:700; background:var(--success-bg); padding:2px 8px; border-radius:4px;">
+                  ⚡ Compatibil Intercalare Split
+                </span>
+              </div>
+            </div>
+            <div class="service-price-block">
+              <div class="service-price">50 RON</div>
+              <div class="service-duration">Durată totală: 20 min</div>
+            </div>
+          </div>
+          <div class="service-desc">
+            Curățare rapidă a liniei sprâncenelor cu pensetă și forfecuță. Ideal de poziționat în etapele 2 sau 4 ale laminării sprâncenelor.
+          </div>
+          <div class="card-actions">
+            <button class="btn-card-action btn-edit-primary" onclick="alert('Editare Pensat Simplu')">Editează Serviciu</button>
+          </div>
+        </div>
+
+        <!-- SERVICIUL 4: MAKE-UP OCAZIE (FĂRĂ GENE) -->
+        <div class="service-card" data-category="makeup">
+          <div class="service-card-header">
+            <div>
+              <div class="service-name">Make-up ocazie (fără gene)</div>
+              <div class="service-badges">
+                <span class="badge-category" style="background:var(--warning-bg); color:var(--warning);">Make-up</span>
+                <span class="badge-standard">Serviciu Continuu</span>
+              </div>
+            </div>
+            <div class="service-price-block">
+              <div class="service-price">150 RON</div>
+              <div class="service-duration">Durată totală: 1 h 15 min (75m)</div>
+            </div>
+          </div>
+          <div class="service-desc">
+            Machiaj rezistent adaptat tipului de ten și ținutei pentru evenimente speciale. Atenție deosebită acordată bazei.
+          </div>
+          <div class="card-actions">
+            <button class="btn-card-action btn-edit-primary" onclick="alert('Editare Make-up Ocazie')">Editează Serviciu</button>
+          </div>
+        </div>
+
+        <!-- SERVICIUL 5: MAKE-UP OCAZIE (CU GENE) -->
+        <div class="service-card" data-category="makeup">
+          <div class="service-card-header">
+            <div>
+              <div class="service-name">Make-up ocazie (cu gene)</div>
+              <div class="service-badges">
+                <span class="badge-category" style="background:var(--warning-bg); color:var(--warning);">Make-up</span>
+                <span class="badge-standard">Serviciu Continuu</span>
+              </div>
+            </div>
+            <div class="service-price-block">
+              <div class="service-price">170 RON</div>
+              <div class="service-duration">Durată totală: 1 h 30 min (90m)</div>
+            </div>
+          </div>
+          <div class="service-desc">
+            Machiaj de seară/eveniment care include aplicarea genelor false bandă sau smocuri individuale pentru privire intensă.
+          </div>
+          <div class="card-actions">
+            <button class="btn-card-action btn-edit-primary" onclick="alert('Editare Make-up cu Gene')">Editează Serviciu</button>
+          </div>
+        </div>
+
+        <!-- SERVICIUL 6: MAKE-UP MIREASĂ -->
+        <div class="service-card" data-category="makeup">
+          <div class="service-card-header">
+            <div>
+              <div class="service-name">Make-up mireasă</div>
+              <div class="service-badges">
+                <span class="badge-category" style="background:var(--warning-bg); color:var(--warning);">Make-up</span>
+                <span class="badge-standard">Serviciu Premium Continuu</span>
+              </div>
+            </div>
+            <div class="service-price-block">
+              <div class="service-price">220 RON</div>
+              <div class="service-duration">Durată totală: 2 h (120m)</div>
+            </div>
+          </div>
+          <div class="service-desc">
+            Machiaj sofisticat cu transfer-proof rezistent la emoții și lacrimi, fixare HD pentru ședințe foto profesionale și kit de retuș.
+          </div>
+          <div class="card-actions">
+            <button class="btn-card-action btn-edit-primary" onclick="alert('Editare Make-up Mireasă')">Editează Serviciu</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. STARE: FĂRĂ SERVICII (EMPTY) -->
+    <div id="view-state-empty" class="state-view-panel">
+      <div style="font-size:42px; margin-bottom:14px;">✂️</div>
+      <h2 style="font-family:'Playfair Display', serif; font-size:22px; margin-bottom:8px;">Niciun Serviciu Înregistrat</h2>
+      <p style="font-size:13.5px; color:var(--text-secondary); max-width:440px; margin:0 auto 20px;">
+        Catalogul de servicii este momentan gol. Adaugă primul serviciu pentru a permite recepției și clientelor să efectueze rezervări.
+      </p>
+      <button class="btn-primary-action" onclick="openAddServiceModal()">+ Adaugă Primul Serviciu</button>
+    </div>
+
+    <!-- 3. STARE: SE ÎNCARCĂ (LOADING) -->
+    <div id="view-state-loading" class="state-view-panel">
+      <div style="font-size:36px; margin-bottom:12px;">⏳</div>
+      <h2 style="font-family:'Playfair Display', serif; font-size:20px; margin-bottom:8px;">Se încarcă catalogul...</h2>
+      <p style="font-size:13px; color:var(--text-muted);">Sincronizare tarife și etape split cu baza de date.</p>
+    </div>
+
+    <!-- 4. STARE: EROARE SALVARE -->
+    <div id="view-state-error" class="state-view-panel" style="border-color:var(--destructive);">
+      <div style="font-size:42px; margin-bottom:12px; color:var(--destructive);">⚠️</div>
+      <h2 style="font-family:'Playfair Display', serif; font-size:22px; margin-bottom:8px; color:var(--destructive);">Eroare la Salvarea Configurației</h2>
+      <p style="font-size:13.5px; color:var(--text-secondary); max-width:440px; margin:0 auto 20px;">
+        Suma minutelor etapelor split (80 min) nu coincide cu durata totală a serviciului configurată la 90 min. Te rugăm să corectezi duratele înainte de a salva.
+      </p>
+      <button class="btn-primary-action" onclick="switchState('default')">Reîncearcă Editarea</button>
+    </div>
+
+  </main>
+
+  <!-- ==========================================
+       MODAL: CONFIGURATOR ETAPE SPLIT (LAMINARE)
+       ========================================== -->
+  <div class="modal-overlay" id="modal-split-config">
+    <div class="modal-card-large">
+      <div class="modal-header">
+        <h3 class="modal-title">Configurare Etape Split: Laminare Sprâncene</h3>
+        <button class="modal-close-btn" onclick="closeEditSplitModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nume Serviciu</label>
+            <input type="text" class="form-input" value="Laminare sprâncene" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Durată Totală Blocată în Calendar</label>
+            <input type="text" id="split-total-duration" class="form-input" value="90 minute" readonly>
+          </div>
+        </div>
+
+        <!-- Comutator Activare Split -->
+        <div class="split-toggle-container">
+          <div>
+            <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);">Serviciu cu etape fragmentate (Split Service)</div>
+            <div style="font-size:12px; color:var(--text-secondary);">Permite sistemului să ofere sloturi libere altor cliente în timpul pauzelor chimice de acțiune.</div>
+          </div>
+          <input type="checkbox" checked style="width:20px; height:20px; accent-color:var(--primary);">
+        </div>
+
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px;">
+          Etapele Tehnice ale Procedurii (Ordine Cronologică):
+        </div>
+
+        <!-- Listă Etape -->
+        <div class="stage-builder-box" id="stages-container">
+          
+          <div class="stage-row">
+            <span class="stage-num">1</span>
+            <input type="text" class="form-input" value="Aplicare soluție 1 (curbare)" style="padding:6px 10px; font-size:12.5px;">
+            <input type="number" class="form-input stage-dur" value="15" style="padding:6px 8px; font-size:12.5px;" onchange="recalculateStages()">
+            <select class="form-select stage-type" style="padding:6px 8px; font-size:12px;" onchange="recalculateStages()">
+              <option value="busy" selected>🔴 Ocupat (Lucru)</option>
+              <option value="idle">🟢 Liber (Acțiune)</option>
+            </select>
+            <button class="stage-del-btn" onclick="deleteStage(this)">✕</button>
+          </div>
+
+          <div class="stage-row" style="border-left: 3px solid var(--success);">
+            <span class="stage-num">2</span>
+            <input type="text" class="form-input" value="Timp acțiune soluție 1 (sub folie)" style="padding:6px 10px; font-size:12.5px;">
+            <input type="number" class="form-input stage-dur" value="20" style="padding:6px 8px; font-size:12.5px;" onchange="recalculateStages()">
+            <select class="form-select stage-type" style="padding:6px 8px; font-size:12px;" onchange="recalculateStages()">
+              <option value="busy">🔴 Ocupat (Lucru)</option>
+              <option value="idle" selected>🟢 Liber (Acțiune)</option>
+            </select>
+            <button class="stage-del-btn" onclick="deleteStage(this)">✕</button>
+          </div>
+
+          <div class="stage-row">
+            <span class="stage-num">3</span>
+            <input type="text" class="form-input" value="Aplicare soluție 2 & fixare formă" style="padding:6px 10px; font-size:12.5px;">
+            <input type="number" class="form-input stage-dur" value="15" style="padding:6px 8px; font-size:12.5px;" onchange="recalculateStages()">
+            <select class="form-select stage-type" style="padding:6px 8px; font-size:12px;" onchange="recalculateStages()">
+              <option value="busy" selected>🔴 Ocupat (Lucru)</option>
+              <option value="idle">🟢 Liber (Acțiune)</option>
+            </select>
+            <button class="stage-del-btn" onclick="deleteStage(this)">✕</button>
+          </div>
+
+          <div class="stage-row" style="border-left: 3px solid var(--success);">
+            <span class="stage-num">4</span>
+            <input type="text" class="form-input" value="Timp acțiune fixare & vopsea" style="padding:6px 10px; font-size:12.5px;">
+            <input type="number" class="form-input stage-dur" value="25" style="padding:6px 8px; font-size:12.5px;" onchange="recalculateStages()">
+            <select class="form-select stage-type" style="padding:6px 8px; font-size:12px;" onchange="recalculateStages()">
+              <option value="busy">🔴 Ocupat (Lucru)</option>
+              <option value="idle" selected>🟢 Liber (Acțiune)</option>
+            </select>
+            <button class="stage-del-btn" onclick="deleteStage(this)">✕</button>
+          </div>
+
+          <div class="stage-row">
+            <span class="stage-num">5</span>
+            <input type="text" class="form-input" value="Curățare vopsea & tratament keratină" style="padding:6px 10px; font-size:12.5px;">
+            <input type="number" class="form-input stage-dur" value="15" style="padding:6px 8px; font-size:12.5px;" onchange="recalculateStages()">
+            <select class="form-select stage-type" style="padding:6px 8px; font-size:12px;" onchange="recalculateStages()">
+              <option value="busy" selected>🔴 Ocupat (Lucru)</option>
+              <option value="idle">🟢 Liber (Acțiune)</option>
+            </select>
+            <button class="stage-del-btn" onclick="deleteStage(this)">✕</button>
+          </div>
+
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <button class="mock-btn" onclick="addNewStageRow()">+ Adaugă Etapă Nouă</button>
+          <span style="font-size:12px; color:var(--text-muted);">Suma etapelor trebuie să fie exact 90 min</span>
+        </div>
+
+        <!-- Calculator Balanță Timp -->
+        <div class="stage-summary-calc">
+          <div>
+            <span>Total calculat etape: </span>
+            <strong id="calc-total-time" style="color:var(--success);">90 minute</strong>
+            <span id="calc-match-badge" style="margin-left:8px; font-size:11px; font-weight:700; color:var(--success); background:var(--success-bg); padding:2px 8px; border-radius:4px;">
+              ✓ Valid (Corespunde 90 min)
+            </span>
+          </div>
+          <div style="font-size:12px; color:var(--text-secondary);">
+            Lucru direct: <strong>45 min</strong> | Pauze libere: <strong>45 min</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="mock-btn" onclick="closeEditSplitModal()">Renunță</button>
+        <button class="btn-primary-action" onclick="saveSplitConfiguration()">
+          Salvează Etapele Tehnice
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: ADAUGĂ SERVICIU NOU
+       ========================================== -->
+  <div class="modal-overlay" id="modal-add-service">
+    <div class="modal-card-large" style="max-width:520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Adaugă Serviciu Nou</h3>
+        <button class="modal-close-btn" onclick="closeAddServiceModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Nume Serviciu</label>
+          <input type="text" class="form-input" placeholder="ex: Stilizare Barba & Mustață">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Categorie</label>
+            <select class="form-select">
+              <option>Sprâncene (Proprietara)</option>
+              <option>Make-up (Colega)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Preț (RON)</label>
+            <input type="number" class="form-input" placeholder="100">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Durată Totală (Minute)</label>
+          <input type="number" class="form-input" placeholder="45">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Descriere Scurtă</label>
+          <textarea class="form-textarea" rows="2" placeholder="Descriere vizibilă clientelor în wizard-ul de rezervare..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="mock-btn" onclick="closeAddServiceModal()">Anulează</button>
+        <button class="btn-primary-action" onclick="closeAddServiceModal(); showToast('✓ Serviciul a fost adăugat cu succes în catalog!');">
+          Salvează Serviciul
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICARE -->
+  <div class="toast-notification" id="toast-notif">
+    <span>✓</span>
+    <span id="toast-message">Configurația etapelor split a fost actualizată!</span>
+  </div>
+
+  <footer class="mock-footer">
+    Beauty Studio • Gura Râului, Sibiu • Panou Administrare Servicii • docs/design/DESIGN.md
+  </footer>
+
+  <!-- LOGICĂ JAVASCRIPT MOCK -->
+  <script>
+    // 1. Filtrare Servicii pe Categorii
+    function filterServices(cat, tabEl) {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tabEl.classList.add('active');
+
+      const cards = document.querySelectorAll('.service-card');
+      cards.forEach(card => {
+        if (cat === 'all') {
+          card.style.display = 'block';
+        } else {
+          card.style.display = card.dataset.category === cat ? 'block' : 'none';
+        }
+      });
+    }
+
+    // 2. Modale
+    function openEditSplitModal() {
+      document.getElementById('modal-split-config').classList.add('active');
+    }
+
+    function closeEditSplitModal() {
+      document.getElementById('modal-split-config').classList.remove('active');
+    }
+
+    function openAddServiceModal() {
+      document.getElementById('modal-add-service').classList.add('active');
+    }
+
+    function closeAddServiceModal() {
+      document.getElementById('modal-add-service').classList.remove('active');
+    }
+
+    // 3. Configurator Etape Split
+    function recalculateStages() {
+      const inputs = document.querySelectorAll('.stage-dur');
+      let total = 0;
+      inputs.forEach(input => {
+        total += parseInt(input.value) || 0;
+      });
+
+      const totalLabel = document.getElementById('calc-total-time');
+      const badge = document.getElementById('calc-match-badge');
+      totalLabel.textContent = `${total} minute`;
+
+      if (total === 90) {
+        totalLabel.style.color = 'var(--success)';
+        badge.textContent = '✓ Valid (Corespunde 90 min)';
+        badge.style.color = 'var(--success)';
+        badge.style.background = 'var(--success-bg)';
+      } else {
+        totalLabel.style.color = 'var(--destructive)';
+        badge.textContent = `⚠️ Diferență de ${Math.abs(90 - total)} min față de total!`;
+        badge.style.color = 'var(--destructive)';
+        badge.style.background = 'var(--destructive-bg)';
+      }
+    }
+
+    function deleteStage(btn) {
+      const row = btn.closest('.stage-row');
+      row.remove();
+      renumberStages();
+      recalculateStages();
+    }
+
+    function renumberStages() {
+      const rows = document.querySelectorAll('#stages-container .stage-row');
+      rows.forEach((row, index) => {
+        row.querySelector('.stage-num').textContent = index + 1;
+      });
+    }
+
+    function addNewStageRow() {
+      const container = document.getElementById('stages-container');
+      const count = container.querySelectorAll('.stage-row').length + 1;
+      const row = document.createElement('div');
+      row.className = 'stage-row';
+      row.innerHTML = `
+        <span class="stage-num">${count}</span>
+        <input type="text" class="form-input" value="Etapă nouă" style="padding:6px 10px; font-size:12.5px;">
+        <input type="number" class="form-input stage-dur" value="10" style="padding:6px 8px; font-size:12.5px;" onchange="recalculateStages()">
+        <select class="form-select stage-type" style="padding:6px 8px; font-size:12px;" onchange="recalculateStages()">
+          <option value="busy">🔴 Ocupat (Lucru)</option>
+          <option value="idle">🟢 Liber (Acțiune)</option>
+        </select>
+        <button class="stage-del-btn" onclick="deleteStage(this)">✕</button>
+      `;
+      container.appendChild(row);
+      recalculateStages();
+    }
+
+    function saveSplitConfiguration() {
+      closeEditSplitModal();
+      showToast('✓ Etapele serviciului de Laminare au fost salvate și sincronizate cu calendarul!');
+    }
+
+    // 4. Sistem Toast
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notif');
+      document.getElementById('toast-message').textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3500);
+    }
+
+    // 5. Comutare Stări Preview Toolbar
+    function switchState(stateName) {
+      document.querySelectorAll('.mock-btn').forEach(btn => {
+        if (btn.id.startsWith('btn-state-')) btn.classList.remove('active');
+      });
+
+      const btnMap = {
+        'default': 'btn-state-default',
+        'empty': 'btn-state-empty',
+        'loading': 'btn-state-loading',
+        'error': 'btn-state-error',
+        'success': 'btn-state-success'
+      };
+
+      if (btnMap[stateName]) {
+        document.getElementById(btnMap[stateName]).classList.add('active');
+      }
+
+      // Reset
+      document.getElementById('view-content-default').style.display = 'none';
+      document.getElementById('view-state-empty').classList.remove('active');
+      document.getElementById('view-state-loading').classList.remove('active');
+      document.getElementById('view-state-error').classList.remove('active');
+
+      if (stateName === 'default') {
+        document.getElementById('view-content-default').style.display = 'block';
+      } else if (stateName === 'empty') {
+        document.getElementById('view-state-empty').classList.add('active');
+      } else if (stateName === 'loading') {
+        document.getElementById('view-state-loading').classList.add('active');
+      } else if (stateName === 'error') {
+        document.getElementById('view-state-error').classList.add('active');
+      } else if (stateName === 'success') {
+        document.getElementById('view-content-default').style.display = 'block';
+        showToast('✓ Sincronizare reușită: Toate etapele și prețurile sunt active în calendar!');
+      }
+    }
+
+    // 6. Temă Light / Dark
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      
+      const themeBtn = document.getElementById('theme-btn');
+      themeBtn.textContent = newTheme === 'dark' ? '🌙 Mod Întunecat' : '☀️ Mod Luminos';
+    }
+  </script>
+</body>
+</html>

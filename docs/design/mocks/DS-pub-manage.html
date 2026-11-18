@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock: DS-pub-manage — Gestiune Programare Client</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ----------------------------------------------------
+       DESIGN TOKENS (conform docs/design/DESIGN.md)
+       ---------------------------------------------------- */
+    :root, [data-theme="light"] {
+      --bg-app: #FAF7F2;
+      --surface-card: #FFFFFF;
+      --surface-subtle: #F4EFEA;
+      --surface-hover: #EFE9E2;
+      
+      --text-primary: #2B2523;
+      --text-secondary: #615651;
+      --text-muted: #8E827B;
+      
+      --border-subtle: #E8E2D9;
+      --border-strong: #D5CBC0;
+      
+      --primary: #C48B71;
+      --primary-hover: #B07D62;
+      --primary-subtle: #F9EFEA;
+      --secondary: #9E6B55;
+      --highlight-gold: #D4AF37;
+      
+      /* Culori semantice */
+      --success: #4E7A5D;
+      --success-bg: #EDF4EF;
+      --warning: #C98A2C;
+      --warning-bg: #FAF2E4;
+      --destructive: #B84A39;
+      --destructive-bg: #F8ECE9;
+      --info: #5F758E;
+      --info-bg: #EFF3F7;
+
+      /* Umbre calde */
+      --shadow-subtle: 0 2px 8px -2px rgba(43, 37, 35, 0.05);
+      --shadow-card: 0 6px 20px -4px rgba(43, 37, 35, 0.08);
+      --shadow-dropdown: 0 12px 32px -6px rgba(43, 37, 35, 0.12);
+      --shadow-focus: 0 0 0 3px rgba(196, 139, 113, 0.25);
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #1A1716;
+      --surface-card: #241F1D;
+      --surface-subtle: #2E2825;
+      --surface-hover: #3A332F;
+      
+      --text-primary: #F5F2EB;
+      --text-secondary: #C7BFB7;
+      --text-muted: #8E847C;
+      
+      --border-subtle: #38302C;
+      --border-strong: #4D433E;
+      
+      --primary: #D49D85;
+      --primary-hover: #C48B71;
+      --primary-subtle: #332621;
+      --secondary: #B07D62;
+      --highlight-gold: #E0C070;
+      
+      /* Culori semantice */
+      --success: #6FA07F;
+      --success-bg: #1E2D23;
+      --warning: #E2A346;
+      --warning-bg: #2E2415;
+      --destructive: #D96B5A;
+      --destructive-bg: #2E1916;
+      --info: #8197AF;
+      --info-bg: #1B242D;
+
+      /* Umbre calde */
+      --shadow-subtle: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+      --shadow-card: 0 6px 20px -4px rgba(0, 0, 0, 0.5);
+      --shadow-dropdown: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
+      --shadow-focus: 0 0 0 3px rgba(212, 157, 133, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* BARA DE CONTROL A MOCK-ULUI */
+    .mock-toolbar {
+      background: var(--surface-card);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .mock-badge {
+      background: var(--primary-subtle);
+      color: var(--secondary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .mock-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .mock-btn {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .mock-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+
+    .mock-btn.active {
+      background: var(--primary);
+      border-color: var(--primary-hover);
+      color: #FFFFFF;
+    }
+
+    /* SCENARIO BAR PENTRU POLITICA DE ANULARE */
+    .scenario-bar {
+      background: var(--surface-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 12.5px;
+      flex-wrap: wrap;
+    }
+
+    .scenario-label {
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+
+    .scenario-pill {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .scenario-pill.active {
+      background: var(--secondary);
+      color: #FFFFFF;
+      border-color: var(--secondary);
+    }
+
+    /* CONTAINER PRINCIPAL */
+    .manage-main {
+      flex: 1;
+      max-width: 680px;
+      width: 100%;
+      margin: 36px auto;
+      padding: 0 20px;
+    }
+
+    /* ANTET SALON */
+    .studio-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .studio-brand {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+
+    .studio-tag {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* CARD PRINCIPAL DETALII PROGRAMARE */
+    .booking-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .card-top-bar {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-subtle);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .card-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge-confirmed {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+
+    .badge-cancelled {
+      background: var(--destructive-bg);
+      color: var(--destructive);
+      border: 1px solid var(--destructive);
+    }
+
+    .booking-token-ref {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    .card-body {
+      padding: 28px 24px;
+    }
+
+    .service-hero-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .service-category-tag {
+      display: inline-block;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--secondary);
+      background: var(--primary-subtle);
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 520px) {
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .detail-item {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .detail-item-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .detail-item-value {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .detail-item-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* BANNER POLITICĂ ANULARE */
+    .policy-banner {
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .policy-banner-normal {
+      background: var(--info-bg);
+      border: 1px solid var(--info);
+      color: var(--text-primary);
+    }
+
+    .policy-banner-peak-allowed {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning);
+      color: var(--text-primary);
+    }
+
+    .policy-banner-peak-blocked {
+      background: var(--destructive-bg);
+      border: 1px solid var(--destructive);
+      color: var(--text-primary);
+    }
+
+    .policy-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .policy-title {
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    /* ZONĂ BUTOANE ACȚIUNI */
+    .actions-card {
+      display: flex;
+      gap: 12px;
+      padding-top: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .actions-card {
+        flex-direction: column;
+      }
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 13px 18px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-reschedule {
+      background: var(--primary);
+      color: #FFFFFF;
+      border: 1px solid var(--primary-hover);
+    }
+
+    .btn-reschedule:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-cancel {
+      background: transparent;
+      color: var(--destructive);
+      border: 1px solid var(--destructive);
+    }
+
+    .btn-cancel:hover:not(:disabled) {
+      background: var(--destructive-bg);
+    }
+
+    .btn-cancel:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: var(--border-strong);
+      color: var(--text-muted);
+      background: var(--surface-subtle);
+    }
+
+    /* ALERTE ȘI STĂRI DE PREVIEW */
+    .preview-state-box {
+      display: none;
+      padding: 40px 24px;
+      text-align: center;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .preview-state-box.active {
+      display: block;
+    }
+
+    .state-icon-large {
+      font-size: 40px;
+      margin-bottom: 14px;
+    }
+
+    .state-title-large {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .state-desc-large {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      max-width: 440px;
+      margin: 0 auto 20px;
+    }
+
+    /* SKELETON LOADING */
+    .skeleton-line {
+      background: linear-gradient(90deg, var(--surface-subtle) 25%, var(--surface-hover) 50%, var(--surface-subtle) 75%);
+      background-size: 200% 100%;
+      animation: skeletonLoading 1.5s infinite;
+      border-radius: 6px;
+    }
+
+    @keyframes skeletonLoading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* MODALE */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 23, 22, 0.65);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: var(--shadow-dropdown);
+      animation: popIn 0.2s ease-out;
+      overflow: hidden;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .modal-body {
+      padding: 20px 24px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      background: var(--surface-subtle);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* SELECTOR ORE PENTRU REPROGRAMARE */
+    .reschedule-days {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .reschedule-day-pill {
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-subtle);
+      padding: 8px 12px;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      min-width: 65px;
+      font-size: 12px;
+    }
+
+    .reschedule-day-pill.active {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+      color: var(--secondary);
+      font-weight: 700;
+    }
+
+    .reschedule-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .reschedule-slot-btn {
+      padding: 9px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-subtle);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .reschedule-slot-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+
+    .reschedule-slot-btn.active {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary-hover);
+    }
+
+    .mock-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARA DE CONTROL A MOCK-ULUI -->
+  <header class="mock-toolbar">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span class="mock-badge">DS-pub-manage</span>
+      <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Gestiune Programare Client</span>
+    </div>
+
+    <div class="mock-controls">
+      <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">STARE:</span>
+      <button class="mock-btn active" id="btn-state-default" onclick="switchState('default')">Interactiv (Implicit)</button>
+      <button class="mock-btn" id="btn-state-loading" onclick="switchState('loading')">Se încarcă</button>
+      <button class="mock-btn" id="btn-state-token-error" onclick="switchState('error')">Link Expirat / Nevalid</button>
+      <button class="mock-btn" id="btn-state-cancelled" onclick="switchState('cancelled')">Programare Anulată</button>
+      <button class="mock-btn" id="btn-state-empty" onclick="switchState('empty')">Fără Rezervare Activă</button>
+
+      <div class="theme-toggle">
+        <button class="mock-btn" id="theme-btn" onclick="toggleTheme()">☀️ Mod Luminos</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- BARA DE SIMULARE POLITICĂ DE ANULARE (SCENARII) -->
+  <div class="scenario-bar" id="scenario-bar">
+    <span class="scenario-label">Politica de Anulare (Testează Scenariul):</span>
+    <button class="scenario-pill active" id="scen-normal" onclick="setScenario('normal')">
+      📅 Zi Normală (Anulare permisă oricând)
+    </button>
+    <button class="scenario-pill" id="scen-peak-allowed" onclick="setScenario('peak-allowed')">
+      ⚠️ Zi Full: > 24 ore rămase (Anulare permisă)
+    </button>
+    <button class="scenario-pill" id="scen-peak-blocked" onclick="setScenario('peak-blocked')">
+      ⛔ Zi Full: &lt; 24 ore rămase (Anulare strict blocată)
+    </button>
+  </div>
+
+  <!-- CONTAINER PRINCIPAL -->
+  <main class="manage-main">
+
+    <!-- ANTET SALON -->
+    <div class="studio-header">
+      <div class="studio-brand">Beauty Studio</div>
+      <div class="studio-tag">
+        <span>📍 Gura Râului, Sibiu</span>
+        <span>•</span>
+        <span>Gestiune Rezervare Online</span>
+      </div>
+    </div>
+
+    <!-- 1. STAREA PRINCIPALĂ (DEFAULT / INTERACTIV) -->
+    <div id="state-view-default" class="booking-card">
+      <div class="card-top-bar">
+        <span class="card-status-badge badge-confirmed" id="badge-status">
+          <span>●</span> Confirmată
+        </span>
+        <span class="booking-token-ref">Cod Rezervare: #BS-84291</span>
+      </div>
+
+      <div class="card-body">
+        <div class="service-category-tag" id="val-category">🌿 Categoria Sprâncene</div>
+        <h1 class="service-hero-title" id="val-service">Laminare sprâncene</h1>
+
+        <!-- Detalii programare -->
+        <div class="details-grid">
+          <div class="detail-item">
+            <div class="detail-item-label">Data & Ora Programării</div>
+            <div class="detail-item-value" id="val-datetime">Vineri, 20 Noiembrie 2026</div>
+            <div class="detail-item-sub" id="val-hour">Ora 11:00 (Durată: 90 min)</div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-item-label">Locație & Serviciu</div>
+            <div class="detail-item-value">Beauty Studio</div>
+            <div class="detail-item-sub">Gura Râului, Sibiu</div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-item-label">Clientă</div>
+            <div class="detail-item-value" id="val-client">Ioana Popa</div>
+            <div class="detail-item-sub">0740 123 456 • ioana.popa@email.ro</div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-item-label">Preț Total de Achitat</div>
+            <div class="detail-item-value" id="val-price" style="color:var(--secondary);">180 RON</div>
+            <div class="detail-item-sub">Plată directă la salon (cash/card)</div>
+          </div>
+        </div>
+
+        <!-- Banner dinamic de politică de anulare -->
+        <div id="policy-container">
+          <!-- Injectat dinamic prin setScenario() -->
+        </div>
+
+        <!-- Butoane acțiune -->
+        <div class="actions-card">
+          <button class="btn-action btn-reschedule" onclick="openRescheduleModal()">
+            <span>📅</span> Reprogramează la Altă Dată
+          </button>
+          <button id="btn-cancel-booking" class="btn-action btn-cancel" onclick="openCancelModal()">
+            <span id="btn-cancel-icon">✕</span>
+            <span id="btn-cancel-text">Anulează Rezervarea</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. STARE: SE ÎNCARCĂ (SKELETON) -->
+    <div id="state-view-loading" class="booking-card" style="display:none; padding:24px;">
+      <div class="skeleton-line" style="height:22px; width:120px; margin-bottom:20px;"></div>
+      <div class="skeleton-line" style="height:32px; width:65%; margin-bottom:12px;"></div>
+      <div class="skeleton-line" style="height:16px; width:40%; margin-bottom:28px;"></div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+        <div class="skeleton-line" style="height:70px;"></div>
+        <div class="skeleton-line" style="height:70px;"></div>
+        <div class="skeleton-line" style="height:70px;"></div>
+        <div class="skeleton-line" style="height:70px;"></div>
+      </div>
+      
+      <div class="skeleton-line" style="height:50px; margin-bottom:20px;"></div>
+      <div style="display:flex; gap:12px;">
+        <div class="skeleton-line" style="height:44px; flex:1;"></div>
+        <div class="skeleton-line" style="height:44px; flex:1;"></div>
+      </div>
+    </div>
+
+    <!-- 3. STARE: LINK EXPIRAT SAU TOKEN NEVALID -->
+    <div id="state-view-error" class="preview-state-box">
+      <div class="state-icon-large">🔒</div>
+      <h2 class="state-title-large">Link de Acces Nevalid sau Expirat</h2>
+      <p class="state-desc-large">
+        Nu am putut identifica rezervarea folosind codul de securitate furnizat. Link-ul poate fi expirat sau programarea a fost deja ștearsă din sistem.
+      </p>
+      <a href="DS-pub-booking.html" class="btn-action btn-reschedule" style="display:inline-flex;">
+        Fă o Programare Nouă
+      </a>
+    </div>
+
+    <!-- 4. STARE: SUCCES ANULARE -->
+    <div id="state-view-cancelled" class="preview-state-box">
+      <div class="state-icon-large">✓</div>
+      <h2 class="state-title-large">Rezervarea a Fost Anulată</h2>
+      <p class="state-desc-large">
+        Programarea ta pentru <strong>Laminare sprâncene</strong> a fost anulată cu succes. Intervalul a fost eliberat în calendar și a fost transmisă o notificare automată către clientele de pe lista de așteptare.
+      </p>
+      <a href="DS-pub-booking.html" class="btn-action btn-reschedule" style="display:inline-flex;">
+        Alege un Alt Serviciu
+      </a>
+    </div>
+
+    <!-- 5. STARE: FĂRĂ REZERVARE ACTIVĂ (EMPTY) -->
+    <div id="state-view-empty" class="preview-state-box">
+      <div class="state-icon-large">🌿</div>
+      <h2 class="state-title-large">Nicio Programare Activă</h2>
+      <p class="state-desc-large">
+        În acest moment nu ai nicio rezervare viitoare asociată acestui număr de telefon sau adresă de email.
+      </p>
+      <a href="DS-pub-booking.html" class="btn-action btn-reschedule" style="display:inline-flex;">
+        Vezi Catalogul și Programează-te
+      </a>
+    </div>
+
+  </main>
+
+  <!-- ==========================================
+       MODAL 1: CONFIRMARE ANULARE PROGRAMARE
+       ========================================== -->
+  <div class="modal-overlay" id="modal-cancel">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirmare Anulare</h3>
+        <button class="modal-close-btn" onclick="closeCancelModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:14px;">
+          Ești sigură că dorești să anulezi programarea pentru <strong>Laminare sprâncene</strong> de <strong id="modal-cancel-date">Vineri, 20 Noiembrie la ora 11:00</strong>?
+        </p>
+        <p style="font-size:12px; color:var(--text-muted); background:var(--surface-subtle); padding:10px; border-radius:8px; border:1px solid var(--border-subtle);">
+          ℹ️ Intervalul eliberat va fi oferit imediat următoarei cliente înscrise pe lista de așteptare. Această acțiune este ireversibilă.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="mock-btn" onclick="closeCancelModal()">Păstrează Programarea</button>
+        <button class="btn-action btn-cancel" style="padding:8px 16px; font-size:13px;" onclick="confirmCancellation()">
+          Da, Anulează Definitiv
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: REPROGRAMARE CALENDARISTICĂ
+       ========================================== -->
+  <div class="modal-overlay" id="modal-reschedule">
+    <div class="modal-card" style="max-width:520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Alege o Nouă Dată</h3>
+        <button class="modal-close-btn" onclick="closeRescheduleModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">
+          Selectează o nouă zi disponibilă pentru <strong>Laminare sprâncene</strong> (90 min):
+        </p>
+
+        <!-- Zile disponibile -->
+        <div class="reschedule-days">
+          <div class="reschedule-day-pill active" onclick="pickRescheduleDay(this, 'Luni, 23 Nov')">
+            <div style="font-size:10.5px; color:var(--text-muted);">LUN</div>
+            <div style="font-size:14px; font-weight:700;">23</div>
+            <div style="font-size:10px; color:var(--success);">4 locuri</div>
+          </div>
+          <div class="reschedule-day-pill" onclick="pickRescheduleDay(this, 'Marți, 24 Nov')">
+            <div style="font-size:10.5px; color:var(--text-muted);">MAR</div>
+            <div style="font-size:14px; font-weight:700;">24</div>
+            <div style="font-size:10px; color:var(--success);">6 locuri</div>
+          </div>
+          <div class="reschedule-day-pill" onclick="pickRescheduleDay(this, 'Miercuri, 25 Nov')">
+            <div style="font-size:10.5px; color:var(--text-muted);">MIE</div>
+            <div style="font-size:14px; font-weight:700;">25</div>
+            <div style="font-size:10px; color:var(--success);">3 locuri</div>
+          </div>
+          <div class="reschedule-day-pill" onclick="pickRescheduleDay(this, 'Joi, 26 Nov')">
+            <div style="font-size:10.5px; color:var(--text-muted);">JOI</div>
+            <div style="font-size:14px; font-weight:700;">26</div>
+            <div style="font-size:10px; color:var(--warning);">1 loc</div>
+          </div>
+        </div>
+
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">
+          Intervale Orare Libere (<span id="selected-reschedule-day-label">Luni, 23 Nov</span>):
+        </div>
+
+        <!-- Grilă sloturi orare libere -->
+        <div class="reschedule-slots-grid" id="reschedule-slots-container">
+          <button class="reschedule-slot-btn active" onclick="pickRescheduleSlot(this, '09:30')">09:30</button>
+          <button class="reschedule-slot-btn" onclick="pickRescheduleSlot(this, '11:30')">11:30</button>
+          <button class="reschedule-slot-btn" onclick="pickRescheduleSlot(this, '14:00')">14:00</button>
+          <button class="reschedule-slot-btn" onclick="pickRescheduleSlot(this, '16:30')">16:30</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="mock-btn" onclick="closeRescheduleModal()">Renunță</button>
+        <button class="btn-action btn-reschedule" style="padding:8px 18px; font-size:13px;" onclick="confirmReschedule()">
+          Confirmă Reprogramarea
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="mock-footer">
+    Beauty Studio • Gura Râului, Sibiu • Mockup tehnic conform sistemului de design din docs/design/DESIGN.md
+  </footer>
+
+  <!-- SCRIPT LOGICĂ INTERACTIVĂ MOCK -->
+  <script>
+    let currentScenario = 'normal';
+    let currentSelectedDate = 'Vineri, 20 Noiembrie 2026';
+    let currentSelectedHour = '11:00';
+    let newRescheduleDay = 'Luni, 23 Nov 2026';
+    let newRescheduleHour = '09:30';
+
+    // 1. Gestiune Scenarii Politică de Anulare
+    function setScenario(scen) {
+      currentScenario = scen;
+      
+      document.querySelectorAll('.scenario-pill').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`scen-${scen}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const policyContainer = document.getElementById('policy-container');
+      const cancelBtn = document.getElementById('btn-cancel-booking');
+      const cancelIcon = document.getElementById('btn-cancel-icon');
+      const cancelText = document.getElementById('btn-cancel-text');
+
+      if (scen === 'normal') {
+        // Zi normală: anulare oricând permisă online
+        policyContainer.innerHTML = `
+          <div class="policy-banner policy-banner-normal">
+            <span class="policy-icon">ℹ️</span>
+            <div>
+              <div class="policy-title">Politica de Anulare: Program Flexibil</div>
+              <div style="font-size:12.5px; color:var(--text-secondary);">
+                Aceasta este o zi cu program obișnuit. Poți anula sau reprograma gratuit direct din această pagină în cazul în care intervine o schimbare în programul tău.
+              </div>
+            </div>
+          </div>
+        `;
+        cancelBtn.disabled = false;
+        cancelIcon.textContent = '✕';
+        cancelText.textContent = 'Anulează Rezervarea';
+        cancelBtn.title = '';
+      } 
+      else if (scen === 'peak-allowed') {
+        // Zi aglomerată cu > 24 ore rămase: anulare permisă cu notificare
+        policyContainer.innerHTML = `
+          <div class="policy-banner policy-banner-peak-allowed">
+            <span class="policy-icon">⚠️</span>
+            <div>
+              <div class="policy-title">Atenție: Aceasta este o Zi Aglomerată (Zi Full)</div>
+              <div style="font-size:12.5px; color:var(--text-secondary);">
+                În zilele marcate ca <strong>Zi Full</strong>, anulările online sunt permise doar cu cel puțin <strong>24 de ore înainte</strong>. Ai mai mult de 24h rămase, așadar poți anula sau reprograma acum gratuit.
+              </div>
+            </div>
+          </div>
+        `;
+        cancelBtn.disabled = false;
+        cancelIcon.textContent = '✕';
+        cancelText.textContent = 'Anulează Rezervarea (Înainte de limita 24h)';
+        cancelBtn.title = '';
+      } 
+      else if (scen === 'peak-blocked') {
+        // Zi aglomerată cu < 24 ore rămase: anulare strict interzisă / blocată
+        policyContainer.innerHTML = `
+          <div class="policy-banner policy-banner-peak-blocked">
+            <span class="policy-icon">⛔</span>
+            <div>
+              <div class="policy-title">Anularea Online Este Blocată (&lt; 24h pe Zi Aglomerată)</div>
+              <div style="font-size:12.5px; color:var(--text-secondary);">
+                Conform politicii salonului, programările din <strong>Zilele Aglomerate (Zile Full)</strong> nu mai pot fi anulate online cu mai puțin de 24 de ore înainte de oră. Pentru situații excepționale sau urgențe medicale, te rugăm să contactezi salonul la <strong>0740 123 456</strong>.
+              </div>
+            </div>
+          </div>
+        `;
+        cancelBtn.disabled = true;
+        cancelIcon.textContent = '🔒';
+        cancelText.textContent = 'Anulare Blocată (< 24h)';
+        cancelBtn.title = 'Anularea este blocată conform politicii pentru zilele aglomerate';
+      }
+    }
+
+    // 2. Comutare Stări Preview Toolbar
+    function switchState(stateName) {
+      document.querySelectorAll('.mock-btn').forEach(btn => {
+        if (btn.id.startsWith('btn-state-')) btn.classList.remove('active');
+      });
+
+      const btnMap = {
+        'default': 'btn-state-default',
+        'loading': 'btn-state-loading',
+        'error': 'btn-state-token-error',
+        'cancelled': 'btn-state-cancelled',
+        'empty': 'btn-state-empty'
+      };
+
+      if (btnMap[stateName]) {
+        document.getElementById(btnMap[stateName]).classList.add('active');
+      }
+
+      // Hide all views
+      document.getElementById('state-view-default').style.display = 'none';
+      document.getElementById('state-view-loading').style.display = 'none';
+      document.getElementById('state-view-error').classList.remove('active');
+      document.getElementById('state-view-cancelled').classList.remove('active');
+      document.getElementById('state-view-empty').classList.remove('active');
+      document.getElementById('scenario-bar').style.display = 'none';
+
+      if (stateName === 'default') {
+        document.getElementById('state-view-default').style.display = 'block';
+        document.getElementById('scenario-bar').style.display = 'flex';
+      } else if (stateName === 'loading') {
+        document.getElementById('state-view-loading').style.display = 'block';
+      } else if (stateName === 'error') {
+        document.getElementById('state-view-error').classList.add('active');
+      } else if (stateName === 'cancelled') {
+        document.getElementById('state-view-cancelled').classList.add('active');
+      } else if (stateName === 'empty') {
+        document.getElementById('state-view-empty').classList.add('active');
+      }
+    }
+
+    // 3. Modale Anulare
+    function openCancelModal() {
+      if (document.getElementById('btn-cancel-booking').disabled) return;
+      document.getElementById('modal-cancel').classList.add('active');
+    }
+
+    function closeCancelModal() {
+      document.getElementById('modal-cancel').classList.remove('active');
+    }
+
+    function confirmCancellation() {
+      closeCancelModal();
+      switchState('cancelled');
+    }
+
+    // 4. Modale Reprogramare
+    function openRescheduleModal() {
+      document.getElementById('modal-reschedule').classList.add('active');
+    }
+
+    function closeRescheduleModal() {
+      document.getElementById('modal-reschedule').classList.remove('active');
+    }
+
+    function pickRescheduleDay(el, dayName) {
+      document.querySelectorAll('.reschedule-day-pill').forEach(pill => pill.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('selected-reschedule-day-label').textContent = dayName;
+      newRescheduleDay = dayName + ' 2026';
+    }
+
+    function pickRescheduleSlot(el, slotTime) {
+      document.querySelectorAll('.reschedule-slot-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
+      newRescheduleHour = slotTime;
+    }
+
+    function confirmReschedule() {
+      closeRescheduleModal();
+      document.getElementById('val-datetime').textContent = newRescheduleDay;
+      document.getElementById('val-hour').textContent = `Ora ${newRescheduleHour} (Durată: 90 min)`;
+      alert(`✓ Programarea a fost reprogramată cu succes pentru ${newRescheduleDay} la ora ${newRescheduleHour}!`);
+    }
+
+    // 5. Comutator Temă (Light / Dark)
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      
+      const themeBtn = document.getElementById('theme-btn');
+      themeBtn.textContent = newTheme === 'dark' ? '🌙 Mod Întunecat' : '☀️ Mod Luminos';
+    }
+
+    // Inițializare implicită pe scenariul normal
+    setScenario('normal');
+  </script>
+</body>
+</html>

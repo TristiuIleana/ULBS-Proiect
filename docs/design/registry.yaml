@@ -1,0 +1,160 @@
+# docs/design/registry.yaml — every screen and shared component, by DS- ID.
+# Plans, commits, mocks and board files use the ID. kind: foundation | component | screen
+# status: proposed | draft (mock drawn) | approved (confirmed on the board) | implemented | deprecated (never delete an entry)
+
+designs:
+  # ==========================================
+  # 1. Ecrane Publice Client (Portal Rezervare)
+  # ==========================================
+  - id: DS-pub-catalog
+    name: Catalog Servicii
+    description: Prezentare servicii Beauty Studio, prețuri, durate, etape explicative pentru servicii split și selecție opțională specialist.
+    kind: screen
+    source: frontend/src/pages/public/CatalogPage.tsx
+    screenshots: [screens/DS-pub-catalog.light.png, screens/DS-pub-catalog.dark.png]
+    design_ref: none
+    status: proposed
+
+  - id: DS-pub-booking
+    name: Wizard Rezervare Programare
+    description: Flux de rezervare în 3 pași - selecție serviciu/specialist, selector calendaristic sloturi (inclusiv sloturi intercalate pe pauze split), formular date contact (nume, telefon, email).
+    kind: screen
+    source: frontend/src/pages/public/BookingWizardPage.tsx
+    screenshots: [screens/DS-pub-booking.light.png, screens/DS-pub-booking.dark.png]
+    design_ref: mocks/DS-pub-booking.html
+    status: approved
+
+  - id: DS-pub-confirmation
+    name: Confirmare Rezervare
+    description: Ecran de succes afișat după salvarea rezervării, sumarul detaliilor, informații despre confirmarea pe email și link securizat.
+    kind: screen
+    source: frontend/src/pages/public/BookingConfirmationPage.tsx
+    screenshots: [screens/DS-pub-confirmation.light.png, screens/DS-pub-confirmation.dark.png]
+    design_ref: none
+    status: proposed
+
+  - id: DS-pub-manage
+    name: Gestiune Programare Client (Token Securizat)
+    description: Pagină privată accesibilă prin link-ul din email pentru vizualizare, reprogramare sau anulare conform politicii (permis liber pe zile normale, restricționat sub 24h pe zile Full).
+    kind: screen
+    source: frontend/src/pages/public/ManageBookingPage.tsx
+    screenshots: [screens/DS-pub-manage.light.png, screens/DS-pub-manage.dark.png]
+    design_ref: mocks/DS-pub-manage.html
+    status: draft
+
+  - id: DS-pub-waitlist
+    name: Înscriere Listă de Așteptare
+    description: Modal / formular de înscriere pe lista de așteptare când o dată sau un interval orar dorit este complet rezervat.
+    kind: screen
+    source: frontend/src/components/public/WaitlistDialog.tsx
+    screenshots: [screens/DS-pub-waitlist.light.png, screens/DS-pub-waitlist.dark.png]
+    design_ref: none
+    status: proposed
+
+  - id: DS-pub-auth
+    name: Cont & Istoric Client (Opțional)
+    description: Autentificare / înregistrare opțională pentru clienți și panou cu istoricul programărilor active și trecute.
+    kind: screen
+    source: frontend/src/pages/public/ClientAccountPage.tsx
+    screenshots: [screens/DS-pub-auth.light.png, screens/DS-pub-auth.dark.png]
+    design_ref: none
+    status: proposed
+
+  # ==========================================
+  # 2. Ecrane Recepție & Administrare (Admin)
+  # ==========================================
+  - id: DS-adm-login
+    name: Autentificare Personal (Staff Login)
+    description: Pagină de login securizată cu email și parolă pentru Proprietară (Admin) și Angajată (Make-up).
+    kind: screen
+    source: frontend/src/pages/admin/StaffLoginPage.tsx
+    screenshots: [screens/DS-adm-login.light.png, screens/DS-adm-login.dark.png]
+    design_ref: mocks/DS-adm-login.html
+    status: approved
+
+  - id: DS-adm-calendar
+    name: Calendar Recepție Multi-Angajat
+    description: Tablou de bord principal cu vizualizare zi/săptămână pe coloane de specialiști, editare rapidă / drag & drop, creare rezervare telefonică și blocare manuală intervale.
+    kind: screen
+    source: frontend/src/pages/admin/ReceptionCalendarPage.tsx
+    screenshots: [screens/DS-adm-calendar.light.png, screens/DS-adm-calendar.dark.png]
+    design_ref: mocks/DS-adm-calendar.html
+    status: approved
+
+  - id: DS-adm-services
+    name: Gestiune Servicii & Etape Split
+    description: Configurator servicii - durată totală, preț, asociere angajați calificați și configurator de etape (ocupat / liber / ocupat) pentru servicii split (laminare sprâncene).
+    kind: screen
+    source: frontend/src/pages/admin/ServicesManagementPage.tsx
+    screenshots: [screens/DS-adm-services.light.png, screens/DS-adm-services.dark.png]
+    design_ref: mocks/DS-adm-services.html
+    status: draft
+
+  - id: DS-adm-staff
+    name: Gestiune Angajați & Orare de Lucru
+    description: Administrare profiluri specialiste, orar săptămânal pe zile, excepții / concedii / zile libere și generare link privat de abonare iCal.
+    kind: screen
+    source: frontend/src/pages/admin/StaffManagementPage.tsx
+    screenshots: [screens/DS-adm-staff.light.png, screens/DS-adm-staff.dark.png]
+    design_ref: none
+    status: proposed
+
+  - id: DS-adm-peak-days
+    name: Configurare Zile Aglomerate (Zile Full)
+    description: Selector calendaristic unde Adminul marchează zilele cu cerere mare (evenimente, sărbători) în care anularea online este blocată sub 24h.
+    kind: screen
+    source: frontend/src/pages/admin/PeakDaysPage.tsx
+    screenshots: [screens/DS-adm-peak-days.light.png, screens/DS-adm-peak-days.dark.png]
+    design_ref: none
+    status: proposed
+
+  - id: DS-adm-waitlist
+    name: Monitorizare Listă de Așteptare
+    description: Panou administrativ pentru vizualizarea cererilor din waitlist, monitorizarea notificărilor prioritare de 30 de minute și alocarea sloturilor eliberate.
+    kind: screen
+    source: frontend/src/pages/admin/WaitlistManagementPage.tsx
+    screenshots: [screens/DS-adm-waitlist.light.png, screens/DS-adm-waitlist.dark.png]
+    design_ref: none
+    status: proposed
+
+  # ==========================================
+  # 3. Ecrane Angajat (Specialistă Make-up)
+  # ==========================================
+  - id: DS-emp-calendar
+    name: Calendar Personal Angajat
+    description: Vizualizare calendaristică restrânsă doar la propriile cliente și programări de make-up, fără acces la restul salonului, cu instrucțiuni și URL iCal (.ics).
+    kind: screen
+    source: frontend/src/pages/employee/EmployeeCalendarPage.tsx
+    screenshots: [screens/DS-emp-calendar.light.png, screens/DS-emp-calendar.dark.png]
+    design_ref: none
+    status: proposed
+
+  # ==========================================
+  # 4. Componente Partajate Specifice (DS Components)
+  # ==========================================
+  - id: DS-comp-split-stepper
+    name: Indicator Etape Serviciu Split
+    description: Componentă grafică ce vizualizează cele 5 etape ale laminării de sprâncene, diferențiind etapele ocupate de cele libere/intercalabile.
+    kind: component
+    source: frontend/src/components/common/SplitServiceStepper.tsx
+    screenshots: [screens/DS-comp-split-stepper.light.png, screens/DS-comp-split-stepper.dark.png]
+    design_ref: none
+    status: proposed
+
+  - id: DS-comp-time-grid
+    name: Grilă Selector Sloturi Orare
+    description: Grilă interactivă de selecție sloturi orare libere calculate în timp real în funcție de disponibilitate și etape split.
+    kind: component
+    source: frontend/src/components/booking/TimeSlotGrid.tsx
+    screenshots: [screens/DS-comp-time-grid.light.png, screens/DS-comp-time-grid.dark.png]
+    design_ref: none
+    status: proposed
+
+  - id: DS-comp-peak-badge
+    name: Badge Indicator Zi Aglomerată
+    description: Etichetă distinctivă de alertă afișată pe zilele Full pentru a avertiza clientul cu privire la politica de anulare strictă (min. 24h).
+    kind: component
+    source: frontend/src/components/common/PeakDayBadge.tsx
+    screenshots: [screens/DS-comp-peak-badge.light.png, screens/DS-comp-peak-badge.dark.png]
+    design_ref: none
+    status: proposed

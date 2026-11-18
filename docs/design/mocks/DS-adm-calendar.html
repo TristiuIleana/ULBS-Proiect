@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock: DS-adm-calendar — Calendar Salon (Recepție & Administrare)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ----------------------------------------------------
+       DESIGN TOKENS (conform docs/design/DESIGN.md)
+       ---------------------------------------------------- */
+    :root, [data-theme="light"] {
+      --bg-app: #FAF7F2;
+      --surface-card: #FFFFFF;
+      --surface-subtle: #F4EFEA;
+      --surface-hover: #EFE9E2;
+      
+      --text-primary: #2B2523;
+      --text-secondary: #615651;
+      --text-muted: #8E827B;
+      
+      --border-subtle: #E8E2D9;
+      --border-strong: #D5CBC0;
+      
+      --primary: #C48B71;
+      --primary-hover: #B07D62;
+      --primary-subtle: #F9EFEA;
+      --secondary: #9E6B55;
+      --highlight-gold: #D4AF37;
+      
+      /* Culori semantice */
+      --success: #4E7A5D;
+      --success-bg: #EDF4EF;
+      --warning: #C98A2C;
+      --warning-bg: #FAF2E4;
+      --destructive: #B84A39;
+      --destructive-bg: #F8ECE9;
+      --info: #5F758E;
+      --info-bg: #EFF3F7;
+
+      /* Umbre calde */
+      --shadow-subtle: 0 2px 8px -2px rgba(43, 37, 35, 0.05);
+      --shadow-card: 0 6px 20px -4px rgba(43, 37, 35, 0.08);
+      --shadow-dropdown: 0 12px 32px -6px rgba(43, 37, 35, 0.12);
+      --shadow-focus: 0 0 0 3px rgba(196, 139, 113, 0.25);
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #1A1716;
+      --surface-card: #241F1D;
+      --surface-subtle: #2E2825;
+      --surface-hover: #3A332F;
+      
+      --text-primary: #F5F2EB;
+      --text-secondary: #C7BFB7;
+      --text-muted: #8E847C;
+      
+      --border-subtle: #38302C;
+      --border-strong: #4D433E;
+      
+      --primary: #D49D85;
+      --primary-hover: #C48B71;
+      --primary-subtle: #332621;
+      --secondary: #B07D62;
+      --highlight-gold: #E0C070;
+      
+      /* Culori semantice */
+      --success: #6FA07F;
+      --success-bg: #1E2D23;
+      --warning: #E2A346;
+      --warning-bg: #2E2415;
+      --destructive: #D96B5A;
+      --destructive-bg: #2E1916;
+      --info: #8197AF;
+      --info-bg: #1B242D;
+
+      /* Umbre calde */
+      --shadow-subtle: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+      --shadow-card: 0 6px 20px -4px rgba(0, 0, 0, 0.5);
+      --shadow-dropdown: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
+      --shadow-focus: 0 0 0 3px rgba(212, 157, 133, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 13.5px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1, h2, h3, .font-serif {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+    }
+
+    /* ----------------------------------------------------
+       TOOLBAR PREVIEW
+       ---------------------------------------------------- */
+    .mock-toolbar {
+      background: var(--surface-card);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-subtle);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .mock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+      background: var(--primary-subtle);
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+
+    .mock-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mock-btn {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mock-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+
+    .mock-btn.active {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+    }
+
+    .theme-toggle {
+      border-left: 1px solid var(--border-subtle);
+      padding-left: 12px;
+      margin-left: 4px;
+    }
+
+    /* ----------------------------------------------------
+       ADMIN APP HEADER & BARĂ ACȚIUNI
+       ---------------------------------------------------- */
+    .admin-header-bar {
+      background: var(--surface-card);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 16px 24px;
+    }
+
+    .admin-header-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .admin-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-logo-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 9999px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--highlight-gold) 100%);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .admin-title-box h1 {
+      font-size: 19px;
+      line-height: 1.2;
+      color: var(--text-primary);
+    }
+
+    .admin-title-box span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .admin-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action-primary {
+      background: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 10px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-action-secondary {
+      background: var(--surface-subtle);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-action-secondary:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-hover);
+    }
+
+    /* Toggle Zi Full */
+    .btn-toggle-peak {
+      border: 1.5px solid var(--highlight-gold);
+      background: var(--warning-bg);
+      color: var(--text-primary);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-toggle-peak.active {
+      background: var(--warning);
+      color: #FFFFFF;
+      border-color: var(--warning);
+    }
+
+    /* ----------------------------------------------------
+       CONTROLLER DATĂ & SUB-HEADER
+       ---------------------------------------------------- */
+    .calendar-controls-bar {
+      max-width: 1240px;
+      margin: 20px auto 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .date-nav-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-nav-arrow {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-card);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-nav-arrow:hover {
+      border-color: var(--primary);
+    }
+
+    .current-date-title {
+      font-size: 20px;
+      color: var(--text-primary);
+    }
+
+    .view-switchers {
+      display: flex;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 3px;
+    }
+
+    .btn-view-tab {
+      padding: 6px 14px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .btn-view-tab.active {
+      background: var(--primary);
+      color: #FFFFFF;
+    }
+
+    /* ----------------------------------------------------
+       GRILĂ CALENDAR MULTI-COLOANĂ (SPRÂNCENE & MAKE-UP)
+       ---------------------------------------------------- */
+    .calendar-container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 16px auto 40px auto;
+      padding: 0 20px;
+      flex: 1;
+    }
+
+    .calendar-card {
+      background: var(--surface-card);
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    /* Banner Alertă Zi Full */
+    .calendar-peak-banner {
+      background: var(--warning-bg);
+      border-bottom: 1px solid var(--warning);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12.5px;
+      color: var(--text-primary);
+    }
+
+    .columns-header {
+      display: grid;
+      grid-template-columns: 80px 1fr 1fr;
+      border-bottom: 1.5px solid var(--border-subtle);
+      background: var(--surface-subtle);
+    }
+
+    .col-header-cell {
+      padding: 14px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .col-header-cell:not(:last-child) {
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .col-meta-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--surface-card);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Grila orară și sloturile */
+    .calendar-timegrid {
+      display: grid;
+      grid-template-columns: 80px 1fr 1fr;
+      position: relative;
+    }
+
+    .time-sidebar {
+      border-right: 1px solid var(--border-subtle);
+      background: var(--surface-subtle);
+    }
+
+    .time-row-label {
+      height: 72px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      text-align: right;
+    }
+
+    .domain-column {
+      position: relative;
+      border-right: 1px solid var(--border-subtle);
+      background: var(--surface-card);
+    }
+
+    .domain-column:last-child {
+      border-right: none;
+    }
+
+    .hour-slot-bg {
+      height: 72px;
+      border-bottom: 1px dashed var(--border-subtle);
+      cursor: pointer;
+    }
+
+    .hour-slot-bg:hover {
+      background: var(--surface-subtle);
+    }
+
+    /* Cardurile de Programare (Interactive) */
+    .appt-card {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      border-radius: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      box-shadow: var(--shadow-subtle);
+      border-left: 4px solid var(--primary);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+      z-index: 2;
+    }
+
+    .appt-card:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-card);
+      filter: brightness(0.98);
+    }
+
+    .appt-brows {
+      background: var(--primary-subtle);
+      border-left-color: var(--primary);
+      border: 1px solid var(--border-subtle);
+      border-left-width: 4px;
+    }
+
+    .appt-makeup {
+      background: var(--surface-subtle);
+      border-left-color: var(--highlight-gold);
+      border: 1px solid var(--border-subtle);
+      border-left-width: 4px;
+    }
+
+    .appt-split-marker {
+      background: var(--info-bg);
+      border: 1px dashed var(--info);
+      color: var(--info);
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      width: fit-content;
+      margin-top: 2px;
+    }
+
+    .appt-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .appt-time {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .appt-price {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .appt-client {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .appt-service {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ----------------------------------------------------
+       MODAL: DETALII / EDITARE / ANULARE PROGRAMARE
+       ---------------------------------------------------- */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: var(--shadow-dropdown);
+      overflow: hidden;
+      animation: modalPop 0.2s ease;
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 13px;
+    }
+
+    .detail-row:last-of-type {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+    }
+
+    .detail-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-actions {
+      padding: 16px 24px;
+      background: var(--surface-subtle);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* ----------------------------------------------------
+       MODAL: ADAUGĂ PROGRAMARE NOUĂ
+       ---------------------------------------------------- */
+    .form-group-modal {
+      margin-bottom: 14px;
+    }
+
+    .form-label-modal {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--text-primary);
+    }
+
+    .form-input-modal, .form-select-modal {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface-card);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    /* ----------------------------------------------------
+       NOTIFICARE TOAST SUCCES
+       ---------------------------------------------------- */
+    .toast-notification {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--success);
+      color: #FFFFFF;
+      padding: 14px 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-dropdown);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 300;
+      animation: slideUp 0.25s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ----------------------------------------------------
+       STĂRI PREVIEW BAZĂ
+       ---------------------------------------------------- */
+    .state-view {
+      display: none;
+    }
+
+    .state-view.active {
+      display: block;
+    }
+
+    .empty-state-box {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .mock-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARA DE CONTROL A MOCK-ULUI -->
+  <header class="mock-toolbar">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="mock-badge">DS-adm-calendar</span>
+      <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Calendar Recepție Salon</span>
+    </div>
+
+    <div class="mock-controls">
+      <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">STARE:</span>
+      <button class="mock-btn active" id="btn-state-default" onclick="switchState('default')">Interactiv (Implicit)</button>
+      <button class="mock-btn" id="btn-state-empty" onclick="switchState('empty')">Fără Programări (Empty)</button>
+      <button class="mock-btn" id="btn-state-loading" onclick="switchState('loading')">Se încarcă</button>
+      <button class="mock-btn" id="btn-state-error" onclick="switchState('error')">Eroare Conexiune</button>
+      <button class="mock-btn" id="btn-state-success" onclick="switchState('success')">Succes / Notificare</button>
+
+      <div class="theme-toggle">
+        <button class="mock-btn" id="theme-btn" onclick="toggleTheme()">☀️ Mod Luminos</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ANTET PANOU ADMIN -->
+  <div class="admin-header-bar">
+    <div class="admin-header-inner">
+      <div class="admin-brand">
+        <div class="admin-logo-circle">B</div>
+        <div class="admin-title-box">
+          <h1 class="font-serif">Beauty Studio • Panou Recepție</h1>
+          <span>Gura Râului, Sibiu • 2 Domenii de Activitate</span>
+        </div>
+      </div>
+
+      <div class="admin-actions">
+        <!-- Buton Marcare Zi Full -->
+        <button id="btn-toggle-peak" class="btn-toggle-peak active" onclick="togglePeakDay()">
+          <span>⭐</span>
+          <span id="btn-peak-text">Zi Aglomerată („Zi Full” Activă)</span>
+        </button>
+
+        <!-- Buton Listă de Așteptare -->
+        <button class="btn-action-secondary" onclick="openWaitlistModal()">
+          <span>⏳</span>
+          <span>Listă de Așteptare (2)</span>
+        </button>
+
+        <!-- Buton Export iCal -->
+        <button class="btn-action-secondary" onclick="alert('URL sincronizare iCal: https://api.beautystudio.ro/ical/staff-feed.ics\nCopiat în clipboard!')">
+          <span>📅</span>
+          <span>Abonare iCal</span>
+        </button>
+
+        <!-- Buton Adăugare Programare -->
+        <button class="btn-action-primary" onclick="openAddModal()">
+          <span>+</span>
+          <span>Adaugă Programare</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTROLER DATĂ & VIZUALIZARE -->
+  <div class="calendar-controls-bar">
+    <div class="date-nav-group">
+      <button class="btn-nav-arrow" onclick="changeDate(-1)">‹</button>
+      <h2 id="calendar-date-display" class="current-date-title font-serif">Sâmbătă, 21 Noiembrie 2026</h2>
+      <button class="btn-nav-arrow" onclick="changeDate(1)">›</button>
+      <button class="btn-action-secondary" style="padding:6px 12px; font-size:12px;" onclick="changeDate(0)">Astăzi</button>
+    </div>
+
+    <div class="view-switchers">
+      <button class="btn-view-tab active">Zi</button>
+      <button class="btn-view-tab" onclick="alert('Vizualizarea pe Săptămână va afișa coloanele pe cele 7 zile.')">Săptămână</button>
+    </div>
+  </div>
+
+  <!-- CONTAINER CALENDAR -->
+  <main class="calendar-container">
+    
+    <!-- ========================================================
+         STARE: INTERACTIV (DEFAULT)
+         ======================================================== -->
+    <div id="view-default" class="state-view active">
+      <div class="calendar-card">
+        
+        <!-- Banner Zi Full -->
+        <div id="calendar-peak-banner" class="calendar-peak-banner">
+          <div>
+            <strong>⭐ Regim Zi Aglomerată („Zi Full”) activ pentru această zi.</strong>
+            <span style="opacity:0.85; margin-left:6px;">Anulările online din partea clientelor sunt blocate sub pragul de 24 de ore.</span>
+          </div>
+          <button class="btn-action-secondary" style="padding:4px 10px; font-size:11.5px;" onclick="togglePeakDay()">Dezactivează Regim Full</button>
+        </div>
+
+        <!-- Antet Coloane -->
+        <div class="columns-header">
+          <div class="col-header-cell" style="justify-content:center; color:var(--text-muted); font-size:12px;">Ora</div>
+          <div class="col-header-cell">
+            <span>🌿 Domeniul Sprâncene</span>
+            <span class="col-meta-tag">4 programări (1 split intercalat)</span>
+          </div>
+          <div class="col-header-cell">
+            <span>💄 Domeniul Make-up</span>
+            <span class="col-meta-tag">3 programări</span>
+          </div>
+        </div>
+
+        <!-- Grilă Orară (09:00 - 19:00) -->
+        <div class="calendar-timegrid" id="calendar-grid">
+          
+          <!-- Coloana 1: Ore (Sidebar) -->
+          <div class="time-sidebar">
+            <div class="time-row-label">09:00</div>
+            <div class="time-row-label">10:00</div>
+            <div class="time-row-label">11:00</div>
+            <div class="time-row-label">12:00</div>
+            <div class="time-row-label">13:00</div>
+            <div class="time-row-label">14:00</div>
+            <div class="time-row-label">15:00</div>
+            <div class="time-row-label">16:00</div>
+            <div class="time-row-label">17:00</div>
+            <div class="time-row-label">18:00</div>
+          </div>
+
+          <!-- Coloana 2: Sprâncene -->
+          <div class="domain-column" id="col-brows">
+            <!-- Background hour slots -->
+            <div class="hour-slot-bg" onclick="quickAddSlot('brows', '09:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('brows', '10:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('brows', '11:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('brows', '12:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('brows', '13:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('brows', '14:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('brows', '15:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('brows', '16:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('brows', '17:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('brows', '18:00')"></div>
+
+            <!-- Programare 1: Laminare Sprâncene (Split) 09:30 - 11:00 -->
+            <div class="appt-card appt-brows" style="top:36px; height:108px;" onclick="openDetailModal('Elena Ionescu', '0722 123 456', 'elena.ionescu@gmail.com', 'Sprâncene', 'Laminare sprâncene', '180 RON', '09:30 - 11:00', 'Serviciu split cu 2 etape de pauză')">
+              <div class="appt-top">
+                <span class="appt-time">09:30 - 11:00</span>
+                <span class="appt-price">180 RON</span>
+              </div>
+              <div>
+                <div class="appt-client">Elena Ionescu</div>
+                <div class="appt-service">Laminare sprâncene</div>
+                <div class="appt-split-marker">⚡ Etape Split (Pauză liberă)</div>
+              </div>
+            </div>
+
+            <!-- Programare 2 Intercalată în pauză: Pensat simplu 10:00 - 10:20 -->
+            <div class="appt-card appt-brows" style="top:74px; height:34px; border-left-color:var(--success); background:#EDF7F0;" onclick="openDetailModal('Andreea Radu', '0744 999 888', 'andreea.radu@yahoo.com', 'Sprâncene', 'Pensat simplu (fără vopsit)', '50 RON', '10:00 - 10:20', 'Intercalat în pauza de acțiune a laminării!')">
+              <div class="appt-top">
+                <span class="appt-time" style="font-size:10px;">10:00 - 10:20 (Intercalat)</span>
+                <span class="appt-price" style="font-size:10px;">50 RON</span>
+              </div>
+              <div class="appt-client" style="font-size:11.5px;">Andreea Radu • Pensat simplu</div>
+            </div>
+
+            <!-- Programare 3: Pensat cu vopsit 11:30 - 12:00 -->
+            <div class="appt-card appt-brows" style="top:180px; height:54px;" onclick="openDetailModal('Simona Stan', '0733 111 222', 'simona.stan@gmail.com', 'Sprâncene', 'Pensat cu vopsit', '70 RON', '11:30 - 12:00', 'Nuanță șaten cald')">
+              <div class="appt-top">
+                <span class="appt-time">11:30 - 12:00</span>
+                <span class="appt-price">70 RON</span>
+              </div>
+              <div>
+                <div class="appt-client">Simona Stan</div>
+                <div class="appt-service">Pensat cu vopsit</div>
+              </div>
+            </div>
+
+            <!-- Programare 4: Laminare sprâncene 14:00 - 15:30 -->
+            <div class="appt-card appt-brows" style="top:360px; height:108px;" onclick="openDetailModal('Ioana Marin', '0755 333 444', 'ioana.marin@outlook.com', 'Sprâncene', 'Laminare sprâncene', '180 RON', '14:00 - 15:30', 'Prima laminare')">
+              <div class="appt-top">
+                <span class="appt-time">14:00 - 15:30</span>
+                <span class="appt-price">180 RON</span>
+              </div>
+              <div>
+                <div class="appt-client">Ioana Marin</div>
+                <div class="appt-service">Laminare sprâncene</div>
+                <div class="appt-split-marker">⚡ Etape Split</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coloana 3: Make-up -->
+          <div class="domain-column" id="col-makeup">
+            <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '09:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '10:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '11:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '12:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '13:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '14:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '15:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '16:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '17:00')"></div>
+            <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '18:00')"></div>
+
+            <!-- Programare 1: Make-up ocazie cu gene 10:00 - 11:30 -->
+            <div class="appt-card appt-makeup" style="top:72px; height:108px;" onclick="openDetailModal('Camelia Dobre', '0766 555 666', 'camelia.d@gmail.com', 'Make-up', 'Make-up ocazie (cu gene)', '170 RON', '10:00 - 11:30', 'Eveniment de gală')">
+              <div class="appt-top">
+                <span class="appt-time">10:00 - 11:30</span>
+                <span class="appt-price">170 RON</span>
+              </div>
+              <div>
+                <div class="appt-client">Camelia Dobre</div>
+                <div class="appt-service">Make-up ocazie (cu gene)</div>
+              </div>
+            </div>
+
+            <!-- Programare 2: Make-up mireasă 12:00 - 14:00 -->
+            <div class="appt-card appt-makeup" style="top:216px; height:144px; border-left-color:var(--primary); background:#FDF3EE;" onclick="openDetailModal('Alexandra Muntean', '0777 888 999', 'alexandra.nunta@gmail.com', 'Make-up', 'Make-up mireasă', '220 RON', '12:00 - 14:00', 'Mireasă • Machiaj waterproof garantat 24h')">
+              <div class="appt-top">
+                <span class="appt-time">12:00 - 14:00</span>
+                <span class="appt-price">220 RON</span>
+              </div>
+              <div>
+                <div class="appt-client">Alexandra Muntean 👰</div>
+                <div class="appt-service">Make-up mireasă (Pachet Nuntă)</div>
+              </div>
+            </div>
+
+            <!-- Programare 3: Make-up ocazie fără gene 15:00 - 16:15 -->
+            <div class="appt-card appt-makeup" style="top:432px; height:90px;" onclick="openDetailModal('Bianca Vasile', '0788 123 789', 'bianca.v@gmail.com', 'Make-up', 'Make-up ocazie (fără gene)', '150 RON', '15:00 - 16:15', 'Machiaj natural de zi')">
+              <div class="appt-top">
+                <span class="appt-time">15:00 - 16:15</span>
+                <span class="appt-price">150 RON</span>
+              </div>
+              <div>
+                <div class="appt-client">Bianca Vasile</div>
+                <div class="appt-service">Make-up ocazie (fără gene)</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         STARE: FĂRĂ PROGRAMĂRI (EMPTY)
+         ======================================================== -->
+    <div id="view-empty" class="state-view">
+      <div class="calendar-card empty-state-box">
+        <div style="font-size:36px; margin-bottom:12px;">📅</div>
+        <h3 class="font-serif" style="font-size:20px; margin-bottom:6px;">Nicio programare înregistrată pentru această zi</h3>
+        <p style="color:var(--text-secondary); max-width:420px; margin:0 auto 20px auto;">
+          Toate intervalele orare din program sunt libere. Poți adăuga o programare manuală prin telefon sau poți bloca intervale de concediu.
+        </p>
+        <button class="btn-action-primary" onclick="openAddModal()">
+          <span>+ Adaugă Prima Programare</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         STARE: SE ÎNCARCĂ (LOADING)
+         ======================================================== -->
+    <div id="view-loading" class="state-view">
+      <div class="calendar-card" style="padding:40px; text-align:center;">
+        <div style="width:32px; height:32px; border:3px solid var(--border-strong); border-top-color:var(--primary); border-radius:9999px; animation:spin 0.8s linear infinite; margin:0 auto 16px auto;"></div>
+        <div style="font-weight:600; font-size:15px; color:var(--text-primary);">Se sincronizează calendarul salonului...</div>
+        <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         STARE: EROARE CONEXIUNE
+         ======================================================== -->
+    <div id="view-error" class="state-view">
+      <div class="calendar-card" style="padding:40px; text-align:center; background:var(--destructive-bg); border-color:var(--destructive);">
+        <div style="font-size:32px; margin-bottom:10px;">⚠️</div>
+        <h3 style="color:var(--destructive); font-size:18px; margin-bottom:6px;">Eroare la conectarea cu baza de date a salonului</h3>
+        <p style="color:var(--text-secondary); max-width:420px; margin:0 auto 16px auto;">
+          Nu s-au putut prelua programările în timp real. Te rugăm să verifici conexiunea serverului Docker.
+        </p>
+        <button class="btn-action-secondary" style="background:#FFFFFF; border-color:var(--destructive); color:var(--destructive);" onclick="switchState('default')">
+          Reîncearcă Sincronizarea
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================
+       MODAL 1: DETALII / EDITARE / ANULARE PROGRAMARE
+       ======================================================== -->
+  <div id="modal-detail" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title font-serif">Detalii Programare</h3>
+        <button class="modal-close" onclick="closeModal('modal-detail')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-row">
+          <span class="detail-label">Clientă</span>
+          <span class="detail-value" id="md-client">Elena Ionescu</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Telefon</span>
+          <span class="detail-value" id="md-phone">0722 123 456</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Email</span>
+          <span class="detail-value" id="md-email">elena.ionescu@gmail.com</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Domeniu & Serviciu</span>
+          <span class="detail-value" id="md-service">Sprâncene • Laminare sprâncene</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Interval Orar</span>
+          <span class="detail-value" id="md-time">09:30 - 11:00</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Preț Total</span>
+          <span class="detail-value" id="md-price">180 RON</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Note</span>
+          <span class="detail-value" id="md-notes" style="font-weight:normal; font-style:italic;">Serviciu split</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-action-secondary" style="color:var(--destructive); border-color:var(--destructive);" onclick="cancelAppointmentFromModal()">
+          🗑️ Anulează Programarea
+        </button>
+        <button class="btn-action-primary" onclick="alert('Programarea a fost salvată cu succes!'); closeModal('modal-detail');">
+          Salvează Modificările
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 2: ADAUGĂ PROGRAMARE NOUĂ
+       ======================================================== -->
+  <div id="modal-add" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title font-serif">Adaugă Programare la Recepție</h3>
+        <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+      </div>
+      <form onsubmit="handleNewAppointmentSubmit(event)">
+        <div class="modal-body">
+          <div class="form-group-modal">
+            <label class="form-label-modal">Nume Clientă *</label>
+            <input type="text" id="add-name" class="form-input-modal" placeholder="Ex: Maria Popescu" required>
+          </div>
+          <div class="form-group-modal">
+            <label class="form-label-modal">Telefon *</label>
+            <input type="tel" id="add-phone" class="form-input-modal" placeholder="07xx xxx xxx" required>
+          </div>
+          <div class="form-group-modal">
+            <label class="form-label-modal">Domeniu & Serviciu *</label>
+            <select id="add-service" class="form-select-modal" onchange="updateAddPrice()">
+              <optgroup label="Sprâncene">
+                <option value="Laminare sprâncene" data-price="180">Laminare sprâncene (180 RON • 90 min)</option>
+                <option value="Pensat cu vopsit" data-price="70">Pensat cu vopsit (70 RON • 30 min)</option>
+                <option value="Pensat simplu (fără vopsit)" data-price="50">Pensat simplu (50 RON • 20 min)</option>
+              </optgroup>
+              <optgroup label="Make-up">
+                <option value="Make-up ocazie (fără gene)" data-price="150">Make-up ocazie fără gene (150 RON • 75 min)</option>
+                <option value="Make-up ocazie (cu gene)" data-price="170">Make-up ocazie cu gene (170 RON • 90 min)</option>
+                <option value="Make-up mireasă" data-price="220">Make-up mireasă (220 RON • 120 min)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="form-group-modal">
+              <label class="form-label-modal">Ora Început *</label>
+              <input type="time" id="add-time" class="form-input-modal" value="16:30" required>
+            </div>
+            <div class="form-group-modal">
+              <label class="form-label-modal">Preț Calculat</label>
+              <input type="text" id="add-price-display" class="form-input-modal" value="180 RON" readonly style="background:var(--surface-subtle); font-weight:700;">
+            </div>
+          </div>
+          <div class="form-group-modal">
+            <label class="form-label-modal">Note Programare</label>
+            <input type="text" id="add-notes" class="form-input-modal" placeholder="Ex: programare telefonică la recepție">
+          </div>
+        </div>
+        <div class="modal-actions" style="justify-content:flex-end;">
+          <button type="button" class="btn-action-secondary" onclick="closeModal('modal-add')">Renunță</button>
+          <button type="submit" class="btn-action-primary">Salvează în Calendar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 3: GESTIUNE LISTĂ DE AȘTEPTARE
+       ======================================================== -->
+  <div id="modal-waitlist" class="modal-backdrop">
+    <div class="modal-card" style="max-width:540px;">
+      <div class="modal-header">
+        <h3 class="modal-title font-serif">Listă de Așteptare (2 Cliente)</h3>
+        <button class="modal-close" onclick="closeModal('modal-waitlist')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:12.5px; color:var(--text-secondary); margin-bottom:14px;">
+          Cliente care doresc o programare pentru această zi. Când se eliberează un slot, sistemul trimite un link prioritar valabil 30 de minute.
+        </div>
+
+        <!-- Înregistrare 1 -->
+        <div style="background:var(--surface-subtle); border:1px solid var(--border-subtle); border-radius:10px; padding:12px 14px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <strong style="color:var(--text-primary);">Ioana Vasilescu</strong>
+            <span style="font-size:11px; color:var(--warning); font-weight:700;">Poziția #1 în așteptare</span>
+          </div>
+          <div style="font-size:12px; color:var(--text-secondary);">
+            📞 0740 123 789 • ✉️ ioana.v@gmail.com • <strong>Laminare sprâncene</strong>
+          </div>
+          <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">
+            Interval preferat: <em>Dimineața (09:00 - 13:00)</em> • Înscrisă acum 2 ore
+          </div>
+          <button class="btn-action-secondary" style="margin-top:8px; font-size:11.5px; padding:5px 10px;" onclick="notifyWaitlistClient('Ioana Vasilescu')">
+            🔔 Trimite Notificare Prioritară (30 min)
+          </button>
+        </div>
+
+        <!-- Înregistrare 2 -->
+        <div style="background:var(--surface-subtle); border:1px solid var(--border-subtle); border-radius:10px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <strong style="color:var(--text-primary);">Denisa Popa</strong>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:700;">Poziția #2 în așteptare</span>
+          </div>
+          <div style="font-size:12px; color:var(--text-secondary);">
+            📞 0755 888 222 • ✉️ denisa.popa@yahoo.com • <strong>Make-up ocazie</strong>
+          </div>
+          <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">
+            Interval preferat: <em>Oricând în timpul zilei</em> • Înscrisă ieri
+          </div>
+          <button class="btn-action-secondary" style="margin-top:8px; font-size:11.5px; padding:5px 10px;" onclick="notifyWaitlistClient('Denisa Popa')">
+            🔔 Trimite Notificare Prioritară (30 min)
+          </button>
+        </div>
+      </div>
+      <div class="modal-actions" style="justify-content:flex-end;">
+        <button class="btn-action-secondary" onclick="closeModal('modal-waitlist')">Închide</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-notif" class="toast-notification">
+    <span id="toast-icon">✓</span>
+    <span id="toast-msg">Acțiunea a fost finalizată cu succes!</span>
+  </div>
+
+  <footer class="mock-footer">
+    Mock de interfață pentru <strong>DS-adm-calendar</strong> • Beauty Studio Gura Râului • Sistem de Design conform <code>docs/design/DESIGN.md</code>
+  </footer>
+
+  <!-- SCRIPT INTERACTIV CALENDAR -->
+  <script>
+    let isPeakActive = true;
+    let currentDateOffset = 0;
+    const baseDate = "Sâmbătă, 21 Noiembrie 2026";
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notif');
+      const text = document.getElementById('toast-msg');
+      if (text) text.innerText = msg;
+      if (toast) {
+        toast.style.display = 'flex';
+        setTimeout(() => { toast.style.display = 'none'; }, 3200);
+      }
+    }
+
+    function togglePeakDay() {
+      isPeakActive = !isPeakActive;
+      const btn = document.getElementById('btn-toggle-peak');
+      const btnText = document.getElementById('btn-peak-text');
+      const banner = document.getElementById('calendar-peak-banner');
+
+      if (isPeakActive) {
+        btn.classList.add('active');
+        btnText.innerText = 'Zi Aglomerată („Zi Full” Activă)';
+        if (banner) banner.style.display = 'flex';
+        showToast('Ziua a fost marcată ca Zi Full! Anulările online sub 24h sunt acum restricționate.');
+      } else {
+        btn.classList.remove('active');
+        btnText.innerText = 'Marchează ca Zi Aglomerată';
+        if (banner) banner.style.display = 'none';
+        showToast('Regimul de Zi Full a fost dezactivat pentru această zi.');
+      }
+    }
+
+    function changeDate(delta) {
+      if (delta === 0) currentDateOffset = 0;
+      else currentDateOffset += delta;
+
+      const title = document.getElementById('calendar-date-display');
+      if (currentDateOffset === 0) {
+        title.innerText = "Sâmbătă, 21 Noiembrie 2026";
+        switchState('default');
+      } else if (currentDateOffset === 1) {
+        title.innerText = "Duminică, 22 Noiembrie 2026";
+        switchState('default');
+      } else if (currentDateOffset === -1) {
+        title.innerText = "Vineri, 20 Noiembrie 2026";
+        switchState('default');
+      } else {
+        title.innerText = `Ziua ${21 + currentDateOffset} Noiembrie 2026`;
+        switchState('empty');
+      }
+    }
+
+    function openModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.style.display = 'flex';
+    }
+
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.style.display = 'none';
+    }
+
+    function openDetailModal(name, phone, email, cat, service, price, time, notes) {
+      document.getElementById('md-client').innerText = name;
+      document.getElementById('md-phone').innerText = phone;
+      document.getElementById('md-email').innerText = email;
+      document.getElementById('md-service').innerText = `${cat} • ${service}`;
+      document.getElementById('md-time').innerText = time;
+      document.getElementById('md-price').innerText = price;
+      document.getElementById('md-notes').innerText = notes;
+      openModal('modal-detail');
+    }
+
+    function cancelAppointmentFromModal() {
+      const client = document.getElementById('md-client').innerText;
+      if (confirm(`Sigur dorești să anulezi programarea pentru ${client}?`)) {
+        closeModal('modal-detail');
+        showToast(`Programarea pentru ${client} a fost anulată. Notificarea prioritară (30 min) a fost transmisă primei cliente din Lista de Așteptare!`);
+      }
+    }
+
+    function openAddModal() {
+      openModal('modal-add');
+    }
+
+    function openWaitlistModal() {
+      openModal('modal-waitlist');
+    }
+
+    function notifyWaitlistClient(name) {
+      showToast(`Link-ul prioritar de rezervare valabil 30 de minute a fost transmis cu succes către ${name}!`);
+    }
+
+    function updateAddPrice() {
+      const sel = document.getElementById('add-service');
+      const opt = sel.options[sel.selectedIndex];
+      const p = opt.getAttribute('data-price') || '180';
+      document.getElementById('add-price-display').value = `${p} RON`;
+    }
+
+    function quickAddSlot(domain, timeStr) {
+      document.getElementById('add-time').value = timeStr;
+      openModal('modal-add');
+    }
+
+    function handleNewAppointmentSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('add-name').value;
+      const serv = document.getElementById('add-service').value;
+      const time = document.getElementById('add-time').value;
+      closeModal('modal-add');
+      showToast(`Programarea pentru ${name} (${serv} la ${time}) a fost salvată în calendar!`);
+    }
+
+    function switchState(stateName) {
+      document.querySelectorAll('.state-view').forEach(v => v.classList.remove('active'));
+
+      if (stateName === 'success') {
+        const d = document.getElementById('view-default');
+        if (d) d.classList.add('active');
+        showToast('Toate modificările calendarului au fost salvate și sincronizate cu succes!');
+      } else {
+        const target = document.getElementById('view-' + stateName);
+        if (target) target.classList.add('active');
+      }
+
+      document.querySelectorAll('.mock-btn').forEach(b => {
+        if (!b.id.includes('theme-btn')) b.classList.remove('active');
+      });
+      const activeBtn = document.getElementById('btn-state-' + stateName);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+
+      const btn = document.getElementById('theme-btn');
+      if (next === 'dark') {
+        btn.innerHTML = '🌙 Mod Întunecat';
+        btn.classList.add('active');
+      } else {
+        btn.innerHTML = '☀️ Mod Luminos';
+        btn.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>

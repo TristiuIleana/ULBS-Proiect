@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock: DS-adm-login — Autentificare Salon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ----------------------------------------------------
+       DESIGN TOKENS (conform docs/design/DESIGN.md)
+       ---------------------------------------------------- */
+    :root, [data-theme="light"] {
+      --bg-app: #FAF7F2;
+      --surface-card: #FFFFFF;
+      --surface-subtle: #F4EFEA;
+      --surface-hover: #EFE9E2;
+      
+      --text-primary: #2B2523;
+      --text-secondary: #615651;
+      --text-muted: #8E827B;
+      
+      --border-subtle: #E8E2D9;
+      --border-strong: #D5CBC0;
+      
+      --primary: #C48B71;
+      --primary-hover: #B07D62;
+      --primary-subtle: #F9EFEA;
+      --secondary: #9E6B55;
+      --highlight-gold: #D4AF37;
+      
+      /* Culori semantice */
+      --success: #4E7A5D;
+      --success-bg: #EDF4EF;
+      --warning: #C98A2C;
+      --warning-bg: #FAF2E4;
+      --destructive: #B84A39;
+      --destructive-bg: #F8ECE9;
+      --info: #5F758E;
+      --info-bg: #EFF3F7;
+
+      /* Umbre calde */
+      --shadow-subtle: 0 2px 8px -2px rgba(43, 37, 35, 0.05);
+      --shadow-card: 0 6px 20px -4px rgba(43, 37, 35, 0.08);
+      --shadow-dropdown: 0 12px 32px -6px rgba(43, 37, 35, 0.12);
+      --shadow-focus: 0 0 0 3px rgba(196, 139, 113, 0.25);
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #1A1716;
+      --surface-card: #241F1D;
+      --surface-subtle: #2E2825;
+      --surface-hover: #3A332F;
+      
+      --text-primary: #F5F2EB;
+      --text-secondary: #C7BFB7;
+      --text-muted: #8E847C;
+      
+      --border-subtle: #38302C;
+      --border-strong: #4D433E;
+      
+      --primary: #D49D85;
+      --primary-hover: #C48B71;
+      --primary-subtle: #332621;
+      --secondary: #B07D62;
+      --highlight-gold: #E0C070;
+      
+      /* Culori semantice */
+      --success: #6FA07F;
+      --success-bg: #1E2D23;
+      --warning: #E2A346;
+      --warning-bg: #2E2415;
+      --destructive: #D96B5A;
+      --destructive-bg: #2E1916;
+      --info: #8197AF;
+      --info-bg: #1B242D;
+
+      /* Umbre calde */
+      --shadow-subtle: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+      --shadow-card: 0 6px 20px -4px rgba(0, 0, 0, 0.5);
+      --shadow-dropdown: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
+      --shadow-focus: 0 0 0 3px rgba(212, 157, 133, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1, h2, h3, .font-serif {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+    }
+
+    /* ----------------------------------------------------
+       BARA DE CONTROL A MOCK-ULUI (TOOLBAR)
+       ---------------------------------------------------- */
+    .mock-toolbar {
+      background: var(--surface-card);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-subtle);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .mock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+      background: var(--primary-subtle);
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+
+    .mock-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mock-btn {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mock-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+
+    .mock-btn.active {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+    }
+
+    .theme-toggle {
+      border-left: 1px solid var(--border-subtle);
+      padding-left: 12px;
+      margin-left: 4px;
+    }
+
+    /* ----------------------------------------------------
+       LOGIN CONTAINER
+       ---------------------------------------------------- */
+    .login-container {
+      max-width: 440px;
+      width: 100%;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    .login-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--highlight-gold) 100%);
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .login-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--highlight-gold);
+      margin-bottom: 4px;
+    }
+
+    .login-title {
+      font-size: 26px;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .login-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-strong);
+      background: var(--surface-card);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.15s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: var(--shadow-focus);
+    }
+
+    .form-row-remember {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      font-size: 12.5px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .forgot-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .forgot-link:hover {
+      text-decoration: underline;
+    }
+
+    .btn-login {
+      background: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    .btn-login:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Demo Quick Fill Buttons */
+    .quick-fill-box {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+    }
+
+    .quick-fill-title {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .quick-fill-pills {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .quick-fill-btn {
+      font-size: 11.5px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+
+    .quick-fill-btn:hover {
+      border-color: var(--primary);
+      color: var(--text-primary);
+    }
+
+    /* Stări de alertă */
+    .alert-box {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      margin-bottom: 18px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert-error {
+      background: var(--destructive-bg);
+      border: 1px solid var(--destructive);
+      color: var(--destructive);
+    }
+
+    .alert-success {
+      background: var(--success-bg);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+
+    .mock-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARA DE CONTROL A MOCK-ULUI -->
+  <header class="mock-toolbar">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="mock-badge">DS-adm-login</span>
+      <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Autentificare Personal</span>
+    </div>
+
+    <div class="mock-controls">
+      <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">STARE:</span>
+      <button class="mock-btn active" id="btn-state-default" onclick="switchState('default')">Interactiv (Implicit)</button>
+      <button class="mock-btn" id="btn-state-loading" onclick="switchState('loading')">Se încarcă</button>
+      <button class="mock-btn" id="btn-state-error" onclick="switchState('error')">Eroare Date</button>
+      <button class="mock-btn" id="btn-state-success" onclick="switchState('success')">Succes / Redirecționare</button>
+      <button class="mock-btn" id="btn-state-empty" onclick="switchState('empty')">Câmpuri Goale</button>
+
+      <div class="theme-toggle">
+        <button class="mock-btn" id="theme-btn" onclick="toggleTheme()">☀️ Mod Luminos</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTAINER AUTENTIFICARE -->
+  <main class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-eyebrow">Beauty Studio • Panou Personal</div>
+        <h1 class="login-title">Autentificare</h1>
+        <p class="login-subtitle">Acces securizat pentru gestionarea programărilor din salon.</p>
+      </div>
+
+      <!-- Alerte Stări -->
+      <div id="alert-error" class="alert-box alert-error">
+        <span>⚠️</span>
+        <span id="alert-error-text">Adresa de email sau parola este incorectă. Te rugăm să încerci din nou.</span>
+      </div>
+
+      <div id="alert-success" class="alert-box alert-success">
+        <span>✓</span>
+        <span>Autentificare reușită! Se încarcă calendarul salonului...</span>
+      </div>
+
+      <form id="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Adresă de Email</label>
+          <input type="email" id="login-email" class="form-input" placeholder="nume@beautystudio.ro" value="admin@beautystudio.ro" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Parolă</label>
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••••••" value="parola1234" required>
+        </div>
+
+        <div class="form-row-remember">
+          <label class="checkbox-label">
+            <input type="checkbox" checked style="accent-color:var(--primary);">
+            <span>Ține-mă minte</span>
+          </label>
+          <a href="#" class="forgot-link" onclick="alert('Funcționalitate de resetare parolă via email!')">Ai uitat parola?</a>
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="btn-login">
+          <span id="btn-login-text">Conectează-te în cont</span>
+          <span id="btn-login-icon">→</span>
+        </button>
+      </form>
+
+      <!-- Butoane Rapide de Testare Demo -->
+      <div class="quick-fill-box">
+        <div class="quick-fill-title">Conturi demonstrative rapide:</div>
+        <div class="quick-fill-pills">
+          <button class="quick-fill-btn" onclick="quickFill('admin@beautystudio.ro', 'Admin')">
+            <span>🌿</span>
+            <span>Cont Sprâncene (Admin)</span>
+          </button>
+          <button class="quick-fill-btn" onclick="quickFill('makeup@beautystudio.ro', 'Angajat')">
+            <span>💄</span>
+            <span>Cont Make-up</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="mock-footer">
+    Mock de interfață pentru <strong>DS-adm-login</strong> • Beauty Studio Gura Râului • Sistem de Design conform <code>docs/design/DESIGN.md</code>
+  </footer>
+
+  <script>
+    function quickFill(email, role) {
+      document.getElementById('login-email').value = email;
+      document.getElementById('login-password').value = 'parola1234';
+      hideAlerts();
+    }
+
+    function hideAlerts() {
+      document.getElementById('alert-error').style.display = 'none';
+      document.getElementById('alert-success').style.display = 'none';
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      switchState('loading');
+      setTimeout(() => {
+        switchState('success');
+      }, 700);
+    }
+
+    function switchState(stateName) {
+      hideAlerts();
+      const btn = document.getElementById('btn-login-submit');
+      const btnText = document.getElementById('btn-login-text');
+      const btnIcon = document.getElementById('btn-login-icon');
+      const emailInput = document.getElementById('login-email');
+      const passInput = document.getElementById('login-password');
+
+      emailInput.disabled = false;
+      passInput.disabled = false;
+      btn.disabled = false;
+      btnText.innerText = 'Conectează-te în cont';
+      btnIcon.innerText = '→';
+
+      if (stateName === 'loading') {
+        emailInput.disabled = true;
+        passInput.disabled = true;
+        btn.disabled = true;
+        btnText.innerText = 'Se verifică datele...';
+        btnIcon.innerText = '⏳';
+      } else if (stateName === 'error') {
+        document.getElementById('alert-error').style.display = 'flex';
+        emailInput.focus();
+      } else if (stateName === 'success') {
+        document.getElementById('alert-success').style.display = 'flex';
+        btn.style.background = 'var(--success)';
+        btnText.innerText = 'Acces permis! Redirecționare...';
+        btnIcon.innerText = '✓';
+      } else if (stateName === 'empty') {
+        emailInput.value = '';
+        passInput.value = '';
+        emailInput.focus();
+      } else if (stateName === 'default') {
+        emailInput.value = 'admin@beautystudio.ro';
+        passInput.value = 'parola1234';
+      }
+
+      document.querySelectorAll('.mock-btn').forEach(b => {
+        if (!b.id.includes('theme-btn')) b.classList.remove('active');
+      });
+      const activeBtn = document.getElementById('btn-state-' + stateName);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+
+      const btn = document.getElementById('theme-btn');
+      if (next === 'dark') {
+        btn.innerHTML = '🌙 Mod Întunecat';
+        btn.classList.add('active');
+      } else {
+        btn.innerHTML = '☀️ Mod Luminos';
+        btn.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>
