@@ -291,5 +291,37 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 ### 3. Ce s-a făcut cu răspunsul
 - Registrul de design și fișierul Figma sunt sincronizate 100% cu sistemul de design și deciziile aprobate. S-a realizat commit-ul local în Git pentru întreaga etapă de Design.
 
+---
+
+## Sesiunea 12 — 18 Noiembrie 2026: Închiderea Tuturor Întrebărilor Deschise (Q-002..Q-004) & Decizia D-004
+
+### 1. Ce s-a cerut
+- Audit critic al documentației de proiect (`README.md`, `CONTEXT.md`, `OPEN-QUESTIONS.md`, mock-uri `docs/design/mocks/`) pentru identificarea oricăror neconcordanțe, ambiguități sau lacune înainte de faza de cod.
+- Confirmarea răspunsurilor finale pentru toate întrebările deschise rămase:
+  1. Defalcarea exactă a etapelor de Laminare Sprâncene (Q-004).
+  2. Programul săptămânal detaliat pe specialiste (inclusiv regimul de Duminică).
+  3. Comportamentul rezervării sloturilor intercalate pe site (Public vs. Recepție).
+  4. Mecanismul de blocare a slotului pentru Lista de Așteptare (Waitlist 30 min).
+  5. Datele reale ale studioului (Ioana - Sprâncene, Ana - Make-up, adresă, telefon Q-002, Q-003) și includerea Mailpit pentru dezvoltare.
+- Actualizarea `docs/agents/OPEN-QUESTIONS.md` și `docs/agents/DECISIONS.md`.
+
+### 2. Ce s-a primit de la AI
+- **Audit de coerență:** Identificate diferențele dintre placeholderul vechi din Q-004 și mock-urile aprobate, precum și necesitatea specificării orarului de Duminică.
+- **Actualizare `docs/agents/OPEN-QUESTIONS.md`:**
+  - `Q-002` marcat ca `answered`: Beauty Studio, Str. Principală nr. 45, Gura Râului, Sibiu, tel. 0756 062 883.
+  - `Q-003` marcat ca `answered`: Ioana (Proprietara, Admin/Recepție, Sprâncene) și Ana (Colega, Angajată, Make-up).
+  - `Q-004` marcat ca `answered`: 15m (lucru) / 20m (liber) / 15m (lucru) / 25m (liber) / 15m (lucru) = 90m total.
+  - **Stare ledger: 0 întrebări deschise rămase** (toate Q-001..Q-005 sunt complet soluționate).
+- **Înregistrare Decizie aprobată `D-004` (`DECISIONS.md`):**
+  - Orar: Luni–Sâmbătă 09:00–19:00 (ambele), Duminică 09:00–19:00 exclusiv Make-up (Ana).
+  - Intercalare split direct din wizard-ul public (Opțiunea A).
+  - Blocare exclusivă a slotului eliberat timp de 30 min pentru clientul din Waitlist.
+  - Integrare container Mailpit (port 1025 SMTP / port 8025 Web) în Docker Compose.
+- **Actualizare `README.md` și `CONTEXT.md`:** Sincronizate numele specialistelor, adresa fizică, telefonul, orarul și termenul de vocabular `Mailpit`.
+
+### 3. Ce s-a făcut cu răspunsul
+- Domeniul de business și cerințele tehnice sunt 100% clare, consistente și complete. Nu mai există nicio necunoscută sau contradicție, proiectul având undă verde totală pentru începerea implementării backend-ului și bazei de date.
+
+
 
 

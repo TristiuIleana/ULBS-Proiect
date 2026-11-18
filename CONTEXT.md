@@ -25,3 +25,7 @@ _Avoid_: busy day, zi aglomerată neoficială
 
 **Waitlist** (noun) — The automated queue for fully booked slots that dispatches a priority booking link with a 30-minute claim window to the next waiting client upon cancellation.
 _Avoid_: coadă de așteptare, stand-by list
+
+**Mailpit** (noun) — The local SMTP test server and web interface running in Docker on port 8025 to capture and inspect outgoing transactional emails.
+_Avoid_: MailHog, real email credentials in dev
+

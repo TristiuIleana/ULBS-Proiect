@@ -10,6 +10,7 @@
 - D-001 · Docker for all server components
 - D-002 · Application stack NestJS PostgreSQL React in Docker
 - D-003 · Visual identity and design tokens
+- D-004 · Salon schedule, split interleaving, waitlist locking and Mailpit
 
 ---
 
@@ -42,4 +43,18 @@
 - **Why:** Delivers an intimate, refined, high-end boutique beauty salon experience aligned with client expectations and visual benchmarks (GlossGenius, Aesop).
 - **Rejected:** Generic sterile corporate UI kits or cold dark-slate palettes.
 - **Evidence:** User style interview and explicit approval: "Da, aprob decizia D-003. Salvează token-urile în docs/design/DESIGN.md și înregistrează D-003 în docs/agents/DECISIONS.md."
+- **Source:** user · confidence high
+
+---
+
+## D-004 · Salon schedule, split interleaving, waitlist locking and Mailpit
+- **Status:** approved
+- **Date:** 2026-11-18
+- **Rule:** The business logic and local environment obey the following constraints:
+  1. **Working Schedule:** Monday to Saturday 09:00–19:00 for both domains (Ioana – BROWS and Ana – MAKEUP). Sunday 09:00–19:00 is open EXCLUSIVELY for MAKEUP (Ana); BROWS (Ioana) is closed on Sunday.
+  2. **Split Interleaving:** The idle action stages of Brow Lamination (Etapa 2 = 20m, Etapa 4 = 25m) are exposed as available slots both in the public client booking wizard and in the reception calendar for short compatible services (Pensat simplu = 20 min).
+  3. **Waitlist Priority Locking:** During the 30-minute priority claim window after a slot cancellation, the slot is locked against general public booking and can only be reserved using the secret token link sent to the notified client. On expiration, the slot is offered to the next waitlist entry.
+  4. **Email Development:** Local development and testing use a Mailpit container (port 1025 SMTP, port 8025 Web UI) inside Docker Compose to capture all outgoing transactional emails without external dependencies.
+- **Why:** Crystalizes the core scheduling constraints, domain partitioning, waitlist exclusivity, and testability required for project P01.
+- **Evidence:** User explicit confirmation to final clarification interview: "Iată răspunsurile finale pentru închiderea neclarităților (actualizează te rog OPEN-QUESTIONS.md și DECISIONS.md cu ele)".
 - **Source:** user · confidence high

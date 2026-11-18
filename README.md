@@ -7,19 +7,23 @@
 
 ## 1. Despre Proiect & Contextul Salonului
 
-Aplicația este un sistem complet de programări online dezvoltat pentru un salon real de înfrumusețare de tip boutique / home-based studio (**Beauty Studio - Make-up & Brow Styling**), situat în **Gura Râului, Sibiu**.
+Aplicația este un sistem complet de programări online dezvoltat pentru un salon real de înfrumusețare de tip boutique / home-based studio (**Beauty Studio - Make-up & Brow Styling**), situat în **Str. Principală nr. 45, Gura Râului, Sibiu** (telefon contact: **0756 062 883**).
 
-### Echipa Studioului (2 persoane cu roluri strict separate)
-1. **Proprietara (Rol: Admin / Recepție / Tehnician):** Gestionează salonul și prestează exclusiv servicii de stilizare și tratamente pentru sprâncene (pensat simplu, pensat cu vopsit, laminare sprâncene).
-2. **Colega (Rol: Angajat / Tehnician):** Specializată exclusiv pe machiaj profesional (make-up de ocazie fără/cu gene, make-up mireasă).
+### Echipa Studioului & Orare de Lucru (Partajare Strictă)
+1. **Ioana — Proprietara (Rol: Admin / Recepție / Tehnician Sprâncene):**
+   - Gestionează salonul și prestează exclusiv servicii de stilizare sprâncene.
+   - Program de lucru: **Luni – Sâmbătă 09:00 – 19:00** (Duminica este închis pentru sprâncene).
+2. **Ana — Colega (Rol: Angajată / Tehnician Make-up):**
+   - Specializată exclusiv pe machiaj profesional de ocazie și mireasă.
+   - Program de lucru: **Luni – Duminică 09:00 – 19:00** (deschis Duminica exclusiv pentru evenimente de make-up).
 *(Notă: Specializările nu se suprapun; fiecare specialistă gestionează exclusiv categoria proprie de servicii).*
 
 ### Catalogul Real de Servicii și Prețuri
-- **Categoria „Sprâncene” (Proprietara):**
-  - **Laminare sprâncene:** 180 RON • 90 min *(Serviciu split modelat pe etape de acțiune)*
+- **Categoria „Sprâncene” (Ioana):**
+  - **Laminare sprâncene:** 180 RON • 90 min *(Serviciu split modelat pe 5 etape de acțiune)*
   - **Pensat cu vopsit:** 70 RON • 30 min
-  - **Pensat simplu (fără vopsit):** 50 RON • 20 min
-- **Categoria „Make-up” (Colega):**
+  - **Pensat simplu (fără vopsit):** 50 RON • 20 min *(compatibil cu intercalarea în pauzele laminării)*
+- **Categoria „Make-up” (Ana):**
   - **Make-up ocazie (fără gene):** 150 RON • 1 h 15 min (75 min)
   - **Make-up ocazie (cu gene):** 170 RON • 1 h 30 min (90 min)
   - **Make-up mireasă:** 220 RON • 2 h (120 min)
@@ -28,15 +32,15 @@ Aplicația este un sistem complet de programări online dezvoltat pentru un salo
 
 ## 2. Variabilele Specifice ale Proiectului
 
-### A. Serviciul Split: Laminare Sprâncene (5 Etape)
+### A. Serviciul Split: Laminare Sprâncene (5 Etape • 90 min)
 Spre deosebire de serviciile monolitice, serviciul de **Laminare sprâncene** este modelat ca o succesiune de 5 etape:
-1. **Etapa 1 (Ocupat):** Pregătire & Aplicare soluția 1 (permanentă/lifting).
-2. **Etapa 2 (Liber):** Pauză de acționare soluția 1 — *specialista este liberă și poate prelua o altă clientă pentru un serviciu scurt (ex: pensat).*
-3. **Etapa 3 (Ocupat):** Aplicare soluția 2 (fixare).
-4. **Etapa 4 (Liber):** Pauză de acționare soluția 2 — *specialista este liberă și poate prelua un alt serviciu scurt (ex: vopsit sprâncene).*
-5. **Etapa 5 (Ocupat):** Neutralizare, tratament de hidratare & finalizare.
+1. **Etapa 1 (15 min • Ocupat):** Pregătire & Aplicare soluția 1 (permanentă/lifting).
+2. **Etapa 2 (20 min • Liber):** Pauză de acționare soluția 1 — *specialista este liberă; intervalul poate fi rezervat automat online sau la recepție pentru un pensat simplu (20 min).*
+3. **Etapa 3 (15 min • Ocupat):** Aplicare soluția 2 (fixare formă).
+4. **Etapa 4 (25 min • Liber):** Pauză de acționare soluția 2 & vopsea — *specialista este liberă; intervalul poate fi rezervat automat online sau la recepție pentru un pensat simplu (20 min).*
+5. **Etapa 5 (15 min • Ocupat):** Curățare, tratament de hidratare cu keratină & finalizare.
 
-Algoritmul de disponibilitate garantează că programările intercalate nu depășesc intervalul liber și că nu apar suprapuneri. *(Duratele exacte per etapă urmează să fie confirmate în Q-004).*
+Algoritmul de disponibilitate garantează că programările intercalate nu depășesc intervalul liber și că nu apar suprapuneri (15 + 20 + 15 + 25 + 15 = 90 min).
 
 ### B. Politica de Anulare și Reprogramare Diferențiată
 - **Zile normale:** Anularea și reprogramarea online sunt permise liber de către client în orice moment.
@@ -92,6 +96,7 @@ Toate serviciile rulează containerizat prin Docker și Docker Compose:
 - **Backend:** NestJS (Node.js, TypeScript), arhitectură modulară, TypeORM / Prisma cu tranzacții ACID, NestJS Schedule / BullMQ.
 - **Bază de date:** PostgreSQL (cu suport pentru tranzacții stricte și constrângeri de timp).
 - **Frontend:** React SPA (Vite, TypeScript, Tailwind CSS, FullCalendar, Lucide Icons).
+- **Email local & observabilitate:** Mailpit (server SMTP pe port 1025 și interfață web pe port 8025 pentru vizualizarea în timp real a emailurilor trimise).
 - **Infrastructură:** Docker & Docker Compose per decizia aprobată `D-001`.
 
 ---
