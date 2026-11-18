@@ -12,6 +12,7 @@
 
 ## PATTERN-001 · Containerized server execution
 - **Status:** approved
+- **Confirmed:** 2026-11-18
 - **Use when:** Defining or launching backend services, databases, or API components.
 - **How:** Encapsulate runtime dependencies and configuration in Dockerfile and docker-compose.yml files.
 - **Example:** docs/agents/DECISIONS.md

@@ -9,14 +9,15 @@
 <!-- graffino-agentic:end -->
 
 ## Index
-- C-001 · Server container interface · provided · _proposed_
+- C-001 · Server container interface · provided
 
 ---
 
 ## Provided
 
 ### C-001 · Server container interface
-- **Status:** proposed
+- **Status:** approved
+- **Confirmed:** 2026-11-18
 - **Interface:** Docker / Docker Compose container definitions and port mappings
 - **Consumers:** Local development environment and host services
 - **Shape:** Exposed container ports, health check endpoints, environment variables
