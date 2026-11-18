@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Previzualizare platformă | Beauty Studio</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --page: #FAF7F2;
+      --card: #FFFFFF;
+      --text: #2B2523;
+      --secondary: #615651;
+      --border: #E8E2D9;
+      --accent: #9E6B55;
+      --focus: #C48B71;
+      --shadow-card: 0 6px 20px -4px rgba(43, 37, 35, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page: #1A1716;
+        --card: #241F1D;
+        --text: #F5F2EB;
+        --secondary: #C7BFB7;
+        --border: #38302C;
+        --accent: #D49D85;
+        --focus: #D49D85;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--text);
+      font: 400 14px/1.5 "Plus Jakarta Sans", Inter, system-ui, sans-serif;
+    }
+
+    main {
+      max-width: 1280px;
+      margin-inline: auto;
+      padding: 48px 24px;
+    }
+
+    header { margin-bottom: 32px; }
+
+    h1, h2 {
+      margin: 0;
+      font-family: "Playfair Display", Didot, Georgia, serif;
+    }
+
+    h1 { font-size: 32px; font-weight: 500; line-height: 1.25; }
+    h2 { font-size: 24px; font-weight: 600; line-height: 1.3; }
+    header p { margin: 8px 0 0; color: var(--secondary); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    article {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .caption { padding: 16px; }
+
+    .screen-id {
+      display: block;
+      margin-top: 4px;
+      color: var(--secondary);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    a { color: var(--text); text-decoration-color: var(--accent); }
+    a:hover { text-decoration-thickness: 2px; }
+    a:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 640px;
+      background: var(--page);
+      border: 0;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (min-width: 1024px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 639px) {
+      main { padding: 24px 16px; }
+      h1 { font-size: 26px; }
+      h2 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Beauty Studio</h1>
+      <p>Previzualizare platformă · 6 ecrane</p>
+    </header>
+
+    <div class="grid">
+      <article>
+        <div class="caption">
+          <h2><a href="DS-pub-booking.html">Rezervare programare</a></h2>
+          <span class="screen-id">DS-pub-booking</span>
+        </div>
+        <iframe src="DS-pub-booking.html" title="Rezervare programare"></iframe>
+      </article>
+      <article>
+        <div class="caption">
+          <h2><a href="DS-pub-manage.html">Gestiune programare</a></h2>
+          <span class="screen-id">DS-pub-manage</span>
+        </div>
+        <iframe src="DS-pub-manage.html" title="Gestiune programare"></iframe>
+      </article>
+      <article>
+        <div class="caption">
+          <h2><a href="DS-pub-auth.html">Autentificare și fidelizare</a></h2>
+          <span class="screen-id">DS-pub-auth</span>
+          <p class="screen-id">Intră în contul demo, apoi alege „Programare nouă cu −10%” pentru a reveni la rezervare.</p>
+        </div>
+        <iframe src="DS-pub-auth.html" title="Autentificare și fidelizare"></iframe>
+      </article>
+      <article>
+        <div class="caption">
+          <h2><a href="DS-adm-login.html">Autentificare personal</a></h2>
+          <span class="screen-id">DS-adm-login</span>
+        </div>
+        <iframe src="DS-adm-login.html" title="Autentificare personal"></iframe>
+      </article>
+      <article>
+        <div class="caption">
+          <h2><a href="DS-adm-calendar.html">Calendar recepție</a></h2>
+          <span class="screen-id">DS-adm-calendar</span>
+        </div>
+        <iframe src="DS-adm-calendar.html" title="Calendar recepție"></iframe>
+      </article>
+      <article>
+        <div class="caption">
+          <h2><a href="DS-adm-services.html">Gestiune servicii și etape split</a></h2>
+          <span class="screen-id">DS-adm-services</span>
+        </div>
+        <iframe src="DS-adm-services.html" title="Gestiune servicii și etape split"></iframe>
+      </article>
+    </div>
+  </main>
+</body>
+</html>

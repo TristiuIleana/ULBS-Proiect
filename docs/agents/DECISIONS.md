@@ -11,6 +11,7 @@
 - D-002 · Application stack NestJS PostgreSQL React in Docker
 - D-003 · Visual identity and design tokens
 - D-004 · Salon schedule, split interleaving, waitlist locking and Mailpit
+- D-005 · Client loyalty program with automatic recurring discount
 
 ---
 
@@ -41,6 +42,7 @@
 ## D-003 · Visual identity and design tokens
 - **Status:** approved
 - **Date:** 2026-11-18
+- **Confirmed:** 2026-11-19
 - **Rule:** The user interface follows the Warm Minimalist design system documented in docs/design/DESIGN.md: Nude Rose (#C48B71) primary with Terracotta (#9E6B55) and Muted Gold (#D4AF37) accents, warm linen (#FAF7F2) light surface and deep espresso (#1A1716) dark mode, Playfair Display serif for headings with Plus Jakarta Sans for body and UI elements, 4px-based spacing scale, and soft 10-16px border radii.
 - **Why:** Delivers an intimate, refined, high-end boutique beauty salon experience aligned with client expectations and visual benchmarks (GlossGenius, Aesop).
 - **Rejected:** Generic sterile corporate UI kits or cold dark-slate palettes.
@@ -60,4 +62,16 @@
   4. **Email Development:** Local development and testing use a Mailpit container (port 1025 SMTP, port 8025 Web UI) inside Docker Compose to capture all outgoing transactional emails without external dependencies.
 - **Why:** Crystalizes the core scheduling constraints, domain partitioning, waitlist exclusivity, and testability required for project P01.
 - **Evidence:** User explicit confirmation to final clarification interview: "Iată răspunsurile finale pentru închiderea neclarităților (actualizează te rog OPEN-QUESTIONS.md și DECISIONS.md cu ele)".
+- **Source:** user · confidence high
+
+---
+
+## D-005 · Client loyalty program with automatic recurring discount
+- **Status:** approved
+- **Date:** 2026-11-19
+- **Confirmed:** 2026-11-19
+- **Rule:** Clients with an account accumulate completed visits counted across the entire studio (regardless of service or specialist). The visit counter follows a repeating cycle of 5: at every 5th completed appointment (visit count modulo 5 == 0, i.e. visits 5, 10, 15…), a 10% discount is applied automatically to that appointment's price at booking confirmation time. The discount is computed server-side and stored on the Appointment record (no manual coupon codes or client-side claiming). The public client portal ("Contul Meu & Fidelizare" — DS-pub-auth) shows a progress card (N/5 visits toward the next discount), upcoming bookings, and past booking history with any applied discounts highlighted. The admin dashboard shows the discount flag on affected appointments.
+- **Why:** Incentivizes client retention and repeat bookings through a simple, transparent, and fully automated loyalty mechanic that requires no manual intervention from staff.
+- **Rejected:** Physical stamp cards; percentage escalating by tier; manual coupon codes; one-time-only discount at the 5th visit without repeating cycle.
+- **Evidence:** User explicit confirmation: "Confirm toate cele 3 puncte exact cum le-ai propus: 1. Ciclu repetat: la fiecare a 5-a vizită (5, 10, 15...). 2. Aplicare automată la booking (fără coduri sau revendicare manuală). 3. Numărare per total studio (indiferent de serviciu sau specialist)."
 - **Source:** user · confidence high

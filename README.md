@@ -42,7 +42,14 @@ Spre deosebire de serviciile monolitice, serviciul de **Laminare sprâncene** es
 
 Algoritmul de disponibilitate garantează că programările intercalate nu depășesc intervalul liber și că nu apar suprapuneri (15 + 20 + 15 + 25 + 15 = 90 min).
 
-### B. Politica de Anulare și Reprogramare Diferențiată
+### C. Programul de Fidelizare Automată (D-005)
+Clientele care și-au creat un cont beneficiază de un **sistem automat de loialitate cu ciclu repetat**:
+- Se numără **toate vizitele finalizate** la nivelul întregului studio (indiferent de serviciu sau specialist).
+- La fiecare **a 5-a vizită** (5, 10, 15…), o **reducere de 10%** se aplică automat la prețul programării respective.
+- Reducerea este calculată **server-side** la confirmarea booking-ului și stocată pe înregistrarea Appointment — nu necesită coduri promoționale sau intervenție manuală.
+- Ecranul **„Contul Meu & Fidelizare"** (DS-pub-auth) afișează cardul de progres (N/5 vizite), badge-ul de reducere, programările viitoare și istoricul cu reducerile aplicate evidențiate.
+
+### D. Politica de Anulare și Reprogramare Diferențiată
 - **Zile normale:** Anularea și reprogramarea online sunt permise liber de către client în orice moment.
 - **Zile aglomerate / „Full” (marcate ca atare în sistem de către Admin):** Anularea online este permisă doar cu **cel puțin 24 de ore înainte**. În ziua programării (< 24h), anularea directă este blocată în interfață, clienta fiind instruită să contacteze telefonic recepția salonului.
 
@@ -53,7 +60,7 @@ Algoritmul de disponibilitate garantează că programările intercalate nu depă
 - **Client:**
   - Rezervă direct prin interfața publică, fără a fi constrâns să creeze un cont cu parolă (furnizează Nume, Telefon, Email).
   - Primește pe email confirmarea și un **link securizat cu token unic** pentru consultarea, reprogramarea sau anularea rezervării.
-  - Opțional: Poate activa un cont cu parolă pentru a avea acces la întreg istoricul programărilor sale.
+  - Opțional: Poate activa un cont cu parolă pentru a avea acces la întreg istoricul programărilor sale și la **programul de fidelizare** (progres vizite, reduceri automate — vezi secțiunea 2.C).
   - Înscriere pe **Lista de așteptare** când o zi / un interval dorit nu are sloturi disponibile.
 - **Angajat (Specialistă Make-up):**
   - Autentificare cu email și parolă.
@@ -104,7 +111,7 @@ Toate serviciile rulează containerizat prin Docker și Docker Compose:
 ## 7. Structura Documentației de Proiect
 
 Documentația este gestionată conform regulilor de guvernanță agentică din `AGENTS.md`:
-- `docs/agents/DECISIONS.md` — Deciziile arhitecturale și tehnice aprobate (`D-001`, `D-002`).
+- `docs/agents/DECISIONS.md` — Deciziile arhitecturale și tehnice aprobate (`D-001`..`D-005`).
 - `docs/agents/OPEN-QUESTIONS.md` — Întrebările deschise în curs de clarificare cu clientul (`Q-002`..`Q-005`).
 - `docs/agents/PATTERNS.md` — Modelele de bune practici reutilizabile (`PATTERN-001`).
 - `docs/agents/CONTRACTS.md` — Contractele de interfață între componente (`C-001`).

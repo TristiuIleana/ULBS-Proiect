@@ -9,3 +9,18 @@
 
 # Graffino setup source repository
 Graffino-Agentic-Coding-Setup-Skill-develop/
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+Thumbs.db
+.DS_Store

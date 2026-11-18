@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DS-pub-auth — Contul Meu &amp; Fidelizare | Beauty Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== Design Tokens (D-003 / DESIGN.md) ===== */
+    :root {
+      /* Brand */
+      --primary: #C48B71;
+      --primary-hover: #B07D62;
+      --secondary: #9E6B55;
+      --gold: #D4AF37;
+      --gold-hover: #C29E2E;
+
+      /* Light mode */
+      --bg-app: #FAF7F2;
+      --surface-card: #FFFFFF;
+      --surface-subtle: #F4EFEA;
+      --surface-hover: #EFE9E2;
+      --text-primary: #2B2523;
+      --text-secondary: #615651;
+      --text-muted: #8E827B;
+      --border-subtle: #E8E2D9;
+      --border-strong: #D5CBC0;
+
+      /* Semantic */
+      --success: #4E7A5D;
+      --success-bg: #EDF4EF;
+      --warning: #C98A2C;
+      --warning-bg: #FAF2E4;
+      --info: #5F758E;
+      --info-bg: #EFF3F7;
+      --destructive: #B84A39;
+
+      /* Radius */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+
+      /* Shadows */
+      --shadow-subtle: 0 2px 8px -2px rgba(43,37,35,0.05);
+      --shadow-card: 0 6px 20px -4px rgba(43,37,35,0.08);
+      --shadow-focus: 0 0 0 3px rgba(196,139,113,0.25);
+
+      /* Fonts */
+      --font-heading: 'Playfair Display', Didot, Georgia, serif;
+      --font-body: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-app);
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== Layout ===== */
+    .page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 48px 16px 64px;
+    }
+
+    /* ===== Header ===== */
+    .page-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .page-header h1 {
+      font-family: var(--font-heading);
+      font-size: 32px;
+      font-weight: 500;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+    .page-header .subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .page-header .user-name {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* ===== Card base ===== */
+    .card {
+      background: var(--surface-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    /* ===== Loyalty Card ===== */
+    .loyalty-card {
+      background: linear-gradient(135deg, var(--surface-card) 0%, #FBF3EE 100%);
+      border: 1px solid var(--border-subtle);
+      position: relative;
+      overflow: hidden;
+    }
+    .loyalty-card::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%);
+    }
+
+    .loyalty-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .loyalty-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+    .discount-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--warning-bg);
+      color: var(--gold-hover);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(212,175,55,0.2);
+    }
+    .discount-badge .icon { font-size: 14px; }
+
+    /* Progress ring */
+    .progress-section {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .progress-ring-wrapper {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      flex-shrink: 0;
+    }
+    .progress-ring-wrapper svg {
+      transform: rotate(-90deg);
+    }
+    .progress-bg {
+      fill: none;
+      stroke: var(--surface-subtle);
+      stroke-width: 6;
+    }
+    .progress-fill {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 251.2;
+      stroke-dashoffset: 50.24; /* 251.2 * (1 - 4/5) = 50.24 → 80% filled */
+      transition: stroke-dashoffset 0.6s ease;
+    }
+    .progress-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .progress-count {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .progress-count span {
+      font-size: 16px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .progress-label-sm {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .progress-info h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .progress-info p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .progress-info .highlight {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* Steps indicator */
+    .steps-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .step-dot {
+      flex: 1;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--surface-subtle);
+    }
+    .step-dot.filled {
+      background: var(--primary);
+    }
+    .step-dot.next {
+      background: var(--border-strong);
+      position: relative;
+    }
+    .step-dot.next::after {
+      content: '★';
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: var(--gold);
+    }
+    .steps-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* ===== Next Discount Callout ===== */
+    .next-discount-callout {
+      background: var(--warning-bg);
+      border: 1px solid rgba(212,175,55,0.15);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .next-discount-callout .callout-icon {
+      font-size: 20px;
+    }
+    .next-discount-callout p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .next-discount-callout strong {
+      color: var(--gold-hover);
+    }
+
+    /* ===== Upcoming Section ===== */
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-title h2 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .section-title .count-badge {
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+      padding: 2px 10px;
+      border-radius: var(--radius-full);
+    }
+
+    .appointment-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: box-shadow 0.15s ease;
+    }
+    .appointment-card:hover {
+      box-shadow: var(--shadow-card);
+    }
+
+    .appt-date {
+      text-align: center;
+      min-width: 48px;
+      flex-shrink: 0;
+    }
+    .appt-date .day {
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1;
+      color: var(--primary);
+    }
+    .appt-date .month {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+    }
+
+    .appt-divider {
+      width: 1px;
+      height: 40px;
+      background: var(--border-subtle);
+    }
+
+    .appt-details {
+      flex: 1;
+    }
+    .appt-details .service-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .appt-details .specialist {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .appt-time-price {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .appt-time-price .time {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .appt-time-price .price {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Discount applied highlight */
+    .appointment-card.has-discount {
+      border-color: rgba(212,175,55,0.3);
+      background: linear-gradient(90deg, var(--surface-card) 0%, rgba(250,242,228,0.4) 100%);
+    }
+    .discount-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gold-hover);
+      background: var(--warning-bg);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      margin-top: 2px;
+    }
+    .original-price {
+      text-decoration: line-through;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-right: 4px;
+    }
+    .discounted-price {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    /* ===== Status chips ===== */
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+    }
+    .status-confirmed {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+    .status-completed {
+      background: var(--surface-subtle);
+      color: var(--text-muted);
+    }
+
+    /* ===== History section ===== */
+    .history-card {
+      opacity: 0.85;
+    }
+    .history-card .appt-date .day {
+      color: var(--text-secondary);
+    }
+
+    /* ===== CTA Button ===== */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--primary);
+      color: #FFFFFF;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 24px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+      width: 100%;
+      text-decoration: none;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow: var(--shadow-card);
+    }
+    .btn-primary:focus-visible {
+      outline: none;
+      box-shadow: var(--shadow-focus);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn-secondary:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-subtle);
+    }
+
+    /* ===== Divider ===== */
+    .divider {
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 32px 0;
+    }
+
+    /* ===== Account info ===== */
+    .account-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 0;
+    }
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      font-weight: 600;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .account-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .account-email {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .account-since {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 480px) {
+      .page { padding: 32px 12px 48px; }
+      .page-header h1 { font-size: 26px; }
+      .progress-section { gap: 16px; }
+      .progress-ring-wrapper { width: 80px; height: 80px; }
+      .progress-count { font-size: 24px; }
+      .appointment-card { padding: 12px 16px; gap: 12px; }
+    }
+
+    .auth-card {
+      max-width: 480px;
+      margin-inline: auto;
+      border: 1px solid var(--border-subtle);
+      border-top: 4px solid var(--gold);
+    }
+    .auth-card .page-header { margin-bottom: 24px; }
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px;
+      padding: 4px;
+      margin-bottom: 24px;
+      border-radius: var(--radius-md);
+      background: var(--surface-subtle);
+    }
+    .auth-tabs button[aria-selected="true"] {
+      background: var(--surface-card);
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+    .auth-field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .auth-field input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      background: var(--surface-card);
+      color: var(--text-primary);
+      font: 400 14px/1.5 var(--font-body);
+    }
+    .auth-field input:focus-visible,
+    .btn-secondary:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+    .auth-card .btn-primary,
+    #loyalty-booking-link { color: var(--text-primary); }
+    .account-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+    }
+    #loyalty-booking-link { margin-top: 16px; }
+    #auth-session-error {
+      color: var(--destructive);
+      font-size: 14px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section id="auth-entry" class="card auth-card" aria-labelledby="auth-title">
+      <header class="page-header">
+        <h1 id="auth-title">Acces clientă</h1>
+        <p class="subtitle">Beauty Studio · Cont demo</p>
+      </header>
+
+      <div class="auth-tabs" role="tablist" aria-label="Acces clientă">
+        <button type="button" id="login-tab" class="btn-secondary" role="tab" aria-selected="true" aria-controls="login-panel">Autentificare</button>
+        <button type="button" id="register-tab" class="btn-secondary" role="tab" aria-selected="false" aria-controls="register-panel" tabindex="-1">Creează cont nou</button>
+      </div>
+
+      <div id="login-panel" role="tabpanel" aria-labelledby="login-tab">
+        <form id="auth-login">
+          <label class="auth-field">
+            Email
+            <input type="email" autocomplete="username" value="clienta@example.test" required>
+          </label>
+          <label class="auth-field">
+            Parolă
+            <input type="password" autocomplete="current-password" value="exemplu-demo" required>
+          </label>
+          <button type="submit" class="btn-primary">Intră în cont</button>
+        </form>
+      </div>
+      <div id="register-panel" role="tabpanel" aria-labelledby="register-tab" hidden>
+        <form id="auth-register">
+          <label class="auth-field">
+            Email
+            <input type="email" autocomplete="username" value="clienta@example.test" required>
+          </label>
+          <label class="auth-field">
+            Parolă
+            <input type="password" autocomplete="new-password" value="exemplu-demo" required>
+          </label>
+          <button type="submit" class="btn-primary">Creează cont</button>
+        </form>
+      </div>
+      <p id="auth-session-error" role="alert" hidden>Sesiunea demo nu a putut fi salvată. Permite stocarea pentru această pagină și încearcă din nou.</p>
+    </section>
+
+    <section id="account-dashboard" aria-labelledby="account-title" hidden>
+    <!-- ===== Header ===== -->
+    <div class="account-toolbar">
+      <button type="button" id="account-logout" class="btn-secondary">Deconectare</button>
+    </div>
+    <header class="page-header">
+      <h1 id="account-title" tabindex="-1">Contul meu și fidelizare</h1>
+      <p class="subtitle">Bine ai revenit, <span class="user-name">Maria</span>!</p>
+    </header>
+
+    <!-- ===== Account Info ===== -->
+    <div class="card" style="padding: 16px 24px;">
+      <div class="account-info">
+        <div class="avatar">MP</div>
+        <div>
+          <div class="account-name">Maria Popescu</div>
+          <div class="account-email">maria.popescu@email.com · 0734 123 456</div>
+          <div class="account-since">Clientă din Septembrie 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Loyalty Progress Card ===== -->
+    <div class="card loyalty-card">
+      <div class="loyalty-header">
+        <span class="loyalty-label">✦ Program Fidelizare</span>
+        <span class="discount-badge"><span class="icon">🎁</span> -10% la a 5-a vizită</span>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-ring-wrapper">
+          <svg width="96" height="96" viewBox="0 0 96 96">
+            <circle class="progress-bg" cx="48" cy="48" r="40" />
+            <circle class="progress-fill" cx="48" cy="48" r="40" />
+          </svg>
+          <div class="progress-center">
+            <span class="progress-count">4<span>/5</span></span>
+            <span class="progress-label-sm">vizite</span>
+          </div>
+        </div>
+        <div class="progress-info">
+          <h3>Încă o vizită! 🎉</h3>
+          <p>Ai completat <span class="highlight">4 din 5</span> vizite din ciclul curent. La următoarea programare finalizată primești automat <span class="highlight">10% reducere</span>.</p>
+        </div>
+      </div>
+
+      <!-- Step dots -->
+      <div class="steps-row">
+        <div class="step-dot filled"></div>
+        <div class="step-dot filled"></div>
+        <div class="step-dot filled"></div>
+        <div class="step-dot filled"></div>
+        <div class="step-dot next"></div>
+      </div>
+      <div class="steps-label">
+        <span>Vizita 1</span>
+        <span>Vizita 5 · -10%</span>
+      </div>
+
+      <!-- Next discount callout -->
+      <div class="next-discount-callout">
+        <span class="callout-icon">💎</span>
+        <p>Următoarea ta programare finalizată va fi cu <strong>10% reducere</strong> — se aplică automat, fără cod promoțional!</p>
+      </div>
+      <a id="loyalty-booking-link" href="DS-pub-booking.html" class="btn-primary">Programare nouă cu −10%</a>
+    </div>
+
+    <!-- ===== Upcoming Appointments ===== -->
+    <div class="section-title">
+      <h2>Programări Viitoare</h2>
+      <span class="count-badge">2</span>
+    </div>
+
+    <!-- Upcoming 1 — this will be the 5th visit with discount -->
+    <div class="appointment-card has-discount">
+      <div class="appt-date">
+        <div class="day">22</div>
+        <div class="month">Nov</div>
+      </div>
+      <div class="appt-divider"></div>
+      <div class="appt-details">
+        <div class="service-name">Pensat cu vopsit</div>
+        <div class="specialist">Ioana · Sprâncene</div>
+        <div class="discount-tag">★ Vizita #5 · -10% fidelizare</div>
+      </div>
+      <div class="appt-time-price">
+        <div class="time">10:30</div>
+        <div class="price">
+          <span class="original-price">70 RON</span>
+          <span class="discounted-price">63 RON</span>
+        </div>
+        <span class="status-chip status-confirmed">● Confirmată</span>
+      </div>
+    </div>
+
+    <!-- Upcoming 2 — normal visit -->
+    <div class="appointment-card">
+      <div class="appt-date">
+        <div class="day">05</div>
+        <div class="month">Dec</div>
+      </div>
+      <div class="appt-divider"></div>
+      <div class="appt-details">
+        <div class="service-name">Make-up ocazie (cu gene)</div>
+        <div class="specialist">Ana · Make-up</div>
+      </div>
+      <div class="appt-time-price">
+        <div class="time">14:00</div>
+        <div class="price">170 RON</div>
+        <span class="status-chip status-confirmed">● Confirmată</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ===== Past Appointments (History) ===== -->
+    <div class="section-title">
+      <h2>Istoric Programări</h2>
+      <span class="count-badge">4</span>
+    </div>
+
+    <!-- History 4 — most recent -->
+    <div class="appointment-card history-card">
+      <div class="appt-date">
+        <div class="day">10</div>
+        <div class="month">Nov</div>
+      </div>
+      <div class="appt-divider"></div>
+      <div class="appt-details">
+        <div class="service-name">Laminare sprâncene</div>
+        <div class="specialist">Ioana · Sprâncene</div>
+      </div>
+      <div class="appt-time-price">
+        <div class="time">11:00</div>
+        <div class="price">180 RON</div>
+        <span class="status-chip status-completed">✓ Finalizată</span>
+      </div>
+    </div>
+
+    <!-- History 3 -->
+    <div class="appointment-card history-card">
+      <div class="appt-date">
+        <div class="day">28</div>
+        <div class="month">Oct</div>
+      </div>
+      <div class="appt-divider"></div>
+      <div class="appt-details">
+        <div class="service-name">Make-up ocazie (fără gene)</div>
+        <div class="specialist">Ana · Make-up</div>
+      </div>
+      <div class="appt-time-price">
+        <div class="time">16:00</div>
+        <div class="price">150 RON</div>
+        <span class="status-chip status-completed">✓ Finalizată</span>
+      </div>
+    </div>
+
+    <!-- History 2 -->
+    <div class="appointment-card history-card">
+      <div class="appt-date">
+        <div class="day">15</div>
+        <div class="month">Oct</div>
+      </div>
+      <div class="appt-divider"></div>
+      <div class="appt-details">
+        <div class="service-name">Pensat simplu (fără vopsit)</div>
+        <div class="specialist">Ioana · Sprâncene</div>
+      </div>
+      <div class="appt-time-price">
+        <div class="time">09:30</div>
+        <div class="price">50 RON</div>
+        <span class="status-chip status-completed">✓ Finalizată</span>
+      </div>
+    </div>
+
+    <!-- History 1 — first visit -->
+    <div class="appointment-card history-card">
+      <div class="appt-date">
+        <div class="day">22</div>
+        <div class="month">Sep</div>
+      </div>
+      <div class="appt-divider"></div>
+      <div class="appt-details">
+        <div class="service-name">Make-up mireasă</div>
+        <div class="specialist">Ana · Make-up</div>
+      </div>
+      <div class="appt-time-price">
+        <div class="time">08:00</div>
+        <div class="price">220 RON</div>
+        <span class="status-chip status-completed">✓ Finalizată</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ===== Account Actions ===== -->
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <a href="#" class="btn-secondary">Schimbă parola</a>
+    </div>
+
+    </section>
+  </main>
+  <script>
+    const sessionKey = 'beauty-studio-demo-client';
+    const authEntry = document.getElementById('auth-entry');
+    const dashboard = document.getElementById('account-dashboard');
+    const sessionError = document.getElementById('auth-session-error');
+    const tabs = [...document.querySelectorAll('.auth-tabs [role="tab"]')];
+
+    function selectAuthTab(selectedTab) {
+      for (const tab of tabs) {
+        const selected = tab === selectedTab;
+        const panel = document.getElementById(tab.getAttribute('aria-controls'));
+        tab.setAttribute('aria-selected', String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        panel.hidden = !selected;
+      }
+    }
+
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => selectAuthTab(tab));
+      tab.addEventListener('keydown', event => {
+        const nextTab = {
+          ArrowLeft: tabs.find(item => item !== tab),
+          ArrowRight: tabs.find(item => item !== tab),
+          Home: tabs[0],
+          End: tabs[1]
+        }[event.key];
+        if (!nextTab) return;
+        event.preventDefault();
+        selectAuthTab(nextTab);
+        nextTab.focus();
+      });
+    }
+
+    function syncAccount() {
+      let signedIn = false;
+      try {
+        signedIn = sessionStorage.getItem(sessionKey) === '1';
+      } catch {
+        // A browser that blocks storage can still show the login form.
+      }
+      authEntry.hidden = signedIn;
+      dashboard.hidden = !signedIn;
+    }
+
+    function signIn(event) {
+      event.preventDefault();
+      try {
+        sessionStorage.setItem(sessionKey, '1');
+      } catch {
+        sessionError.hidden = false;
+        return;
+      }
+      sessionError.hidden = true;
+      event.currentTarget.reset();
+      syncAccount();
+      window.scrollTo(0, 0);
+      document.getElementById('account-title').focus();
+    }
+
+    document.getElementById('auth-login').addEventListener('submit', signIn);
+    document.getElementById('auth-register').addEventListener('submit', signIn);
+    document.getElementById('account-logout').addEventListener('click', () => {
+      sessionStorage.removeItem(sessionKey);
+      selectAuthTab(tabs[0]);
+      syncAccount();
+      tabs[0].focus();
+    });
+    window.addEventListener('pageshow', syncAccount);
+    window.addEventListener('storage', event => {
+      if (event.key === sessionKey || event.key === null) syncAccount();
+    });
+    syncAccount();
+  </script>
+</body>
+</html>

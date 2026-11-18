@@ -176,6 +176,14 @@
       border-color: var(--primary);
     }
 
+    .mock-btn[aria-pressed="true"] {
+      background: var(--primary-subtle);
+      color: var(--text-primary);
+      border-color: var(--primary);
+    }
+
+    #loyalty-preview-btn[hidden] { display: none; }
+
     .theme-toggle {
       border-left: 1px solid var(--border-subtle);
       padding-left: 12px;
@@ -279,13 +287,49 @@
       transform: translateY(-1px);
     }
 
-    .quick-meta {
-      font-size: 12px;
-      color: var(--text-muted);
+    .account-actions {
       display: flex;
       align-items: center;
-      gap: 14px;
+      justify-content: flex-end;
+      gap: 8px;
       flex-wrap: wrap;
+      margin-inline-start: auto;
+    }
+
+    .account-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: var(--surface-card);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .account-link:hover {
+      border-color: var(--primary);
+      background: var(--surface-subtle);
+    }
+
+    .account-link:focus-visible,
+    .team-link:focus-visible,
+    #loyalty-preview-btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .loyalty-badge {
+      padding: 4px 8px;
+      border: 1px solid var(--highlight-gold);
+      border-radius: 6px;
+      background: var(--surface-card);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
     }
 
     /* ----------------------------------------------------
@@ -1023,6 +1067,13 @@
       color: var(--text-muted);
       border-top: 1px solid var(--border-subtle);
     }
+
+    .team-link {
+      display: inline-block;
+      margin-top: 8px;
+      color: var(--text-secondary);
+      text-underline-offset: 4px;
+    }
   </style>
 </head>
 <body>
@@ -1042,6 +1093,7 @@
       <button class="mock-btn" id="btn-state-error" onclick="switchState('error')">Eroare</button>
       <button class="mock-btn" id="btn-state-success" onclick="switchState('success')">Confirmare (Succes)</button>
       <button class="mock-btn" id="btn-state-long-text" onclick="switchState('long-text')">Text Lung</button>
+      <button type="button" class="mock-btn" id="loyalty-preview-btn" aria-pressed="false" onclick="toggleLoyaltyPreview()">Clientă autentificată</button>
 
       <div class="theme-toggle">
         <button class="mock-btn" id="theme-btn" onclick="toggleTheme()">☀️ Mod Luminos</button>
@@ -1056,7 +1108,16 @@
     <header class="studio-hero">
       <div class="studio-topline">
         <span class="location-badge">📍 Gura Râului, Sibiu</span>
-        <span class="quick-meta">✨ Rezervare online instant • Fără cont</span>
+        <div class="account-actions">
+          <a class="account-link" href="DS-pub-auth.html#auth-entry">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.5" />
+              <path d="M5 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1" />
+            </svg>
+            <span id="account-link-label">Contul meu / Autentificare</span>
+          </a>
+          <span class="loyalty-badge" id="loyalty-preview-badge" hidden>−10% fidelizare la această vizită</span>
+        </div>
       </div>
 
       <div>
@@ -1548,7 +1609,8 @@
   </main>
 
   <footer class="mock-footer">
-    Mock de interfață pentru <strong>DS-pub-booking</strong> • Beauty Studio Gura Râului, Sibiu • Sistem de Design conform <code>docs/design/DESIGN.md</code>
+    <div>Mock de interfață pentru <strong>DS-pub-booking</strong> • Beauty Studio Gura Râului, Sibiu • Sistem de Design conform <code>docs/design/DESIGN.md</code></div>
+    <a class="team-link" href="DS-adm-login.html">Acces echipă / Admin</a>
   </footer>
 
   <!-- ========================================================
@@ -1835,18 +1897,20 @@
 
     // 8. Actualizare Dinamică Rezumat & Buton Confirmare
     function updateSummaryUI() {
+      const loyaltyActive = document.getElementById('loyalty-preview-btn').getAttribute('aria-pressed') === 'true';
+      const price = loyaltyActive ? bookingState.service.price * 0.9 : bookingState.service.price;
       const summaryTitle = document.getElementById('summary-service-text');
       const summaryDetails = document.getElementById('summary-meta-text');
       const submitText = document.getElementById('btn-submit-text');
 
       if (summaryTitle) {
-        summaryTitle.innerText = `${bookingState.service.name} • ${bookingState.service.price} RON`;
+        summaryTitle.innerText = `${bookingState.service.name} • ${price} RON`;
       }
       if (summaryDetails) {
         summaryDetails.innerText = `${bookingState.date.dayName}, ${bookingState.date.dayNum} Nov la ${bookingState.time} • Categorie: ${bookingState.categoryLabel}`;
       }
       if (submitText) {
-        submitText.innerText = `Confirmă Rezervarea • ${bookingState.service.price} RON`;
+        submitText.innerText = `Confirmă Rezervarea • ${price} RON`;
       }
 
       // Actualizare ecran succes
@@ -1856,9 +1920,34 @@
       const sCat = document.getElementById('success-category-name');
 
       if (sService) sService.innerText = bookingState.service.name;
-      if (sPrice) sPrice.innerText = `${bookingState.service.price} RON (${bookingState.service.duration})`;
+      if (sPrice) sPrice.innerText = `${price} RON (${bookingState.service.duration})`;
       if (sDateTime) sDateTime.innerText = `${bookingState.date.fullDate} • ${bookingState.time}`;
       if (sCat) sCat.innerText = bookingState.categoryLabel;
+    }
+
+    const clientSessionKey = 'beauty-studio-demo-client';
+
+    function showLoyalty(active) {
+      const button = document.getElementById('loyalty-preview-btn');
+      button.setAttribute('aria-pressed', String(active));
+      document.getElementById('account-link-label').textContent = active ? 'Contul meu' : 'Contul meu / Autentificare';
+      document.getElementById('loyalty-preview-badge').hidden = !active;
+      updateSummaryUI();
+    }
+
+    function toggleLoyaltyPreview() {
+      showLoyalty(document.getElementById('loyalty-preview-btn').getAttribute('aria-pressed') === 'false');
+    }
+
+    function syncClientSession() {
+      let signedIn = false;
+      try {
+        signedIn = sessionStorage.getItem(clientSessionKey) === '1';
+      } catch {
+        // Keep the manual preview available when storage is blocked.
+      }
+      document.getElementById('loyalty-preview-btn').hidden = signedIn;
+      showLoyalty(signedIn);
     }
 
     // 9. Trimitere Formular Normal Rezervare
@@ -1883,8 +1972,8 @@
       const target = document.getElementById('view-' + stateName);
       if (target) target.classList.add('active');
 
-      document.querySelectorAll('.mock-btn').forEach(btn => {
-        if (!btn.id.includes('theme-btn')) btn.classList.remove('active');
+      document.querySelectorAll('.mock-btn[id^="btn-state-"]').forEach(btn => {
+        btn.classList.remove('active');
       });
 
       const activeBtn = document.getElementById('btn-state-' + stateName);
@@ -1911,7 +2000,13 @@
     // Inițializare automată la încărcare (Sâmbătă 21 selectată implicit)
     document.addEventListener('DOMContentLoaded', () => {
       renderScheduleSlots('sam-21');
-      updateSummaryUI();
+      syncClientSession();
+    });
+    window.addEventListener('pageshow', event => {
+      if (event.persisted) syncClientSession();
+    });
+    window.addEventListener('storage', event => {
+      if (event.key === clientSessionKey || event.key === null) syncClientSession();
     });
   </script>
 </body>

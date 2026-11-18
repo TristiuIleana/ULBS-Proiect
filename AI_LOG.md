@@ -322,6 +322,93 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 ### 3. Ce s-a făcut cu răspunsul
 - Domeniul de business și cerințele tehnice sunt 100% clare, consistente și complete. Nu mai există nicio necunoscută sau contradicție, proiectul având undă verde totală pentru începerea implementării backend-ului și bazei de date.
 
+---
+
+## Sesiunea 13 — 18 Noiembrie 2026: Schema Prisma, Seed & Algoritm Disponibilitate Split
+
+### 1. Ce s-a cerut
+- Implementarea schemei Prisma pentru baza de date PostgreSQL: modele `User`, `Service`, `ServiceStep`, `Appointment`, `AppointmentStep`, `Schedule`, `ScheduleException`, `Waitlist`.
+- Migrare inițială (`0_init`) și script de seed (`seed.ts`) cu datele reale ale studioului (specialistele Ioana și Ana, serviciile standard și split, programul săptămânal D-004).
+- Algoritmul de disponibilitate cu suport split-service: calculul sloturilor libere ținând cont de etapele de lucru și de pauză ale laminării, intercalarea altor programări în ferestrele de pauză.
+- Teste unitare (`availability.spec.ts`, `concurrency.spec.ts`) pentru validarea corectitudinii sloturilor calculate și a prevenirii suprapunerilor.
+- Setup Docker Compose cu container PostgreSQL și Dockerfile NestJS.
+
+### 2. Ce s-a primit de la AI
+- **Schema Prisma completă** (`server/prisma/schema.prisma`): toate modelele cu relații, enum-uri (`Role`, `AppointmentStatus`, `DayOfWeek`) și câmpuri conform deciziilor aprobate.
+- **Migrare SQL** (`server/prisma/migrations/0_init/migration.sql`): DDL generat automat din schema Prisma.
+- **Script de seed** (`server/prisma/seed.ts`): populare cu utilizatorii Ioana (Sprâncene) și Ana (Make-up), serviciile standard și serviciul split Laminare Sprâncene (5 etape: 15m/20m/15m/25m/15m), programul săptămânal complet.
+- **Modul Availability** (`server/src/modules/availability/`): serviciu, controller și tipuri pentru calculul sloturilor, cu logică de intercalare split.
+- **Modul Appointments** (`server/src/modules/appointments/`): serviciu pentru gestionarea programărilor.
+- **Teste** (`server/test/availability.spec.ts`, `server/test/concurrency.spec.ts`).
+- **Docker Compose** (`docker-compose.yml`) cu PostgreSQL 16 și **Dockerfile** NestJS multi-stage.
+
+### 3. Ce s-a făcut cu răspunsul
+- Toate fișierele au fost create și comise local pe branch-ul `feat/db-schema-and-availability`. Schema, seed-ul și algoritmul sunt pregătite pentru testare integrată.
+
+---
+
+## Sesiunea 14 — 19 Noiembrie 2026: Funcționalitate Fidelizare (D-005) & Ecran „Contul Meu"
+
+### 1. Ce s-a cerut
+- Adăugarea unui program de fidelizare pentru clientele cu cont: la fiecare a 5-a vizită finalizată (ciclu repetat), reducere automată de 10%.
+- Formularea propunerii de decizie D-005, confirmată de utilizator cu 3 clarificări: ciclu repetat (5, 10, 15…), aplicare automată la booking, numărare per total studio.
+- Înregistrarea D-005 în `docs/agents/DECISIONS.md`, actualizarea `CONTEXT.md`, `README.md`.
+- Adăugarea ecranului `DS-pub-auth` („Contul Meu & Fidelizare") în `docs/design/registry.yaml` cu status `draft`.
+- Generarea mock-up-ului HTML (`docs/design/mocks/DS-pub-auth.html`) folosind token-urile din `DESIGN.md`.
+
+### 2. Ce s-a primit de la AI
+- **PROPOSAL D-005** formulată conform gate-ului din AGENTS.md cu cele 3 întrebări de clarificare, confirmată de utilizator.
+- **`docs/agents/DECISIONS.md`:** D-005 adăugată (approved, confirmed 2026-11-19) cu regula completă: ciclu repetat de 5 vizite, 10% reducere automată server-side, numărare per studio.
+- **`CONTEXT.md`:** Termen nou „Fidelizare" cu definiția oficială.
+- **`README.md`:** Secțiunea 2.C nouă „Programul de Fidelizare Automată (D-005)" și actualizarea rolului Client cu referință la fidelizare.
+- **`docs/design/registry.yaml`:** `DS-pub-auth` actualizat: nume „Contul Meu & Fidelizare", descriere extinsă cu D-005, `design_ref: mocks/DS-pub-auth.html`, status `draft`.
+- **Mock-up HTML** (`docs/design/mocks/DS-pub-auth.html`): ecran complet cu card progres fidelizare (inel 4/5 vizite), badge -10%, callout pentru următoarea reducere, lista programărilor viitoare (cu reducere evidențiată pe vizita #5), istoric cu 4 programări finalizate, secțiune cont cu avatar și acțiuni. Token-uri DESIGN.md: Nude Rose, Gold, Linen, Playfair Display + Plus Jakarta Sans, radii, shadow-uri.
+
+### 3. Ce s-a făcut cu răspunsul
+- Toate fișierele de documentație au fost actualizate. Mock-up-ul HTML este pregătit pentru confirmare vizuală de către utilizator înainte de implementare.
 
 
+---
 
+## Sesiunea 15 — 19 Noiembrie 2026: Grilă de previzualizare pentru platformă
+
+### 1. Ce s-a cerut
+- O pagină HTML cu cele șase mock-up-uri ale platformei, inclusiv „Contul meu și fidelizare” (DS-pub-auth), care să respecte token-urile din DESIGN.md.
+- Includerea grilei și a modificărilor D-005 din sesiunea anterioară în același commit pe branch-ul feat/db-schema-and-availability.
+
+### 2. Ce s-a primit de la AI
+- Pagina docs/design/mocks/preview-grid.html afișează cele șase mock-up-uri din registru într-o grilă cu două coloane pe ecrane late și o coloană pe ecrane înguste.
+- Titlul fiecărui card deschide documentul HTML corespunzător. Grila preia paleta luminoasă și întunecată, fonturile și spațierea din DESIGN.md.
+
+### 3. Ce s-a făcut cu răspunsul
+- Grila a fost adăugată lângă mock-up-uri pentru a permite revizuirea lor dintr-o singură pagină.
+
+---
+
+## Sesiunea 16 — 19 Noiembrie 2026: Navigare din mock-up-ul de rezervare
+
+### 1. Ce s-a cerut
+- Link către contul clientei în cardul Beauty Studio, previzualizarea unei vizite eligibile pentru reducerea D-005 și link de acces pentru echipă în footer.
+- Verificarea vizuală a ecranului de rezervare direct și în grila platformei.
+
+### 2. Ce s-a primit de la AI
+- DS-pub-booking leagă pagina de rezervare de DS-pub-auth și DS-adm-login.
+- Comutatorul „Clientă autentificată” afișează reducerea de 10% în card, sumar, butonul de confirmare și ecranul de succes.
+
+### 3. Ce s-a făcut cu răspunsul
+- Linkurile și starea de fidelizare au fost testate în Chrome. Previzualizarea a fost verificată pe desktop și mobil, în ambele teme.
+
+---
+
+## Sesiunea 17 — 19 Noiembrie 2026: Autentificare clientă în mock-up
+
+### 1. Ce s-a cerut
+- Flux navigabil de la rezervare la autentificare sau creare cont, apoi la panoul de fidelizare și înapoi la rezervare cu reducerea activă.
+
+### 2. Ce s-a primit de la AI
+- DS-pub-auth afișează formularele demo, panoul cu progresul 4/5 și istoricul, precum și acțiunile „Programare nouă cu −10%” și „Deconectare”.
+- Sesiunea demo păstrează în sessionStorage doar indicatorul de autentificare. DS-pub-booking activează automat reducerea pentru vizita demonstrată.
+- Grila și registrul de design descriu traseul de autentificare și fidelizare.
+
+### 3. Ce s-a făcut cu răspunsul
+- Fluxul a fost verificat în Chrome, direct și în grilă, inclusiv după reîncărcare și deconectare.
