@@ -260,4 +260,36 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 ### 3. Ce s-a făcut cu răspunsul
 - Toate ecranele cheie ale fluxului public (rezervare, gestiune) și administrativ (autentificare, calendar recepție, configurare servicii/split) au mock-uri validate și conforme cu sistemul de design. Proiectul este pregătit pentru trecerea la etapa de planificare tehnică (`/plan`) a implementării backend și frontend.
 
+---
+
+## Sesiunea 11 — 18 Noiembrie 2026: Aprobare Ecrane, Generare Design Figma (MCP) & Finalizare Pasul D (Design)
+
+### 1. Ce s-a cerut
+- Aprobarea formală a mock-urilor interactive pentru `DS-pub-manage` (Gestiune Programare Client via Token Securizat) și `DS-adm-services` (Gestiune Servicii & Configurator Etape Split).
+- Marcarea ambelor ecrane ca `approved` în `docs/design/registry.yaml`.
+- Folosirea uneltelor MCP Figma pentru generarea nativă a tuturor celor 5 ecrane aprobate (`DS-pub-booking`, `DS-pub-manage`, `DS-adm-login`, `DS-adm-calendar`, `DS-adm-services`) în fișierul Figma dedicat: `https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled`.
+- Actualizarea `docs/design/registry.yaml` și `AI_LOG.md` cu link-urile directe către frame-urile Figma generate.
+- Clarificarea următorului pas conform metodologiei din proiect după finalizarea Pasului D.
+- Realizarea unui commit Git cu toate modificările și fișierele create în Pasul D (Design).
+
+### 2. Ce s-a primit de la AI
+- **Actualizare `docs/design/registry.yaml`:**
+  - `DS-pub-manage` și `DS-adm-services` actualizate la `status: approved`.
+  - Toate cele 5 ecrane conțin acum referințele directe `figma_ref` către frame-urile Figma generate.
+- **Generare nativă Figma prin MCP (`use_figma` & Plugin API):**
+  - Autentificare și creare sesiune de lucru în Figma (`Tl2JUVQKpVMcApSRJ56N9V`).
+  - Creare cadre native cu Auto Layout, paleta cromatică din `DESIGN.md` (Nude Rose, Terracotta, Linen, Deep Espresso, Gold), fonturile oficiale `Playfair Display` și `Plus Jakarta Sans`:
+    1. **`DS-pub-booking` (Wizard Rezervare Client):** Node ID `4:2` → [Figma Frame 4:2](https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=4-2)
+    2. **`DS-pub-manage` (Gestiune Programare Client):** Node ID `5:2` → [Figma Frame 5:2](https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=5-2)
+    3. **`DS-adm-login` (Autentificare Personal):** Node ID `5:43` → [Figma Frame 5:43](https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=5-43)
+    4. **`DS-adm-calendar` (Calendar Recepție Salon):** Node ID `6:2` → [Figma Frame 6:2](https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=6-2)
+    5. **`DS-adm-services` (Gestiune Servicii & Etape Split):** Node ID `7:2` → [Figma Frame 7:2](https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=7-2)
+- **Ghidare metodologică pentru pasul următor:**
+  - Încheierea cu succes a Pasului D (Design & Mockup-uri).
+  - Trecerea la **Etapa de Arhitectură & Planificare Tehnică (`/plan`)** înainte de scrierea codului sursă (`/build`).
+
+### 3. Ce s-a făcut cu răspunsul
+- Registrul de design și fișierul Figma sunt sincronizate 100% cu sistemul de design și deciziile aprobate. S-a realizat commit-ul local în Git pentru întreaga etapă de Design.
+
+
 

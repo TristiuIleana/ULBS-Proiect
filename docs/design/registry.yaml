@@ -22,6 +22,7 @@ designs:
     source: frontend/src/pages/public/BookingWizardPage.tsx
     screenshots: [screens/DS-pub-booking.light.png, screens/DS-pub-booking.dark.png]
     design_ref: mocks/DS-pub-booking.html
+    figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=4-2
     status: approved
 
   - id: DS-pub-confirmation
@@ -40,7 +41,8 @@ designs:
     source: frontend/src/pages/public/ManageBookingPage.tsx
     screenshots: [screens/DS-pub-manage.light.png, screens/DS-pub-manage.dark.png]
     design_ref: mocks/DS-pub-manage.html
-    status: draft
+    figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=5-2
+    status: approved
 
   - id: DS-pub-waitlist
     name: Înscriere Listă de Așteptare
@@ -70,6 +72,7 @@ designs:
     source: frontend/src/pages/admin/StaffLoginPage.tsx
     screenshots: [screens/DS-adm-login.light.png, screens/DS-adm-login.dark.png]
     design_ref: mocks/DS-adm-login.html
+    figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=5-43
     status: approved
 
   - id: DS-adm-calendar
@@ -79,6 +82,7 @@ designs:
     source: frontend/src/pages/admin/ReceptionCalendarPage.tsx
     screenshots: [screens/DS-adm-calendar.light.png, screens/DS-adm-calendar.dark.png]
     design_ref: mocks/DS-adm-calendar.html
+    figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=6-2
     status: approved
 
   - id: DS-adm-services
@@ -88,7 +92,8 @@ designs:
     source: frontend/src/pages/admin/ServicesManagementPage.tsx
     screenshots: [screens/DS-adm-services.light.png, screens/DS-adm-services.dark.png]
     design_ref: mocks/DS-adm-services.html
-    status: draft
+    figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=7-2
+    status: approved
 
   - id: DS-adm-staff
     name: Gestiune Angajați & Orare de Lucru
