@@ -426,3 +426,16 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 
 ### 3. Ce s-a făcut cu răspunsul
 - Planul a fost adăugat în rădăcina repository-ului și legat din secțiunea de documentație a README-ului.
+
+---
+
+## Sesiunea 19 — 19 Noiembrie 2026: Plan dedicat pentru autentificarea clientei și Fidelizare
+
+### 1. Ce s-a cerut
+- Documentarea implementărilor din `fae02c7` și `8a0af79` pentru navigarea din rezervare, reducerea demonstrativă și fluxul de cont al clientei.
+
+### 2. Ce s-a primit de la AI
+- Planul descrie linkurile de cont și echipă, simularea reducerii de 10%, formularele de autentificare și înregistrare, sesiunea demo, panoul 4/5 și comportamentul după deconectare.
+
+### 3. Ce s-a făcut cu răspunsul
+- Planul și criteriile de verificare au fost salvate în [docs/agents/PLAN-CLIENT-AUTH.md](docs/agents/PLAN-CLIENT-AUTH.md).
