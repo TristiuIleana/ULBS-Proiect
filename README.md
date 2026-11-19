@@ -111,6 +111,7 @@ Toate serviciile rulează containerizat prin Docker și Docker Compose:
 ## 7. Structura Documentației de Proiect
 
 Documentația este gestionată conform regulilor de guvernanță agentică din `AGENTS.md`:
+- [PLAN.md](PLAN.md) — Obiectivele, fazele, arhitectura și stadiul proiectului P01.
 - `docs/agents/DECISIONS.md` — Deciziile arhitecturale și tehnice aprobate (`D-001`..`D-005`).
 - `docs/agents/OPEN-QUESTIONS.md` — Întrebările deschise în curs de clarificare cu clientul (`Q-002`..`Q-005`).
 - `docs/agents/PATTERNS.md` — Modelele de bune practici reutilizabile (`PATTERN-001`).

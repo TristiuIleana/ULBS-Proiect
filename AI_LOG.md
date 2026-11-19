@@ -412,3 +412,17 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 
 ### 3. Ce s-a făcut cu răspunsul
 - Fluxul a fost verificat în Chrome, direct și în grilă, inclusiv după reîncărcare și deconectare.
+
+---
+
+## Sesiunea 18 — 19 Noiembrie 2026: Planul complet al proiectului
+
+### 1. Ce s-a cerut
+- Un document de prezentare pentru Beauty Studio, cu obiective, etape, arhitectură, reguli de business și stadiul componentelor.
+
+### 2. Ce s-a primit de la AI
+- [PLAN.md](PLAN.md) sintetizează interviul, deciziile D-001–D-005, cele șase mock-up-uri și fluxul de Fidelizare, schema Prisma, algoritmul de disponibilitate și pașii pentru backend și frontend.
+- Verificarea codului a evidențiat diferența dintre calculul disponibilității pe etape și verificarea tranzacțională pe durata integrală a programării.
+
+### 3. Ce s-a făcut cu răspunsul
+- Planul a fost adăugat în rădăcina repository-ului și legat din secțiunea de documentație a README-ului.
