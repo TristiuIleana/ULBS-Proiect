@@ -147,7 +147,7 @@ Antetul cardului Beauty Studio afișează mesajul despre rezervarea fără cont 
 
 ### 6.5. Rolurile personalului
 
-- **Patroană / Admin (Ioana).** Calendarul arată toate specialistele și serviciile, cu filtru pe specialistă și acces direct la administrarea serviciilor.
+- **Admin (Ioana).** Calendarul arată toate specialistele și serviciile, cu filtru pe specialistă și acces direct la administrarea serviciilor.
 - **Specialistă Make-up (Ana).** Agenda personală afișează programările proprii și detaliile clientelor. Poate marca o programare ca finalizată sau neprezentare și își poate bloca intervale de pauză sau concediu. Catalogul, prețurile, rapoartele financiare și programările Ioanei sunt disponibile în afara acestei agende.
 
 Selectorul din login deschide ecranul demonstrativ al rolului ales. Agenda personală se afișează ca listă cronologică, pe o singură coloană la 390 px, cu stări etichetate în Light și Dark Mode.

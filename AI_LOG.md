@@ -445,7 +445,7 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 ## Sesiunea 20 — 19 Noiembrie 2026: Rezervare fără cont și rolurile personalului
 
 ### 1. Ce s-a cerut
-- Evidențierea rezervării fără cont, o agendă proprie pentru Ana și navigare separată pentru Patroană / Admin și Specialistă Make-up.
+- Evidențierea rezervării fără cont, o agendă proprie pentru Ana și navigare separată pentru Admin și Specialistă Make-up.
 
 ### 2. Ce s-a primit de la AI
 - Mesaj de rezervare fără cont și Fidelizare în `DS-pub-booking`, selector demonstrativ de rol în `DS-adm-login` și filtru pe specialistă cu acces la servicii în `DS-adm-calendar`.

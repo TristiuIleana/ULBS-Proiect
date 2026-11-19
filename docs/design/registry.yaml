@@ -85,7 +85,7 @@ designs:
 
   - id: DS-adm-calendar
     name: Calendar Recepție Multi-Angajat
-    description: Calendar pentru Patroană / Admin, cu toate specialistele și serviciile, filtrare pe specialistă, Zi Full, Waitlist și acces direct la administrarea serviciilor.
+    description: Calendar pentru Admin, cu toate specialistele și serviciile, filtrare pe specialistă, Zi Full, Waitlist și acces direct la administrarea serviciilor.
     kind: screen
     source: frontend/src/pages/admin/ReceptionCalendarPage.tsx
     screenshots: [screens/DS-adm-calendar.light.png, screens/DS-adm-calendar.dark.png]
