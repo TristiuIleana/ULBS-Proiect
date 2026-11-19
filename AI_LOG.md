@@ -439,3 +439,19 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 
 ### 3. Ce s-a făcut cu răspunsul
 - Planul și criteriile de verificare au fost salvate în [docs/agents/PLAN-CLIENT-AUTH.md](docs/agents/PLAN-CLIENT-AUTH.md).
+
+---
+
+## Sesiunea 20 — 19 Noiembrie 2026: Rezervare fără cont și rolurile personalului
+
+### 1. Ce s-a cerut
+- Evidențierea rezervării fără cont, o agendă proprie pentru Ana și navigare separată pentru Patroană / Admin și Specialistă Make-up.
+
+### 2. Ce s-a primit de la AI
+- Mesaj de rezervare fără cont și Fidelizare în `DS-pub-booking`, selector demonstrativ de rol în `DS-adm-login` și filtru pe specialistă cu acces la servicii în `DS-adm-calendar`.
+- Agenda demonstrativă `DS-emp-calendar` în `DS-emp-schedule.html`, cu detalii clientă, stări de programare, blocarea pauzelor sau concediilor și revenire la login.
+
+### 3. Ce s-a făcut cu răspunsul
+- Cele patru ecrane au fost înregistrate ca `draft`. Ghidul de design și grila cu șapte ecrane au fost actualizate. Confirmarea Q-002–Q-005 a fost consemnată în registrul proiectului.
+- În Chrome au fost verificate cele două fluxuri de rezervare ca vizitator, destinațiile rolurilor, filtrul și acțiunile din agendă. Ecranele au fost verificate la 390 și 1440 px în Light și Dark Mode, cu capturi desktop salvate în `docs/design/screens/`.
+- Ledger lint a trecut cu ieșire UTF-8. Verificarea configurației Compose a trecut. Verificarea containerelor în execuție a fost indisponibilă deoarece motorul Docker Desktop era oprit.

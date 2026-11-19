@@ -263,6 +263,26 @@
       box-shadow: var(--shadow-focus);
     }
 
+    .login-roles {
+      min-inline-size: 0;
+      border: 0;
+      padding: 0;
+    }
+
+    .login-roles label {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      background: var(--surface-subtle);
+      cursor: pointer;
+    }
+
+    .login-roles label + label { margin-top: 8px; }
+    .login-roles input { accent-color: var(--primary); flex-shrink: 0; }
+
     .form-row-remember {
       display: flex;
       align-items: center;
@@ -425,17 +445,22 @@
 
       <div id="alert-success" class="alert-box alert-success">
         <span>✓</span>
-        <span>Autentificare reușită! Se încarcă calendarul salonului...</span>
+        <span>Autentificare demonstrativă reușită.</span>
       </div>
 
       <form id="login-form" onsubmit="handleLoginSubmit(event)">
+        <fieldset class="form-group login-roles" id="login-role">
+          <legend class="form-label">Rol demonstrativ</legend>
+          <label><input type="radio" name="role" value="admin" checked required> Patroană / Admin (Acces complet)</label>
+          <label><input type="radio" name="role" value="employee"> Angajat — Specialistă Make-up (Doar programările mele)</label>
+        </fieldset>
         <div class="form-group">
-          <label class="form-label">Adresă de Email</label>
+          <label class="form-label" for="login-email">Adresă de Email</label>
           <input type="email" id="login-email" class="form-input" placeholder="nume@beautystudio.ro" value="admin@beautystudio.ro" required>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Parolă</label>
+          <label class="form-label" for="login-password">Parolă</label>
           <input type="password" id="login-password" class="form-input" placeholder="••••••••••••" value="parola1234" required>
         </div>
 
@@ -457,11 +482,11 @@
       <div class="quick-fill-box">
         <div class="quick-fill-title">Conturi demonstrative rapide:</div>
         <div class="quick-fill-pills">
-          <button class="quick-fill-btn" onclick="quickFill('admin@beautystudio.ro', 'Admin')">
+          <button class="quick-fill-btn" onclick="quickFill('admin@beautystudio.ro', 'admin')">
             <span>🌿</span>
             <span>Cont Sprâncene (Admin)</span>
           </button>
-          <button class="quick-fill-btn" onclick="quickFill('makeup@beautystudio.ro', 'Angajat')">
+          <button class="quick-fill-btn" onclick="quickFill('makeup@beautystudio.ro', 'employee')">
             <span>💄</span>
             <span>Cont Make-up</span>
           </button>
@@ -475,10 +500,17 @@
   </footer>
 
   <script>
+    let loginTimer;
+    const roleDestinations = new Map([
+      ['admin', 'DS-adm-calendar.html'],
+      ['employee', 'DS-emp-schedule.html']
+    ]);
+
     function quickFill(email, role) {
+      switchState('default');
       document.getElementById('login-email').value = email;
       document.getElementById('login-password').value = 'parola1234';
-      hideAlerts();
+      document.getElementById('login-form').elements.role.value = role;
     }
 
     function hideAlerts() {
@@ -488,29 +520,37 @@
 
     function handleLoginSubmit(e) {
       e.preventDefault();
+      const destination = roleDestinations.get(e.currentTarget.elements.role.value);
+      if (!destination) return;
       switchState('loading');
-      setTimeout(() => {
+      loginTimer = setTimeout(() => {
         switchState('success');
+        window.location.assign(destination);
       }, 700);
     }
 
     function switchState(stateName) {
+      clearTimeout(loginTimer);
       hideAlerts();
       const btn = document.getElementById('btn-login-submit');
       const btnText = document.getElementById('btn-login-text');
       const btnIcon = document.getElementById('btn-login-icon');
       const emailInput = document.getElementById('login-email');
       const passInput = document.getElementById('login-password');
+      const roleInput = document.getElementById('login-role');
 
       emailInput.disabled = false;
       passInput.disabled = false;
+      roleInput.disabled = false;
       btn.disabled = false;
+      btn.style.background = '';
       btnText.innerText = 'Conectează-te în cont';
       btnIcon.innerText = '→';
 
       if (stateName === 'loading') {
         emailInput.disabled = true;
         passInput.disabled = true;
+        roleInput.disabled = true;
         btn.disabled = true;
         btnText.innerText = 'Se verifică datele...';
         btnIcon.innerText = '⏳';
@@ -527,6 +567,7 @@
         passInput.value = '';
         emailInput.focus();
       } else if (stateName === 'default') {
+        document.getElementById('login-form').elements.role.value = 'admin';
         emailInput.value = 'admin@beautystudio.ro';
         passInput.value = 'parola1234';
       }

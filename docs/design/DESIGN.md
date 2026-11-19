@@ -140,3 +140,14 @@
 - **Slot Disponibil:** Buton cu suprafață albă, contur subtil `#E8E2D9`, hover cu tranziție caldă către `#FAF7F2` și text accent.
 - **Slot Selectat:** Fond plin Nude Rose (`#C48B71`), text alb `#FFFFFF`, shadow card rafinat.
 - **Slot Indisponibil / Ocupat:** Text estompat `#8E827B`, fond gri deschis, cursor `not-allowed`.
+
+### 6.4. Rezervare fără cont
+
+Antetul cardului Beauty Studio afișează mesajul despre rezervarea fără cont imediat deasupra acțiunii „Contul meu / Autentificare”. Mesajul folosește suprafața subtilă a temei, textul principal și raza mică de badge. La 390 px, textul se poate împărți pe rânduri. Vizitatoarea poate alege serviciul, data și ora, completa numele, telefonul și emailul și confirma rezervarea. Contul este opțional și oferă Fidelizare conform D-005.
+
+### 6.5. Rolurile personalului
+
+- **Patroană / Admin (Ioana).** Calendarul arată toate specialistele și serviciile, cu filtru pe specialistă și acces direct la administrarea serviciilor.
+- **Specialistă Make-up (Ana).** Agenda personală afișează programările proprii și detaliile clientelor. Poate marca o programare ca finalizată sau neprezentare și își poate bloca intervale de pauză sau concediu. Catalogul, prețurile, rapoartele financiare și programările Ioanei sunt disponibile în afara acestei agende.
+
+Selectorul din login deschide ecranul demonstrativ al rolului ales. Agenda personală se afișează ca listă cronologică, pe o singură coloană la 390 px, cu stări etichetate în Light și Dark Mode.

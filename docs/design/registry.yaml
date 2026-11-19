@@ -17,13 +17,14 @@ designs:
 
   - id: DS-pub-booking
     name: Wizard Rezervare Programare
-    description: Flux de rezervare în 3 pași - selecție serviciu/specialist, selector calendaristic sloturi (inclusiv sloturi intercalate pe pauze split), formular date contact (nume, telefon, email).
+    description: Rezervare completă ca vizitator (serviciu, dată, oră, date de contact și confirmare), cu acces opțional la cont și Fidelizare.
     kind: screen
     source: frontend/src/pages/public/BookingWizardPage.tsx
     screenshots: [screens/DS-pub-booking.light.png, screens/DS-pub-booking.dark.png]
     design_ref: mocks/DS-pub-booking.html
+    # Figma: versiunea aprobată anterior reviziei HTML.
     figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=4-2
-    status: approved
+    status: draft
 
   - id: DS-pub-confirmation
     name: Confirmare Rezervare
@@ -73,23 +74,25 @@ designs:
   # ==========================================
   - id: DS-adm-login
     name: Autentificare Personal (Staff Login)
-    description: Pagină de login securizată cu email și parolă pentru Proprietară (Admin) și Angajată (Make-up).
+    description: Autentificare demonstrativă a personalului, cu selector de rol care deschide calendarul Admin sau agenda proprie a Specialistei Make-up.
     kind: screen
     source: frontend/src/pages/admin/StaffLoginPage.tsx
     screenshots: [screens/DS-adm-login.light.png, screens/DS-adm-login.dark.png]
     design_ref: mocks/DS-adm-login.html
+    # Figma: versiunea aprobată anterior reviziei HTML.
     figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=5-43
-    status: approved
+    status: draft
 
   - id: DS-adm-calendar
     name: Calendar Recepție Multi-Angajat
-    description: Tablou de bord principal cu vizualizare zi/săptămână pe coloane de specialiști, editare rapidă / drag & drop, creare rezervare telefonică și blocare manuală intervale.
+    description: Calendar pentru Patroană / Admin, cu toate specialistele și serviciile, filtrare pe specialistă, Zi Full, Waitlist și acces direct la administrarea serviciilor.
     kind: screen
     source: frontend/src/pages/admin/ReceptionCalendarPage.tsx
     screenshots: [screens/DS-adm-calendar.light.png, screens/DS-adm-calendar.dark.png]
     design_ref: mocks/DS-adm-calendar.html
+    # Figma: versiunea aprobată anterior reviziei HTML.
     figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=6-2
-    status: approved
+    status: draft
 
   - id: DS-adm-services
     name: Gestiune Servicii & Etape Split
@@ -133,12 +136,12 @@ designs:
   # ==========================================
   - id: DS-emp-calendar
     name: Calendar Personal Angajat
-    description: Vizualizare calendaristică restrânsă doar la propriile cliente și programări de make-up, fără acces la restul salonului, cu instrucțiuni și URL iCal (.ics).
+    description: Agenda Anei, Specialistă Make-up, cu programări proprii, detalii clientă, marcarea stărilor și blocarea intervalelor proprii.
     kind: screen
     source: frontend/src/pages/employee/EmployeeCalendarPage.tsx
     screenshots: [screens/DS-emp-calendar.light.png, screens/DS-emp-calendar.dark.png]
-    design_ref: none
-    status: proposed
+    design_ref: mocks/DS-emp-schedule.html
+    status: draft
 
   # ==========================================
   # 4. Componente Partajate Specifice (DS Components)

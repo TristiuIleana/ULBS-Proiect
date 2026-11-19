@@ -399,6 +399,45 @@
       background: var(--surface-subtle);
     }
 
+    .specialist-filter {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .specialist-filter select {
+      font: inherit;
+      color: var(--text-primary);
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+
+    #view-default[data-specialist="brows"] :is(.columns-header, .calendar-timegrid),
+    #view-default[data-specialist="makeup"] :is(.columns-header, .calendar-timegrid) {
+      grid-template-columns: 80px minmax(0, 1fr);
+    }
+
+    #view-default[data-specialist="brows"] [data-column="makeup"],
+    #view-default[data-specialist="makeup"] [data-column="brows"] {
+      display: none;
+    }
+
+    @media (max-width: 640px) {
+      .date-nav-group, .calendar-peak-banner { flex-wrap: wrap; }
+      .date-nav-group .current-date-title { font-size: 16px; }
+      .col-header-cell { padding: 8px; flex-wrap: wrap; gap: 4px; }
+      #view-default .columns-header,
+      #view-default .calendar-timegrid { grid-template-columns: 48px repeat(2, minmax(0, 1fr)); }
+      #view-default[data-specialist="brows"] :is(.columns-header, .calendar-timegrid),
+      #view-default[data-specialist="makeup"] :is(.columns-header, .calendar-timegrid) {
+        grid-template-columns: 48px minmax(0, 1fr);
+      }
+    }
+
     .col-header-cell {
       padding: 14px 16px;
       font-size: 14px;
@@ -749,11 +788,12 @@
         <div class="admin-logo-circle">B</div>
         <div class="admin-title-box">
           <h1 class="font-serif">Beauty Studio • Panou Recepție</h1>
-          <span>Gura Râului, Sibiu • 2 Domenii de Activitate</span>
+          <span>Patroană / Admin — Vizibilitate completă</span>
         </div>
       </div>
 
       <div class="admin-actions">
+        <a class="btn-action-secondary" href="DS-adm-services.html">Administrare servicii</a>
         <!-- Buton Marcare Zi Full -->
         <button id="btn-toggle-peak" class="btn-toggle-peak active" onclick="togglePeakDay()">
           <span>⭐</span>
@@ -790,6 +830,14 @@
       <button class="btn-action-secondary" style="padding:6px 12px; font-size:12px;" onclick="changeDate(0)">Astăzi</button>
     </div>
 
+    <label class="specialist-filter">
+      Specialistă
+      <select id="specialist-filter">
+        <option value="all">Toate specialistele</option>
+        <option value="brows">Ioana — Sprâncene</option>
+        <option value="makeup">Ana — Make-up</option>
+      </select>
+    </label>
     <div class="view-switchers">
       <button class="btn-view-tab active">Zi</button>
       <button class="btn-view-tab" onclick="alert('Vizualizarea pe Săptămână va afișa coloanele pe cele 7 zile.')">Săptămână</button>
@@ -817,12 +865,12 @@
         <!-- Antet Coloane -->
         <div class="columns-header">
           <div class="col-header-cell" style="justify-content:center; color:var(--text-muted); font-size:12px;">Ora</div>
-          <div class="col-header-cell">
-            <span>🌿 Domeniul Sprâncene</span>
+          <div class="col-header-cell" data-column="brows">
+            <span>🌿 Ioana — Sprâncene</span>
             <span class="col-meta-tag">4 programări (1 split intercalat)</span>
           </div>
-          <div class="col-header-cell">
-            <span>💄 Domeniul Make-up</span>
+          <div class="col-header-cell" data-column="makeup">
+            <span>💄 Ana — Make-up</span>
             <span class="col-meta-tag">3 programări</span>
           </div>
         </div>
@@ -845,7 +893,7 @@
           </div>
 
           <!-- Coloana 2: Sprâncene -->
-          <div class="domain-column" id="col-brows">
+          <div class="domain-column" id="col-brows" data-column="brows">
             <!-- Background hour slots -->
             <div class="hour-slot-bg" onclick="quickAddSlot('brows', '09:00')"></div>
             <div class="hour-slot-bg" onclick="quickAddSlot('brows', '10:00')"></div>
@@ -907,7 +955,7 @@
           </div>
 
           <!-- Coloana 3: Make-up -->
-          <div class="domain-column" id="col-makeup">
+          <div class="domain-column" id="col-makeup" data-column="makeup">
             <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '09:00')"></div>
             <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '10:00')"></div>
             <div class="hour-slot-bg" onclick="quickAddSlot('makeup', '11:00')"></div>
@@ -1181,6 +1229,11 @@
     let isPeakActive = true;
     let currentDateOffset = 0;
     const baseDate = "Sâmbătă, 21 Noiembrie 2026";
+
+    const specialistFilter = document.getElementById('specialist-filter');
+    specialistFilter.addEventListener('change', () => {
+      document.getElementById('view-default').dataset.specialist = specialistFilter.value;
+    });
 
     function showToast(msg) {
       const toast = document.getElementById('toast-notif');
