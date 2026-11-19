@@ -455,3 +455,19 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Cele patru ecrane au fost înregistrate ca `draft`. Ghidul de design și grila cu șapte ecrane au fost actualizate. Confirmarea Q-002–Q-005 a fost consemnată în registrul proiectului.
 - În Chrome au fost verificate cele două fluxuri de rezervare ca vizitator, destinațiile rolurilor, filtrul și acțiunile din agendă. Ecranele au fost verificate la 390 și 1440 px în Light și Dark Mode, cu capturi desktop salvate în `docs/design/screens/`.
 - Ledger lint a trecut cu ieșire UTF-8. Verificarea configurației Compose a trecut. Verificarea containerelor în execuție a fost indisponibilă deoarece motorul Docker Desktop era oprit.
+
+---
+
+## Sesiunea 21 — 19 Noiembrie 2026: Acces client și rapoarte Admin
+
+### 1. Ce s-a cerut
+- Redenumirea titlului în „Acces client” și adăugarea unui raport demonstrativ pentru rolul Admin, accesibil din Calendar și Servicii.
+
+### 2. Ce s-a primit de la AI
+- `DS-adm-reports` cu indicatori, defalcări pe categorii, servicii și specialiste, filtru pe cele trei perioade și export în CSV sau prin dialogul de salvare PDF.
+- Acces la raport pe baza rolului demo din sesiunea de personal. O sesiune de angajat, una fără rol sau deconectarea duc la starea de acces restricționat, inclusiv în grila de previzualizare.
+
+### 3. Ce s-a făcut cu răspunsul
+- Grila, registrul, ghidul de design și planul proiectului au fost actualizate pentru opt ecrane. Rapoartele și revizia ecranului Servicii sunt în `draft`.
+- Chrome a verificat traseul public, accesul pe roluri, deconectarea, toate perioadele, totalurile și exporturile. Rapoartele și navigarea Admin au fost verificate la 390 și 1440 px în Light și Dark Mode. Titlul public a fost verificat în tema disponibilă în mock.
+- Ledger lint și validarea configurației Compose au trecut. Motorul Docker Desktop era oprit la verificarea containerelor în execuție.

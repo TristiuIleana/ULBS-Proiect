@@ -34,16 +34,18 @@ Rezervarea publică este disponibilă fără cont, pe bază de nume, telefon și
 
 Sursă pentru formularea completă a regulilor aprobate. [D-001–D-005](docs/agents/DECISIONS.md)
 
-### Cele șase ecrane prototipate
+### Cele opt ecrane prototipate
 
 | Ecran | Parcurs sau funcție | Status în registru |
 | --- | --- | --- |
-| `DS-pub-booking` | Alegerea serviciului și specialistei, selectarea slotului, date de contact și confirmare. | Aprobat |
+| `DS-pub-booking` | Alegerea serviciului și specialistei, selectarea slotului, date de contact și confirmare. | Draft |
 | `DS-pub-manage` | Consultare, anulare sau reprogramare prin link securizat. | Aprobat |
-| `DS-pub-auth` | Autentificare, creare cont, progres N/5, programări viitoare și istoric cu reduceri. | Draft |
-| `DS-adm-login` | Autentificare pentru echipă. | Aprobat |
-| `DS-adm-calendar` | Calendar de recepție pe specialiste, programări telefonice, mutări și blocări. | Aprobat |
-| `DS-adm-services` | Configurarea serviciilor, duratelor, prețurilor și etapelor. | Aprobat |
+| `DS-pub-auth` | Acces client, creare cont, progres N/5, programări viitoare și istoric cu reduceri. | Draft |
+| `DS-adm-login` | Autentificare demonstrativă cu sesiune de rol. | Draft |
+| `DS-adm-calendar` | Calendar de recepție pe specialiste și navigare către Servicii și Rapoarte. | Draft |
+| `DS-adm-services` | Configurarea serviciilor, duratelor, prețurilor și etapelor, cu navigare către Rapoarte. | Draft |
+| `DS-adm-reports` | Rapoarte demo pentru Admin, KPI, defalcări, filtre și export CSV/PDF. | Draft |
+| `DS-emp-calendar` | Agenda proprie a specialistei Make-up, cu detalii, stări și blocaje. | Draft |
 
 Traseul demonstrativ pornește din rezervare, continuă prin autentificare sau creare cont și deschide panoul cu progres 4/5. Acțiunea „Programare nouă cu −10%” revine în rezervare cu reducerea demonstrativă aplicată. Demo-ul păstrează indicatorul de autentificare în `sessionStorage` și permite deconectarea. Jurnalul consemnează verificarea în Chrome, inclusiv după reîncărcare și deconectare. Designul include teme luminoasă și întunecată. [Design](docs/design/DESIGN.md) · [Registru](docs/design/registry.yaml) · [Jurnal, sesiunile 14–17](AI_LOG.md)
 

@@ -501,6 +501,14 @@
 
   <script>
     let loginTimer;
+    const staffRoleKey = 'beauty-studio-demo-staff-role';
+    if (new URLSearchParams(location.search).has('logout')) {
+      try {
+        sessionStorage.removeItem(staffRoleKey);
+      } catch {
+        // Reports remain unavailable when storage is blocked.
+      }
+    }
     const roleDestinations = new Map([
       ['admin', 'DS-adm-calendar.html'],
       ['employee', 'DS-emp-schedule.html']
@@ -520,10 +528,16 @@
 
     function handleLoginSubmit(e) {
       e.preventDefault();
-      const destination = roleDestinations.get(e.currentTarget.elements.role.value);
+      const role = e.currentTarget.elements.role.value;
+      const destination = roleDestinations.get(role);
       if (!destination) return;
       switchState('loading');
       loginTimer = setTimeout(() => {
+        try {
+          sessionStorage.setItem(staffRoleKey, role);
+        } catch {
+          // The destination still works when storage is blocked.
+        }
         switchState('success');
         window.location.assign(destination);
       }, 700);

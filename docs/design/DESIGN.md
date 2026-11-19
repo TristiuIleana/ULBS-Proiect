@@ -150,4 +150,14 @@ Antetul cardului Beauty Studio afișează mesajul despre rezervarea fără cont 
 - **Admin (Ioana).** Calendarul arată toate specialistele și serviciile, cu filtru pe specialistă și acces direct la administrarea serviciilor.
 - **Specialistă Make-up (Ana).** Agenda personală afișează programările proprii și detaliile clientelor. Poate marca o programare ca finalizată sau neprezentare și își poate bloca intervale de pauză sau concediu. Catalogul, prețurile, rapoartele financiare și programările Ioanei sunt disponibile în afara acestei agende.
 
-Selectorul din login deschide ecranul demonstrativ al rolului ales. Agenda personală se afișează ca listă cronologică, pe o singură coloană la 390 px, cu stări etichetate în Light și Dark Mode.
+Selectorul din login deschide ecranul demonstrativ al rolului ales. Agenda personală se afișează ca listă cronologică, pe o singură coloană la 390 px, cu stări etichetate în Light și Dark Mode. În fluxul public, formularul afișează titlul „Acces client” înainte de panoul Contul Meu & Fidelizare.
+
+### 6.6. Rapoarte Admin
+
+„Rapoarte” este disponibil din Calendar și Servicii. Ecranul și exporturile demo verifică rolul Admin din sesiunea de personal, inclusiv la deschiderea directă și în grila de previzualizare. Pentru celelalte sesiuni, ecranul oferă acces la login. Mock-ul conține date fictive.
+
+Cardurile KPI și defalcările folosesc perioada selectată. Săptămâna începe luni. Ultimele 3 luni cuprind luna curentă și cele două luni calendaristice anterioare. Intervalele sunt afișate în raport și se raportează la data demonstrativă în Europe/Bucharest.
+
+- Încasările nete și ponderea pe categorii, servicii și specialiste folosesc programările finalizate, după reduceri. Fidelizarea arată numărul și valoarea reducerilor aplicate acestor programări.
+- Prezentare = finalizate / (finalizate + neprezentări). Anulare = anulate / (finalizate + neprezentări + anulate). Un numitor zero se afișează ca „—”.
+- Cardurile și tabelele trec pe o singură coloană pe mobil. Exportul CSV include KPI și defalcările, iar salvarea ca PDF folosește dialogul de tipărire cu aspect dedicat raportului.

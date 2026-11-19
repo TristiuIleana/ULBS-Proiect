@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rapoarte Admin — Beauty Studio</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap">
+  <style>
+    :root {
+      color-scheme: light;
+      --background: #FAF7F2;
+      --card: #FFFFFF;
+      --subtle: #F4EFEA;
+      --text: #2B2523;
+      --secondary: #615651;
+      --border: #E8E2D9;
+      --accent: #C48B71;
+    }
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --background: #1A1716;
+      --card: #241F1D;
+      --subtle: #2E2825;
+      --text: #F5F2EB;
+      --secondary: #C7BFB7;
+      --border: #38302C;
+      --accent: #D49D85;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font: 400 14px/1.5 "Plus Jakarta Sans", system-ui, sans-serif;
+    }
+    header { background: var(--card); border-bottom: 1px solid var(--border); }
+    .container { max-width: 1280px; margin: auto; padding: 24px; }
+    .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .between { justify-content: space-between; gap: 16px; }
+    h1, h2, .brand { margin: 0; font-family: "Playfair Display", Georgia, serif; }
+    h1 { font-size: 32px; line-height: 1.25; }
+    h2, .brand { font-size: 24px; line-height: 1.3; }
+    p { margin: 4px 0 0; }
+    .muted { color: var(--secondary); }
+    nav a, button, select, .button {
+      display: inline-block;
+      max-width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      color: var(--text);
+      font: inherit;
+      text-decoration: none;
+    }
+    nav a, button, .button { cursor: pointer; font-weight: 600; }
+    nav a:hover, button:hover, .button:hover, [aria-current="page"] { background: var(--subtle); }
+    [aria-current="page"] { border-color: var(--accent); }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .toolbar, section + section { margin-top: 24px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 6px 20px -4px rgba(43, 37, 35, 0.08);
+    }
+    #kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0; }
+    dt { font-weight: 600; color: var(--secondary); }
+    dd { margin: 4px 0 0; font-size: 24px; font-weight: 700; }
+    dd small { display: block; font-size: 12px; font-weight: 600; color: var(--secondary); }
+    table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+    th, td { padding: 8px 12px; text-align: end; border-bottom: 1px solid var(--border); }
+    th:first-child { text-align: start; }
+    tbody tr:last-child > * { border-bottom: 0; }
+    #access .button { margin-top: 16px; }
+    @media (max-width: 900px) {
+      #kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .container { padding: 16px; }
+      h1 { font-size: 26px; }
+      h2 { font-size: 20px; }
+      #kpis { grid-template-columns: minmax(0, 1fr); }
+      thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+      tbody, tbody tr { display: grid; }
+      tbody tr { gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+      tbody tr:last-child { border-bottom: 0; }
+      tbody th, tbody td { border: 0; padding: 0; }
+      tbody td { display: flex; justify-content: space-between; gap: 8px; }
+      tbody td::before { content: attr(data-label); color: var(--secondary); text-align: start; }
+    }
+    @media print {
+      :root, [data-theme="dark"] {
+        --background: #FFFFFF;
+        --card: #FFFFFF;
+        --text: #2B2523;
+        --secondary: #615651;
+        --border: #E8E2D9;
+      }
+      header, .report-controls { display: none; }
+      .card { box-shadow: none; }
+      tr, dl > div { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container row between">
+      <span class="brand">Beauty Studio</span>
+      <nav id="admin-nav" class="row" aria-label="Administrare" hidden>
+        <a href="DS-adm-calendar.html">Calendar</a>
+        <a href="DS-adm-services.html">Servicii</a>
+        <a href="DS-adm-reports.html" aria-current="page">Rapoarte</a>
+        <a href="DS-adm-login.html?logout">Deconectare</a>
+      </nav>
+      <button id="theme" type="button" aria-pressed="false">Mod întunecat</button>
+    </div>
+  </header>
+  <main class="container">
+    <section id="access" class="card" aria-labelledby="access-title">
+      <h1 id="access-title">Rapoarte Admin</h1>
+      <p>Acces restricționat. Conectează-te cu rolul Admin pentru a vedea raportul demonstrativ.</p>
+      <a class="button" href="DS-adm-login.html">Autentificare personal</a>
+    </section>
+    <div id="report" hidden>
+      <h1>Rapoarte Admin</h1>
+      <p class="muted">Date demonstrative · 21 noiembrie 2026 · Europe/Bucharest</p>
+      <div class="toolbar report-controls row between">
+        <label class="row">Perioadă
+          <select id="period">
+            <option value="week">Săptămâna curentă</option>
+            <option value="month" selected>Luna curentă</option>
+            <option value="quarter">Ultimele 3 luni</option>
+          </select>
+        </label>
+        <div class="row">
+          <button id="csv" type="button">Export CSV</button>
+          <button id="pdf" type="button">Salvare ca PDF</button>
+        </div>
+      </div>
+      <p id="range" class="muted" role="status"></p>
+      <section class="toolbar" aria-label="Indicatori">
+        <p id="empty" class="card" hidden>Nicio programare în perioada selectată.</p>
+        <dl id="kpis"></dl>
+      </section>
+      <section class="card" aria-labelledby="categories-title">
+        <h2 id="categories-title">Categorii</h2>
+        <table aria-labelledby="categories-title" id="categories"></table>
+      </section>
+      <section class="card" aria-labelledby="services-title">
+        <h2 id="services-title">Servicii</h2>
+        <table aria-labelledby="services-title" id="services"></table>
+      </section>
+      <section class="card" aria-labelledby="specialists-title">
+        <h2 id="specialists-title">Performanță pe specialiste</h2>
+        <table aria-labelledby="specialists-title" id="specialists"></table>
+      </section>
+    </div>
+  </main>
+  <script>
+    const roleKey = 'beauty-studio-demo-staff-role';
+    const period = document.getElementById('period');
+    const report = document.getElementById('report');
+    const ranges = {
+      week: ['2026-11-16', '2026-11-22', '16–22 noiembrie 2026'],
+      month: ['2026-11-01', '2026-11-30', '1–30 noiembrie 2026'],
+      quarter: ['2026-09-01', '2026-11-30', '1 septembrie–30 noiembrie 2026']
+    };
+    const catalog = {
+      lamination: { name: 'Laminare sprâncene', price: 18000, category: 'Sprâncene', specialist: 'Ioana — Admin / Sprâncene' },
+      tint: { name: 'Pensat cu vopsit', price: 7000, category: 'Sprâncene', specialist: 'Ioana — Admin / Sprâncene' },
+      shaping: { name: 'Pensat simplu (fără vopsit)', price: 5000, category: 'Sprâncene', specialist: 'Ioana — Admin / Sprâncene' },
+      occasion: { name: 'Make-up ocazie (fără gene)', price: 15000, category: 'Make-up', specialist: 'Ana — Specialistă Make-up' },
+      lashes: { name: 'Make-up ocazie (cu gene)', price: 17000, category: 'Make-up', specialist: 'Ana — Specialistă Make-up' },
+      bridal: { name: 'Make-up mireasă', price: 22000, category: 'Make-up', specialist: 'Ana — Specialistă Make-up' }
+    };
+    // Dates are local calendar dates. Prices and discounts are integer bani.
+    const appointments = [
+      ['2026-08-31', 'bridal', 'COMPLETED'],
+      ['2026-09-01', 'bridal', 'COMPLETED'],
+      ['2026-09-19', 'tint', 'NO_SHOW'],
+      ['2026-10-07', 'occasion', 'COMPLETED'],
+      ['2026-10-24', 'shaping', 'COMPLETED'],
+      ['2026-11-01', 'bridal', 'COMPLETED', 2200],
+      ['2026-11-05', 'tint', 'COMPLETED'],
+      ['2026-11-15', 'shaping', 'CANCELLED'],
+      ['2026-11-16', 'lamination', 'COMPLETED', 1800],
+      ['2026-11-18', 'lashes', 'COMPLETED'],
+      ['2026-11-19', 'occasion', 'NO_SHOW'],
+      ['2026-11-20', 'tint', 'CANCELLED'],
+      ['2026-11-21', 'shaping', 'COMPLETED'],
+      ['2026-11-22', 'bridal', 'CONFIRMED', 2200],
+      ['2026-12-01', 'lamination', 'CONFIRMED']
+    ];
+    const currency = new Intl.NumberFormat('ro-RO', { style: 'currency', currency: 'RON' });
+    const percent = new Intl.NumberFormat('ro-RO', { style: 'percent', maximumFractionDigits: 1 });
+    const money = amount => currency.format(amount / 100);
+    const rate = (count, total) => total ? percent.format(count / total) : '—';
+    const breakdowns = [
+      { id: 'categories', label: 'Categorie', key: 'category' },
+      { id: 'services', label: 'Serviciu', key: 'name' },
+      { id: 'specialists', label: 'Specialistă', key: 'specialist' }
+    ];
+
+    function hasAdminRole() {
+      try {
+        return sessionStorage.getItem(roleKey) === 'admin';
+      } catch {
+        return false;
+      }
+    }
+
+    function buildReport() {
+      const [start, end, range] = ranges[period.value];
+      const entries = appointments.filter(([date]) => start <= date && date <= end);
+      const completed = entries.filter(([, , status]) => status === 'COMPLETED');
+      const noShows = entries.filter(([, , status]) => status === 'NO_SHOW').length;
+      const cancelled = entries.filter(([, , status]) => status === 'CANCELLED').length;
+      const discounted = completed.filter(([, , , discount]) => discount);
+      const net = rows => rows.reduce((sum, [, service, , discount = 0]) => sum + catalog[service].price - discount, 0);
+      const revenue = net(completed);
+      const kpis = [
+        ['Încasări totale', money(revenue), 'După reduceri'],
+        ['Programări finalizate', completed.length, 'În perioada selectată'],
+        ['Rată de prezentare', rate(completed.length, completed.length + noShows), noShows + (noShows === 1 ? ' neprezentare' : ' neprezentări')],
+        ['Rată de anulare', rate(cancelled, completed.length + noShows + cancelled), cancelled + (cancelled === 1 ? ' anulare' : ' anulări')],
+        ['Reduceri Fidelizare −10%', discounted.length, money(discounted.reduce((sum, [, , , discount]) => sum + discount, 0))]
+      ];
+      const tables = breakdowns.map(({ id, label, key }) => {
+        const names = [...new Set(Object.values(catalog).map(service => service[key]))];
+        const rows = names.map(name => {
+          const group = completed.filter(([, service]) => catalog[service][key] === name);
+          const groupRevenue = net(group);
+          return [name, group.length, money(groupRevenue), rate(groupRevenue, revenue)];
+        });
+        return { id, headings: [label, 'Finalizări', 'Venit net', 'Pondere'], rows };
+      });
+      return { start, end, range, kpis, tables, empty: entries.length === 0 };
+    }
+
+    function renderReport() {
+      const data = buildReport();
+      document.getElementById('range').textContent = data.range;
+      document.getElementById('empty').hidden = !data.empty;
+      const indicators = document.getElementById('kpis');
+      indicators.replaceChildren();
+      for (const [label, value, note] of data.kpis) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const title = document.createElement('dt');
+        const metric = document.createElement('dd');
+        const detail = document.createElement('small');
+        title.textContent = label;
+        metric.textContent = value;
+        detail.textContent = note;
+        metric.append(detail);
+        card.append(title, metric);
+        indicators.append(card);
+      }
+      for (const { id, headings, rows } of data.tables) {
+        const table = document.getElementById(id);
+        table.replaceChildren();
+        const header = table.createTHead().insertRow();
+        for (const heading of headings) {
+          const cell = document.createElement('th');
+          cell.scope = 'col';
+          cell.textContent = heading;
+          header.append(cell);
+        }
+        const body = table.createTBody();
+        for (const [name, ...values] of rows) {
+          const row = body.insertRow();
+          const title = document.createElement('th');
+          title.scope = 'row';
+          title.textContent = name;
+          row.append(title);
+          values.forEach((value, index) => {
+            const cell = row.insertCell();
+            cell.dataset.label = headings[index + 1];
+            cell.textContent = value;
+          });
+        }
+      }
+    }
+
+    function syncAccess() {
+      const allowed = hasAdminRole();
+      report.hidden = !allowed;
+      document.getElementById('admin-nav').hidden = !allowed;
+      document.getElementById('access').hidden = allowed;
+      if (allowed) renderReport();
+      else {
+        document.getElementById('range').textContent = '';
+        for (const id of ['kpis', ...breakdowns.map(section => section.id)]) {
+          document.getElementById(id).replaceChildren();
+        }
+      }
+    }
+
+    period.addEventListener('change', syncAccess);
+    window.addEventListener('pageshow', syncAccess);
+    window.addEventListener('storage', event => {
+      if (event.key === roleKey || event.key === null) syncAccess();
+    });
+    document.getElementById('csv').addEventListener('click', () => {
+      if (!hasAdminRole()) return;
+      const { start, end, range, kpis, tables } = buildReport();
+      const rows = [
+        ['Perioadă', range],
+        ['Indicator', 'Valoare', 'Detalii'],
+        ...kpis,
+        ...tables.flatMap(({ headings, rows }) => [[], headings, ...rows])
+      ];
+      const csv = rows.map(row => row.map(value => '"' + String(value).replaceAll('"', '""') + '"').join(';')).join('\r\n');
+      const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'raport-beauty-studio-' + start + '_' + end + '.csv';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    document.getElementById('pdf').addEventListener('click', () => {
+      if (hasAdminRole()) window.print();
+    });
+    const theme = document.getElementById('theme');
+    theme.addEventListener('click', () => {
+      const dark = document.documentElement.dataset.theme !== 'dark';
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      theme.setAttribute('aria-pressed', String(dark));
+    });
+    syncAccess();
+  </script>
+</body>
+</html>

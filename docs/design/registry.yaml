@@ -57,7 +57,7 @@ designs:
   - id: DS-pub-auth
     name: Contul Meu & Fidelizare
     description: >-
-      Flux de autentificare și creare cont pentru cliente, urmat de panoul
+      Ecranul „Acces client” pentru autentificare și creare cont, urmat de panoul
       de cont: card de progres fidelizare (N/5 vizite
       spre reducerea de 10%), badge vizual la atingerea pragului, lista
       programărilor viitoare, istoric programări finalizate cu evidența
@@ -65,7 +65,7 @@ designs:
       Implementează D-005 (program de fidelizare cu reducere automată recurentă).
     kind: screen
     source: frontend/src/pages/public/ClientAccountPage.tsx
-    screenshots: [screens/DS-pub-auth.light.png, screens/DS-pub-auth.dark.png]
+    screenshots: [screens/DS-pub-auth.light.png]
     design_ref: mocks/DS-pub-auth.html
     status: draft
 
@@ -85,7 +85,7 @@ designs:
 
   - id: DS-adm-calendar
     name: Calendar Recepție Multi-Angajat
-    description: Calendar pentru Admin, cu toate specialistele și serviciile, filtrare pe specialistă, Zi Full, Waitlist și acces direct la administrarea serviciilor.
+    description: Calendar pentru Admin, cu toate specialistele și serviciile, filtrare pe specialistă, Zi Full, Waitlist și acces direct la Servicii și Rapoarte.
     kind: screen
     source: frontend/src/pages/admin/ReceptionCalendarPage.tsx
     screenshots: [screens/DS-adm-calendar.light.png, screens/DS-adm-calendar.dark.png]
@@ -101,8 +101,18 @@ designs:
     source: frontend/src/pages/admin/ServicesManagementPage.tsx
     screenshots: [screens/DS-adm-services.light.png, screens/DS-adm-services.dark.png]
     design_ref: mocks/DS-adm-services.html
+    # Figma: versiunea aprobată anterior reviziei de navigare.
     figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=7-2
-    status: approved
+    status: draft
+
+  - id: DS-adm-reports
+    name: Rapoarte Admin
+    description: Indicatori demonstrativi pentru încasări, finalizări, prezentare, anulări și Fidelizare, cu defalcări, filtru de perioadă și export CSV/PDF disponibil în sesiunea demo Admin.
+    kind: screen
+    source: frontend/src/pages/admin/ReportsPage.tsx
+    screenshots: [screens/DS-adm-reports.light.png, screens/DS-adm-reports.dark.png]
+    design_ref: mocks/DS-adm-reports.html
+    status: draft
 
   - id: DS-adm-staff
     name: Gestiune Angajați & Orare de Lucru
