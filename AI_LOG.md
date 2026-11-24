@@ -471,3 +471,23 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Grila, registrul, ghidul de design și planul proiectului au fost actualizate pentru opt ecrane. Rapoartele și revizia ecranului Servicii sunt în `draft`.
 - Chrome a verificat traseul public, accesul pe roluri, deconectarea, toate perioadele, totalurile și exporturile. Rapoartele și navigarea Admin au fost verificate la 390 și 1440 px în Light și Dark Mode. Titlul public a fost verificat în tema disponibilă în mock.
 - Ledger lint și validarea configurației Compose au trecut. Motorul Docker Desktop era oprit la verificarea containerelor în execuție.
+
+---
+
+## Sesiunea 22 — 24 Noiembrie 2026 — Sprint 1: catalog și disponibilitate
+
+### 1. Ce s-a cerut
+
+- Limitarea livrării la schema Prisma, seed și endpointurile publice de catalog și disponibilitate, cu testele pentru intercalarea la Laminare sprâncene.
+
+### 2. Ce s-a implementat
+
+- Specializarea este înregistrată în Prisma și populată prin seed pentru Ioana (Sprâncene) și Ana (Make-up).
+- `GET /api/services` afișează serviciile active și etapele ordonate, alături de specialiste și categoriile lor. `GET /api/availability` validează identificatorii, data calendaristică și compatibilitatea serviciului cu specialista.
+
+### 3. Verificare
+
+- Testele HTTP au fost rulate înainte de implementare. Catalogul a răspuns cu 404, iar o combinație incompatibilă serviciu–specialistă a răspuns cu 200. Intercalarea a trecut deja.
+- După migrare și două rulări ale seed-ului în baza PostgreSQL izolată, au trecut 15 teste în două suite, inclusiv ferestrele de 20 și 25 de minute și programul de duminică. Aserțiunile existente au fost păstrate. Build-ul NestJS, validarea Compose și ledger lint au trecut.
+- Serverul pornit prin Compose a răspuns prin HTTP cu 6 servicii, 2 specialiste și 97 de sloturi Make-up pentru duminica de test.
+- Lucrul din afara sprintului a fost păstrat local într-un branch de rezervă și un stash. Verificarea acestui sprint a vizat API-ul.

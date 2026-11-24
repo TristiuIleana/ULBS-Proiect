@@ -8,29 +8,31 @@ export async function seed() {
   // 1. Specialists
   const ioana = await prisma.user.upsert({
     where: { email: 'ioana@beautystudio.local' },
-    update: {},
+    update: { specialistCategory: ServiceCategory.BROWS },
     create: {
       email: 'ioana@beautystudio.local',
       phone: '0756062883',
       firstName: 'Ioana',
       lastName: 'Proprietara',
       role: Role.ADMIN,
+      specialistCategory: ServiceCategory.BROWS,
     },
   });
 
   const ana = await prisma.user.upsert({
     where: { email: 'ana@beautystudio.local' },
-    update: {},
+    update: { specialistCategory: ServiceCategory.MAKEUP },
     create: {
       email: 'ana@beautystudio.local',
       phone: '0756062883',
       firstName: 'Ana',
       lastName: 'Tehnician',
       role: Role.SPECIALIST,
+      specialistCategory: ServiceCategory.MAKEUP,
     },
   });
 
-  console.log(`Created specialists: Ioana (${ioana.id}), Ana (${ana.id})`);
+  console.log('Seeded specialist categories.');
 
   // 2. Schedules
   // Ioana: Monday-Saturday 09:00-19:00, Sunday closed (is_working: false)

@@ -39,6 +39,7 @@ model User {
   firstName     String    @map("first_name")
   lastName      String    @map("last_name")
   role          Role      @default(CLIENT)
+  specialistCategory ServiceCategory? @map("specialist_category")
   passwordHash  String?   @map("password_hash")
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
