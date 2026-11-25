@@ -124,7 +124,11 @@ model ScheduleOverride {
 
 model Appointment {
   id                 String            @id @default(uuid()) @db.Uuid
-  clientId           String            @map("client_id") @db.Uuid
+  clientId           String?           @map("client_id") @db.Uuid
+  guestFirstName     String?           @map("guest_first_name")
+  guestLastName      String?           @map("guest_last_name")
+  guestPhone         String?           @map("guest_phone")
+  guestEmail         String?           @map("guest_email")
   specialistId       String            @map("specialist_id") @db.Uuid
   serviceId          String            @map("service_id") @db.Uuid
   startTime          DateTime          @map("start_time") @db.Timestamptz()
@@ -137,7 +141,7 @@ model Appointment {
   createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz()
 
-  client     User               @relation("ClientAppointments", fields: [clientId], references: [id])
+  client     User?              @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Restrict)
   specialist User               @relation("SpecialistAppointments", fields: [specialistId], references: [id])
   service    Service            @relation(fields: [serviceId], references: [id])
   stages     AppointmentStage[]

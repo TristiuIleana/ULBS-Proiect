@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AvailableSlot,
@@ -6,7 +7,7 @@ import {
   ShiftWindow,
   StageTemplate,
 } from './availability.types';
-import { toZonedTime, fromZonedTime, format } from 'date-fns-tz';
+import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 /** IANA timezone for the salon. All local times (schedules, display) use this. */
 const SALON_TZ = 'Europe/Bucharest';
@@ -49,16 +50,23 @@ export class AvailabilityService {
     });
     if (!service) throw new NotFoundException(`Service ${serviceId} not found`);
 
-    const stages: StageTemplate[] = service.stages.map((s) => ({
-      stageOrder: s.stageOrder,
-      durationMinutes: s.durationMinutes,
-      isBusy: s.isBusy,
-    }));
+    return this.getSlotsForShift(specialistId, shift, service.stages, this.prisma);
+  }
+
+  async getSlotsForShift(
+    specialistId: string,
+    shift: ShiftWindow,
+    stages: StageTemplate[],
+    db: Prisma.TransactionClient,
+  ): Promise<AvailableSlot[]> {
+    if (stages.length === 0) return [];
 
     const totalMs = stages.reduce((s, st) => s + st.durationMinutes * 60_000, 0);
+    const latestStartMs = shift.endMs - totalMs;
+    if (latestStartMs < Date.now()) return [];
 
     // 3. Fetch busy intervals for the specialist during this shift window
-    const bookedStages = await this.prisma.appointmentStage.findMany({
+    const bookedStages = await db.appointmentStage.findMany({
       where: {
         specialistId,
         isBusy: true,
@@ -76,13 +84,14 @@ export class AvailabilityService {
 
     // 4. Walk candidate slots
     const slots: AvailableSlot[] = [];
+    const now = Date.now();
 
     for (
       let candMs = shift.startMs;
-      candMs + totalMs <= shift.endMs;
+      candMs <= latestStartMs;
       candMs += SLOT_STEP_MS
     ) {
-      if (this.candidateFits(candMs, stages, busyIntervals)) {
+      if (candMs >= now && this.candidateFits(candMs, stages, busyIntervals)) {
         slots.push({
           utcMs: candMs,
           localIso: this.toLocalIso(candMs),
@@ -129,9 +138,10 @@ export class AvailabilityService {
   async resolveShiftWindow(
     specialistId: string,
     date: string, // "YYYY-MM-DD"
+    db: Prisma.TransactionClient = this.prisma,
   ): Promise<ShiftWindow | null> {
     // Check date-specific override first
-    const override = await this.prisma.scheduleOverride.findUnique({
+    const override = await db.scheduleOverride.findUnique({
       where: { specialistId_date: { specialistId, date } },
     });
 
@@ -147,7 +157,7 @@ export class AvailabilityService {
     const localDate = toZonedTime(new Date(`${date}T12:00:00Z`), SALON_TZ);
     const dayOfWeek = localDate.getDay(); // 0 = Sunday
 
-    const schedule = await this.prisma.specialistSchedule.findUnique({
+    const schedule = await db.specialistSchedule.findUnique({
       where: { specialistId_dayOfWeek: { specialistId, dayOfWeek } },
     });
 
@@ -167,11 +177,11 @@ export class AvailabilityService {
   ): ShiftWindow {
     // fromZonedTime converts "2026-11-20T09:00:00" interpreted in SALON_TZ to UTC
     const startMs = fromZonedTime(
-      new Date(`${date}T${startLocal}:00`),
+      `${date}T${startLocal}:00`,
       SALON_TZ,
     ).getTime();
     const endMs = fromZonedTime(
-      new Date(`${date}T${endLocal}:00`),
+      `${date}T${endLocal}:00`,
       SALON_TZ,
     ).getTime();
     return { startMs, endMs };
@@ -179,7 +189,6 @@ export class AvailabilityService {
 
   /** Formats a UTC ms timestamp as a local ISO string in SALON_TZ. */
   toLocalIso(utcMs: number): string {
-    const zonedDate = toZonedTime(new Date(utcMs), SALON_TZ);
-    return format(zonedDate, "yyyy-MM-dd'T'HH:mm:ssxxx", { timeZone: SALON_TZ });
+    return formatInTimeZone(new Date(utcMs), SALON_TZ, "yyyy-MM-dd'T'HH:mm:ssxxx");
   }
 }

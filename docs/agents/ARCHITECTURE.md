@@ -17,9 +17,11 @@ All server-side services and backends run inside Docker containers.
 | Part | Path | Responsibility | Talks to |
 |---|---|---|---|
 | Server | `server/` | Backend services and APIs | Database, Client |
+| Public booking | `frontend/` | React booking page and Vite development proxy | Server |
 
 ## Data flow
-1. User / Client issues request → Containerized server processes request → Containerized database persists data.
+1. The browser opens the booking page on port 5173. The Vite development proxy forwards `/api` to the Server.
+2. The Server reads availability and persists bookings and their stages in PostgreSQL. After commit, it sends the confirmation to Mailpit over SMTP.
 
 ## State and storage
 | What | Where | Owner | Notes |

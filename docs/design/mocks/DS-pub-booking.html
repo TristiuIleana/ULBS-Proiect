@@ -1109,6 +1109,7 @@
       <button class="mock-btn" id="btn-state-loading" onclick="switchState('loading')">Se încarcă</button>
       <button class="mock-btn" id="btn-state-error" onclick="switchState('error')">Eroare</button>
       <button class="mock-btn" id="btn-state-success" onclick="switchState('success')">Confirmare (Succes)</button>
+      <button class="mock-btn" id="btn-state-mail-failed" onclick="switchState('success', false)">Confirmare (E-mail indisponibil)</button>
       <button class="mock-btn" id="btn-state-long-text" onclick="switchState('long-text')">Text Lung</button>
       <button type="button" class="mock-btn" id="loyalty-preview-btn" aria-pressed="false" onclick="toggleLoyaltyPreview()">Clientă autentificată</button>
 
@@ -1433,27 +1434,27 @@
           <div>
             <span class="flow-step-tag">Pasul 3</span>
             <h2 class="flow-title" style="margin-top:4px;">Datele Tale de Contact</h2>
-            <p class="flow-subtitle">Fără cont obligatoriu. Confirmarea și link-ul securizat se trimit pe email.</p>
+            <p class="flow-subtitle">Te poți programa fără cont. Confirmarea se trimite prin e-mail.</p>
           </div>
         </div>
 
         <form id="booking-form" onsubmit="handleFormSubmit(event)">
           <div class="form-grid">
             <div>
-              <label class="form-label">Nume și Prenume *</label>
-              <input type="text" id="input-client-name" class="form-input" placeholder="Ex: Maria Popescu" value="Elena Ionescu" required>
+              <label class="form-label" for="input-client-first-name">Prenume *</label>
+              <input type="text" id="input-client-first-name" class="form-input" autocomplete="given-name" required>
             </div>
             <div>
-              <label class="form-label">Număr de Telefon *</label>
-              <input type="tel" id="input-client-phone" class="form-input" placeholder="07xx xxx xxx" value="0722 123 456" required>
+              <label class="form-label" for="input-client-last-name">Nume *</label>
+              <input type="text" id="input-client-last-name" class="form-input" autocomplete="family-name" required>
             </div>
-            <div class="form-group-full">
-              <label class="form-label">Adresă de Email * (pentru link-ul securizat de anulare/reprogramare)</label>
-              <input type="email" id="input-client-email" class="form-input" placeholder="nume@exemplu.ro" value="elena.ionescu@gmail.com" required>
+            <div>
+              <label class="form-label" for="input-client-phone">Telefon *</label>
+              <input type="tel" id="input-client-phone" class="form-input" autocomplete="tel" required>
             </div>
-            <div class="form-group-full">
-              <label class="form-label">Mențiuni sau Preferințe Speciale (opțional)</label>
-              <textarea id="input-client-notes" class="form-textarea" rows="2" placeholder="Ex: ten sensibil sau preferințe legate de stilizare"></textarea>
+            <div>
+              <label class="form-label" for="input-client-email">E-mail *</label>
+              <input type="email" id="input-client-email" class="form-input" autocomplete="email" required>
             </div>
           </div>
 
@@ -1555,8 +1556,8 @@
         <div class="success-box">
           <div class="success-icon">✓</div>
           <h2 class="font-serif" style="font-size:24px; margin-bottom:6px; color:var(--success);">Programare Confirmată cu Succes!</h2>
-          <p style="color:var(--text-secondary); max-width:460px; margin:0 auto 18px auto; font-size:13.5px;">
-            Îți mulțumim, <strong id="success-client-name">Elena Ionescu</strong>! Toate detaliile și link-ul securizat au fost expediate pe <strong id="success-client-email">elena.ionescu@gmail.com</strong>.
+          <p id="success-email-status" style="color:var(--text-secondary); max-width:460px; margin:0 auto 18px auto; font-size:13.5px;">
+            Am trimis detaliile programării prin e-mail.
           </p>
 
           <div style="background:var(--surface-card); border:1px solid var(--border-subtle); border-radius:12px; padding:18px; max-width:420px; margin:0 auto 20px auto; text-align:left; box-shadow:var(--shadow-subtle);">
@@ -1579,9 +1580,6 @@
           </div>
 
           <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
-            <button class="btn-submit" onclick="alert('Se deschide pagina de gestiune securizată via token unic!')">
-              Gestionează Programarea
-            </button>
             <button class="btn-secondary" onclick="switchState('default')">
               Fă o nouă rezervare
             </button>
@@ -1971,20 +1969,12 @@
     // 9. Trimitere Formular Normal Rezervare
     function handleFormSubmit(e) {
       e.preventDefault();
-      const name = document.getElementById('input-client-name').value || 'Elena Ionescu';
-      const email = document.getElementById('input-client-email').value || 'elena.ionescu@gmail.com';
-
-      const sName = document.getElementById('success-client-name');
-      const sEmail = document.getElementById('success-client-email');
-      if (sName) sName.innerText = name;
-      if (sEmail) sEmail.innerText = email;
-
       updateSummaryUI();
       switchState('success');
     }
 
     // 10. Comutare Stare Preview
-    function switchState(stateName) {
+    function switchState(stateName, smtpSent = true) {
       document.querySelectorAll('.state-view').forEach(view => view.classList.remove('active'));
 
       const target = document.getElementById('view-' + stateName);
@@ -1994,7 +1984,12 @@
         btn.classList.remove('active');
       });
 
-      const activeBtn = document.getElementById('btn-state-' + stateName);
+      if (stateName === 'success') {
+        document.getElementById('success-email-status').textContent = smtpSent
+          ? 'Am trimis detaliile programării prin e-mail.'
+          : 'Programarea este salvată. Nu am putut trimite confirmarea prin e-mail.';
+      }
+      const activeBtn = document.getElementById('btn-state-' + (smtpSent ? stateName : 'mail-failed'));
       if (activeBtn) activeBtn.classList.add('active');
     }
 

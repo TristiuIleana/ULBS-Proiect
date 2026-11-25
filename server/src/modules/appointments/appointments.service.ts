@@ -1,21 +1,26 @@
 import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
   BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
+import { Prisma, ServiceCategory } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AvailabilityService } from '../availability/availability.service';
-import { Prisma } from '@prisma/client';
+import { PublicBookingDto } from './public-booking.dto';
 
 export interface BookingRequest {
   specialistId: string;
   serviceId: string;
   clientId: string;
-  /** Local date string in Europe/Bucharest, e.g. "2026-11-20" */
   date: string;
-  /** Local start time, e.g. "10:15" */
   startTimeLocal: string;
+}
+
+function assertSlotIsNotPast(slotUtcMs: number): void {
+  if (slotUtcMs < Date.now()) {
+    throw new BadRequestException('Ora de început a intervalului a trecut.');
+  }
 }
 
 @Injectable()
@@ -25,118 +30,89 @@ export class AppointmentsService {
     private readonly availabilityService: AvailabilityService,
   ) {}
 
-  /**
-   * Creates an appointment with its decomposed stages inside a serializable
-   * transaction.  Uses pg_advisory_xact_lock to serialise per-specialist
-   * booking attempts, with the btree_gist exclusion constraint as a final
-   * engine-level fallback.
-   */
-  async bookAppointment(req: BookingRequest) {
-    const service = await this.prisma.service.findUnique({
-      where: { id: req.serviceId, isActive: true },
-      include: { stages: { orderBy: { stageOrder: 'asc' } } },
-    });
-    if (!service) throw new NotFoundException('Service not found.');
-
-    // Build UTC start time from local date + startTimeLocal
-    const { startMs, endMs: shiftEnd } =
-      await this.availabilityService.resolveShiftWindow(
-        req.specialistId,
-        req.date,
-      ).then((w) => {
-        if (!w) throw new BadRequestException('Specialist is not working on this date.');
-        return w;
-      });
-
-    // Find the actual requested start in UTC by scanning available slots
-    const slots = await this.availabilityService.getAvailableSlots(
-      req.specialistId,
-      req.serviceId,
-      req.date,
-    );
-
-    const target = `${req.date}T${req.startTimeLocal}`;
-    const requested = slots.find((s) => s.localIso.startsWith(target));
-    if (!requested) {
-      throw new ConflictException('Requested time slot is not available.');
-    }
-
-    const apptStartMs = requested.utcMs;
-    const totalDurationMs = service.stages.reduce(
-      (sum, s) => sum + s.durationMinutes * 60_000,
-      0,
-    );
-    const apptEndMs = apptStartMs + totalDurationMs;
+  async bookAppointment(req: BookingRequest | PublicBookingDto) {
+    const isPublicBooking = 'slotUtcMs' in req;
+    if (isPublicBooking) assertSlotIsNotPast(req.slotUtcMs);
+    const date = isPublicBooking
+      ? this.availabilityService.toLocalIso(req.slotUtcMs).slice(0, 10)
+      : req.date;
 
     try {
-      return await this.prisma.$transaction(
-        async (tx) => {
-          // Specialist-scoped advisory lock — prevents parallel transactions from
-          // both passing the availability check before either commits stages.
-          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('specialist_' || ${req.specialistId}::text))`;
+      return await this.prisma.$transaction(async (tx) => {
+        // READ COMMITTED gives the recheck a fresh snapshot after the lock is acquired.
+        const [specialist] = await tx.$queryRaw<{ category: ServiceCategory | null }[]>`
+          SELECT specialist_category AS category
+          FROM users
+          WHERE id = ${req.specialistId}::uuid AND role IN ('ADMIN', 'SPECIALIST')
+          FOR UPDATE
+        `;
+        const service = await tx.service.findUnique({
+          where: { id: req.serviceId, isActive: true },
+          include: { stages: { orderBy: { stageOrder: 'asc' } } },
+        });
+        if (!specialist || !service) {
+          throw new NotFoundException('Serviciul sau specialista nu este disponibilă.');
+        }
+        if (service.category !== specialist.category) {
+          throw new BadRequestException('Specialista nu oferă acest serviciu.');
+        }
 
-          // Re-verify availability inside the lock
-          const conflicts = await tx.appointmentStage.count({
-            where: {
-              specialistId: req.specialistId,
-              isBusy: true,
-              status: 'CONFIRMED',
-              startTime: { lt: new Date(apptEndMs) },
-              endTime: { gt: new Date(apptStartMs) },
-            },
-          });
-          if (conflicts > 0) {
-            throw new ConflictException(
-              'This slot was just taken. Please choose another time.',
-            );
-          }
+        const shift = await this.availabilityService.resolveShiftWindow(req.specialistId, date, tx);
+        const slots = shift
+          ? await this.availabilityService.getSlotsForShift(req.specialistId, shift, service.stages, tx)
+          : [];
+        const slot = slots.find(({ localIso, utcMs }) => isPublicBooking
+          ? utcMs === req.slotUtcMs
+          : localIso.startsWith(`${date}T${req.startTimeLocal}`));
+        if (isPublicBooking) assertSlotIsNotPast(req.slotUtcMs);
+        if (!slot) throw new ConflictException('Intervalul nu mai este disponibil.');
 
-          // Insert appointment
-          const appointment = await tx.appointment.create({
-            data: {
-              clientId: req.clientId,
-              specialistId: req.specialistId,
-              serviceId: req.serviceId,
-              startTime: new Date(apptStartMs),
-              endTime: new Date(apptEndMs),
-              totalPriceRon: service.priceRon,
-              status: 'CONFIRMED',
-            },
-          });
+        let cursor = slot.utcMs;
+        const stages = service.stages.map((stage) => {
+          const startTime = new Date(cursor);
+          cursor += stage.durationMinutes * 60_000;
+          return {
+            specialistId: req.specialistId,
+            stageOrder: stage.stageOrder,
+            startTime,
+            endTime: new Date(cursor),
+            isBusy: stage.isBusy,
+            status: 'CONFIRMED' as const,
+          };
+        });
 
-          // Insert decomposed stages
-          let cursor = apptStartMs;
-          for (const stage of service.stages) {
-            const stageStart = cursor;
-            const stageEnd = cursor + stage.durationMinutes * 60_000;
+        const client = 'clientId' in req
+          ? { clientId: req.clientId }
+          : {
+            guestFirstName: req.firstName,
+            guestLastName: req.lastName,
+            guestPhone: req.phone,
+            guestEmail: req.email,
+          };
 
-            await tx.appointmentStage.create({
-              data: {
-                appointmentId: appointment.id,
-                specialistId: req.specialistId,
-                stageOrder: stage.stageOrder,
-                startTime: new Date(stageStart),
-                endTime: new Date(stageEnd),
-                isBusy: stage.isBusy,
-                status: 'CONFIRMED',
-              },
-            });
-
-            cursor = stageEnd;
-          }
-
-          return appointment;
-        },
-        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-      );
-    } catch (err: any) {
-      // PostgreSQL exclusion constraint violation → 23P01
-      if (err?.code === '23P01' || err?.meta?.code === '23P01') {
-        throw new ConflictException(
-          'Booking conflict detected at database level. Please retry.',
-        );
+        return tx.appointment.create({
+          data: {
+            ...client,
+            specialistId: req.specialistId,
+            serviceId: req.serviceId,
+            startTime: new Date(slot.utcMs),
+            endTime: new Date(cursor),
+            totalPriceRon: service.priceRon,
+            status: 'CONFIRMED',
+            stages: { create: stages },
+          },
+          include: {
+            service: { select: { name: true } },
+            specialist: { select: { firstName: true } },
+          },
+        });
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted });
+    } catch (error) {
+      if (error instanceof Error &&
+        /no_specialist_busy_overlap|\b23P01\b/.test(error.message)) {
+        throw new ConflictException('Intervalul nu mai este disponibil.');
       }
-      throw err;
+      throw error;
     }
   }
 }

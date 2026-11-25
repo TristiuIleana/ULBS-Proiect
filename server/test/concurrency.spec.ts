@@ -2,9 +2,9 @@
  * concurrency.spec.ts
  *
  * Integration test proving no double-booking under simultaneous booking attempts.
- * Does NOT require a running DB — it validates the in-memory advisory-lock logic by
+ * Does NOT require a running DB — it validates the in-memory row-lock logic by
  * verifying that our AppointmentsService correctly serialises concurrent calls
- * through the advisory lock check and re-verification.
+ * through lock acquisition and re-verification.
  *
  * Plan test #6:
  *   Fire N concurrent booking attempts for the exact same slot.
@@ -20,7 +20,7 @@ import { AvailabilityService } from '../src/modules/availability/availability.se
 // ---------------------------------------------------------------------------
 
 /**
- * Simulates the advisory lock with a queue and the re-check with a shared
+ * Simulates the row lock with a queue and the re-check with a shared
  * "booked" flag.
  */
 function buildSerialService(): AppointmentsService {
@@ -32,46 +32,42 @@ function buildSerialService(): AppointmentsService {
       startMs: Date.UTC(2026, 10, 23, 7, 0, 0),
       endMs: Date.UTC(2026, 10, 23, 17, 0, 0),
     }),
-    getAvailableSlots: jest.fn().mockResolvedValue([
+    getSlotsForShift: jest.fn().mockImplementation(async () => booked ? [] : [
       { localIso: '2026-11-23T10:15:00+02:00', utcMs: Date.UTC(2026, 10, 23, 8, 15, 0) },
     ]),
   } as unknown as AvailabilityService;
 
+  const service = {
+    findUnique: jest.fn().mockResolvedValue({
+      category: 'BROWS',
+      priceRon: 180,
+      stages: [
+        { stageOrder: 1, durationMinutes: 15, isBusy: true },
+        { stageOrder: 2, durationMinutes: 20, isBusy: false },
+        { stageOrder: 3, durationMinutes: 15, isBusy: true },
+        { stageOrder: 4, durationMinutes: 25, isBusy: false },
+        { stageOrder: 5, durationMinutes: 15, isBusy: true },
+      ],
+    }),
+  };
   const mockPrisma = {
-    service: {
-      findUnique: jest.fn().mockResolvedValue({
-        id: 'svc-laminare',
-        isActive: true,
-        priceRon: 180,
-        totalDurationMinutes: 90,
-        stages: [
-          { stageOrder: 1, durationMinutes: 15, isBusy: true },
-          { stageOrder: 2, durationMinutes: 20, isBusy: false },
-          { stageOrder: 3, durationMinutes: 15, isBusy: true },
-          { stageOrder: 4, durationMinutes: 25, isBusy: false },
-          { stageOrder: 5, durationMinutes: 15, isBusy: true },
-        ],
-      }),
-    },
     $transaction: jest.fn().mockImplementation(async (fn) => {
       let releaseLock: (() => void) | undefined;
       const tx = {
-        $executeRaw: jest.fn().mockImplementation(async () => {
+        service,
+        $queryRaw: jest.fn().mockImplementation(async () => {
           const previousLock = lockReleased;
           lockReleased = new Promise<void>((resolve) => {
             releaseLock = resolve;
           });
           await previousLock;
+          return [{ category: 'BROWS' }];
         }),
         appointment: {
           create: jest.fn().mockImplementation(async (data) => {
             booked = true; // mark as taken
             return { id: 'appt-created', ...data.data };
           }),
-        },
-        appointmentStage: {
-          count: jest.fn().mockImplementation(async () => (booked ? 1 : 0)),
-          create: jest.fn().mockResolvedValue({}),
         },
       };
       try {

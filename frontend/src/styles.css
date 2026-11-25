@@ -1,0 +1,194 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --background: #faf7f2;
+  --card: #ffffff;
+  --subtle: #f4efea;
+  --hover: #efe9e2;
+  --text: #2b2523;
+  --secondary: #615651;
+  --border: #e8e2d9;
+  --field-border: #d5cbc0;
+  --accent: #c48b71;
+  --gold: #d4af37;
+  --success: #4e7a5d;
+  --success-background: #edf4ef;
+  --error-background: #f8ece9;
+  --error: #b84a39;
+  --shadow: 0 6px 20px -4px rgba(43, 37, 35, .08);
+  font-family: "Plus Jakarta Sans Variable", system-ui, sans-serif;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #1a1716;
+  --card: #241f1d;
+  --subtle: #2e2825;
+  --hover: #3a332f;
+  --text: #f5f2eb;
+  --secondary: #c7bfb7;
+  --border: #38302c;
+  --field-border: #4d433e;
+  --accent: #d49d85;
+  --success: #6fa07f;
+  --success-background: #1e2d23;
+  --error-background: #2e1916;
+  --error: #d96b5a;
+}
+
+body { background: var(--background); color: var(--text); font-size: 14px; line-height: 1.5; }
+h1, h2 { font-family: "Playfair Display Variable", Georgia, serif; line-height: 1.25; }
+h1 { font-size: clamp(32px, 6vw, 40px); font-weight: 600; }
+h2 { font-size: clamp(20px, 4vw, 24px); font-weight: 600; margin-block-end: 12px; }
+p { color: var(--secondary); }
+strong { font-weight: 700; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.booking-page {
+  width: min(640px, calc(100% - 32px));
+  margin-inline: auto;
+  padding-block: clamp(24px, 5vw, 48px);
+  display: grid;
+  gap: 20px;
+}
+.card {
+  min-width: 0;
+  padding: clamp(16px, 4vw, 24px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.studio-header {
+  border-top: 4px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(90deg, var(--accent), var(--gold)) border-box;
+}
+.studio-top, .booking-summary, .schedule-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.studio-header h1 { margin-block: 16px 4px; }
+.location, .guest-notice {
+  width: fit-content;
+  padding: 4px 12px;
+  background: var(--subtle);
+  color: var(--text);
+  border-radius: 10px;
+}
+.location { font-size: 12px; }
+.guest-notice { margin-block-start: 16px; font-weight: 600; }
+
+.secondary-button, .primary-button {
+  min-height: 40px;
+  border: 1px solid var(--field-border);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-weight: 650;
+}
+.secondary-button:hover { background: var(--hover); }
+.primary-button { background: var(--accent); color: #2b2523; border-color: var(--accent); }
+.primary-button:hover:not(:disabled) { box-shadow: var(--shadow); }
+
+.service-group + .service-group { margin-block-start: 20px; }
+.service-group h3 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin-block-end: 8px;
+}
+.service-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+}
+.service-option + .service-option { margin-block-start: 8px; }
+.service-option input { margin-block-start: 4px; accent-color: var(--accent); }
+.service-option:hover { background: var(--hover); }
+.service-option:has(:checked) { background: var(--subtle); border-color: var(--accent); }
+.service-copy, .service-meta { display: grid; gap: 4px; }
+.service-copy { overflow-wrap: anywhere; }
+.service-copy span, .service-meta span { color: var(--secondary); font-size: 12px; }
+.service-meta { text-align: end; white-space: nowrap; }
+
+.schedule-controls { justify-content: flex-start; margin-block-end: 16px; }
+.schedule-controls > p { align-self: end; padding-block-end: 12px; }
+.slot-fieldset legend { margin-block-end: 8px; color: var(--secondary); }
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+  max-height: 224px;
+  overflow: auto;
+  padding: 4px;
+}
+.slot-option {
+  display: grid;
+  place-items: center;
+  min-height: 40px;
+  border: 1px solid var(--field-border);
+  border-radius: 10px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.slot-option:hover { background: var(--hover); }
+.slot-option:has(:checked) { background: var(--accent); color: #2b2523; border-color: var(--accent); }
+.slot-option:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.field { display: grid; gap: 4px; font-weight: 650; min-width: 0; }
+.field input, .field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  background: var(--card);
+  border: 1px solid var(--field-border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 400;
+}
+.contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-block: 16px; }
+.booking-summary { padding: 12px; background: var(--subtle); border-radius: 10px; }
+.feedback { display: grid; justify-items: start; gap: 8px; border-radius: 10px; margin-block: 8px 12px; padding: 12px; }
+.feedback.error { background: var(--error-background); color: var(--text); border-inline-start: 2px solid var(--error); }
+.feedback p { color: inherit; }
+.confirmation { text-align: center; }
+.confirmation-mark {
+  display: grid;
+  place-items: center;
+  margin: 0 auto 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 100%;
+  background: var(--success-background);
+  color: var(--success);
+  font-size: 24px;
+}
+.confirmation-details {
+  margin: 16px auto;
+  max-width: 420px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.confirmation-details div { display: flex; justify-content: space-between; gap: 12px; padding-block: 8px; }
+.confirmation-details div + div { border-top: 1px solid var(--border); }
+.confirmation-details dt { color: var(--secondary); text-align: start; }
+.confirmation-details dd { text-align: end; font-weight: 650; overflow-wrap: anywhere; }
+
+@media (max-width: 480px) {
+  .contact-grid { grid-template-columns: 1fr; }
+  .booking-summary button { width: 100%; }
+}
