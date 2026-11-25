@@ -62,6 +62,8 @@ export class AvailabilityService {
     if (stages.length === 0) return [];
 
     const totalMs = stages.reduce((s, st) => s + st.durationMinutes * 60_000, 0);
+    const latestStartMs = shift.endMs - totalMs;
+    if (latestStartMs < Date.now()) return [];
 
     // 3. Fetch busy intervals for the specialist during this shift window
     const bookedStages = await db.appointmentStage.findMany({
@@ -82,13 +84,14 @@ export class AvailabilityService {
 
     // 4. Walk candidate slots
     const slots: AvailableSlot[] = [];
+    const now = Date.now();
 
     for (
       let candMs = shift.startMs;
-      candMs + totalMs <= shift.endMs;
+      candMs <= latestStartMs;
       candMs += SLOT_STEP_MS
     ) {
-      if (this.candidateFits(candMs, stages, busyIntervals)) {
+      if (candMs >= now && this.candidateFits(candMs, stages, busyIntervals)) {
         slots.push({
           utcMs: candMs,
           localIso: this.toLocalIso(candMs),

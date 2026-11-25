@@ -146,6 +146,12 @@ describe('AvailabilityService — buildShiftWindow()', () => {
 // ---------------------------------------------------------------------------
 
 describe('AvailabilityService — getAvailableSlots() with mocked Prisma', () => {
+  beforeEach(() => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-11-20T07:00:00Z'));
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
   // Helper to build a mock PrismaService with configurable schedule response
   function buildMockPrisma(opts: {
     dayOfWeek: number;

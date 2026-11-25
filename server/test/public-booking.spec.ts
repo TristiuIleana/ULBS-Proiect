@@ -42,6 +42,12 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
     makeupServiceId = services.find(service => service.category === 'MAKEUP' && service.totalDurationMinutes === 75)!.id;
   });
 
+  beforeEach(() => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-11-25T10:02:00Z'));
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
   afterAll(async () => {
     try {
       await prisma?.appointment.deleteMany({ where: { id: { in: [...bookingIds] } } });
@@ -78,6 +84,31 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
     const result = await response.json() as { messages: { Subject: string }[] | null };
     return result.messages ?? [];
   }
+
+  it('lists no slots for yesterday and only upcoming slots for today in Bucharest', async () => {
+    const slotsFor = (date: string) => request(app.getHttpServer()).get('/api/availability')
+      .query({ date, serviceId: shortId, specialistId: browsId }).expect(200);
+
+    expect((await slotsFor('2026-11-24')).body.slots).toEqual([]);
+    const { body } = await slotsFor('2026-11-25');
+    expect(body.slots[0]).toEqual({
+      utcMs: Date.parse('2026-11-25T10:05:00Z'),
+      localIso: '2026-11-25T12:05:00+02:00',
+    });
+    expect(body.slots.every((slot: { utcMs: number }) => slot.utcMs >= Date.now())).toBe(true);
+  });
+
+  it.each(['2026-11-24T08:00:00Z', '2026-11-25T10:00:00Z'])(
+    'returns 400 for elapsed slot %s without saving or sending mail',
+    async (start) => {
+      const payload = guestBooking(start);
+      expect((await book(payload)).status).toBe(400);
+      expect(await prisma.appointment.count({
+        where: { specialistId: browsId, startTime: new Date(payload.slotUtcMs) },
+      })).toBe(0);
+      expect(await mailFor(payload.email)).toHaveLength(0);
+    },
+  );
 
   it('stores the guest contact and confirmed UTC stages without modifying or linking an existing account', async () => {
     const payload = guestBooking('2099-01-10T07:00:00Z');

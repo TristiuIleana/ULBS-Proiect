@@ -519,3 +519,9 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Review-ul commitului `36e6c6f` față de `main` a verificat migrarea, păstrarea datelor vizitatoarei pe programare, tranzacția pe etape, confirmarea după commit și fluxul public în Docker.
 - Blocaj de integrare. Disponibilitatea publică a returnat 103 sloturi pentru 6 ianuarie 2020. Tranzacția de rezervare verifică orarul și suprapunerile, însă poate accepta un slot care a început deja și îl poate salva ca `CONFIRMED`. Este necesară excluderea acestor sloturi din disponibilitatea publică și respingerea lor la rezervare, inclusiv pentru orele deja trecute din ziua curentă.
 - Au trecut toate cele 27 de teste din patru suite în Docker, cu PostgreSQL și Mailpit izolate, precum și `git diff --check main` și ledger lint cu `PYTHONUTF8=1`. Suitele actuale nu acoperă sloturile trecute. Integrarea în `main` rămâne blocată.
+
+### Închiderea blocajului
+
+- Disponibilitatea exclude sloturile al căror început a trecut. `POST /api/bookings` răspunde cu `400` pentru aceleași sloturi și verifică din nou ora în tranzacție, înainte de salvare.
+- Cele trei teste de regresie au reprodus problema înainte de corecție. Disponibilitatea afișa ore din ziua anterioară, iar încercările de rezervare pentru un slot din ziua anterioară și unul deja trecut din ziua curentă primeau `201`.
+- După corecție au trecut toate cele 30 de teste din patru suite în Docker, inclusiv verificarea că rezervările respinse nu sunt salvate și nu trimit e-mail. Au trecut și build-ul NestJS, validarea Compose și ledger lint cu `PYTHONUTF8=1`. Review-ul poate fi integrat în `main`.

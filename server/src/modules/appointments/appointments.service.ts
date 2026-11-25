@@ -17,6 +17,12 @@ export interface BookingRequest {
   startTimeLocal: string;
 }
 
+function assertSlotIsNotPast(slotUtcMs: number): void {
+  if (slotUtcMs < Date.now()) {
+    throw new BadRequestException('Ora de început a intervalului a trecut.');
+  }
+}
+
 @Injectable()
 export class AppointmentsService {
   constructor(
@@ -25,7 +31,9 @@ export class AppointmentsService {
   ) {}
 
   async bookAppointment(req: BookingRequest | PublicBookingDto) {
-    const date = 'slotUtcMs' in req
+    const isPublicBooking = 'slotUtcMs' in req;
+    if (isPublicBooking) assertSlotIsNotPast(req.slotUtcMs);
+    const date = isPublicBooking
       ? this.availabilityService.toLocalIso(req.slotUtcMs).slice(0, 10)
       : req.date;
 
@@ -53,9 +61,10 @@ export class AppointmentsService {
         const slots = shift
           ? await this.availabilityService.getSlotsForShift(req.specialistId, shift, service.stages, tx)
           : [];
-        const slot = slots.find(({ localIso, utcMs }) => 'slotUtcMs' in req
+        const slot = slots.find(({ localIso, utcMs }) => isPublicBooking
           ? utcMs === req.slotUtcMs
           : localIso.startsWith(`${date}T${req.startTimeLocal}`));
+        if (isPublicBooking) assertSlotIsNotPast(req.slotUtcMs);
         if (!slot) throw new ConflictException('Intervalul nu mai este disponibil.');
 
         let cursor = slot.utcMs;
