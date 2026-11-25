@@ -2,7 +2,7 @@
 
 **Proiect universitar ULBS · Sistem de programări online**
 
-**Stadiu documentat la 19 noiembrie 2026**
+**Stadiu documentat la 25 noiembrie 2026**
 
 ## 1. Obiectiv și viziune
 
@@ -16,7 +16,7 @@ Rezervarea publică este disponibilă fără cont, pe bază de nume, telefon și
 | --- | --- | --- |
 | 1. Inițializare și interviu | Definirea proiectului P01, a rolurilor, catalogului, orarelor și regulilor pentru Split service. Clarificarea Q-001–Q-005. | Finalizată la nivel de cerințe. [Întrebări și răspunsuri](docs/agents/OPEN-QUESTIONS.md) · [Jurnal, sesiunile 1–12](AI_LOG.md) |
 | 2. Decizii | Aprobarea infrastructurii, a stivei, a identității vizuale și a regulilor de planificare și Fidelizare. | D-001–D-005 aprobate. [Registrul deciziilor](docs/agents/DECISIONS.md) |
-| 3. Design și prototipare | Șase mock-up-uri HTML, grilă de previzualizare și traseu rezervare–cont–Fidelizare. | Cinci mock-up-uri aprobate. Contul clientei are statut `draft`. [Grila](docs/design/mocks/preview-grid.html) · [Registrul](docs/design/registry.yaml) |
+| 3. Design și prototipare | Opt mock-up-uri HTML, grilă de previzualizare și traseu rezervare–cont–Fidelizare. | Gestiunea programării este aprobată. Rezervarea publică și contul clientei sunt în `draft`. [Grila](docs/design/mocks/preview-grid.html) · [Registrul](docs/design/registry.yaml) |
 | 4. Fundația tehnică | Docker Compose, schema Prisma, migrarea inițială și seed cu serviciile, etapele și orarele. | Fișierele sunt implementate. [Compose](docker-compose.yml) · [Schema](server/prisma/schema.prisma) · [Migrarea](server/prisma/migrations/0_init/migration.sql) · [Seed](server/prisma/seed.ts) |
 | 5. Disponibilitate și rezervare | Calcul de disponibilitate pe etape și salvare tranzacțională a programărilor. | API-ul de disponibilitate și serviciul intern de rezervare există. Intercalarea la salvare și expunerea API-ului de rezervare rămân de completat. |
 | 6. Backend funcțional | API de rezervare și gestiune, acces pe roluri, Fidelizare, Waitlist, e-mailuri și export iCal. | Urmează implementarea și integrarea. |
@@ -61,7 +61,7 @@ Fluxul țintă este **browser → SPA React → API NestJS → Prisma → Postgr
 | `Appointment`, `AppointmentStage` | Clientă, specialistă, serviciu, preț total, token de gestionare și intervale concrete ale etapelor. Stările sunt `CONFIRMED`, `CANCELLED`, `COMPLETED` și `NO_SHOW`. |
 | `WaitlistEntry` | Cerere pe serviciu, specialistă și dată, cu token prioritar și termene de notificare și expirare. Stările sunt `WAITING`, `NOTIFIED`, `CLAIMED` și `EXPIRED`. |
 
-Schema actuală păstrează prețul total, iar persistarea distinctă a reducerii D-005 rămâne de implementat. Asocierea explicită dintre servicii și specialiste și validarea ei în API rămân de completat. [Schema Prisma](server/prisma/schema.prisma) · [Migrare](server/prisma/migrations/0_init/migration.sql)
+Schema actuală păstrează prețul total, iar persistarea distinctă a reducerii D-005 rămâne de implementat. Sprintul 1 a adăugat categoria specialistei, a expus-o în catalog și verifică în API-ul de disponibilitate dacă serviciul aparține aceleiași categorii. [Schema Prisma](server/prisma/schema.prisma) · [Migrarea categoriei](server/prisma/migrations/1_specialist_category/migration.sql)
 
 ## 4. Roluri și reguli de business
 
@@ -100,6 +100,8 @@ Pentru Laminare sprâncene, cele cinci etape sunt **15 min ocupat → 20 min lib
 
 ## 6. Stadiu tehnic și pași următori
 
+[Sprintul 2 — Rezervarea publică fără cont](docs/plans/sprint-2-public-booking.md) propune API-ul de creare, confirmarea prin Mailpit și prima pagină React funcțională. Planul este în așteptarea aprobării.
+
 | Componentă | Disponibil acum | Urmează |
 | --- | --- | --- |
 | Infrastructură și date | Compose, Dockerfile, Prisma, migrare și seed. | Verificare integrată cu pornirea containerelor, migrare și seed. |
@@ -107,7 +109,7 @@ Pentru Laminare sprâncene, cele cinci etape sunt **15 min ocupat → 20 min lib
 | Gestiune programări | Modele pentru programări, stări și token. | Consultare, anulare și reprogramare prin token, cu aplicarea politicii Zi Full și eliberarea consecventă a etapelor. |
 | Conturi și Fidelizare | Roluri în schemă, decizie aprobată și flux demonstrativ în mock-up. | Autentificare reală și autorizare, calculul prețului pe Server, stocarea reducerii și afișarea progresului și istoricului. |
 | Waitlist, e-mail și iCal | Model WaitlistEntry și serviciu Mailpit definit în Compose. | Notificări, remindere, blocarea slotului, revendicare și expirare, plus export privat iCal. |
-| Frontend | Sistem de design, cinci mock-up-uri aprobate și un mock-up de cont în draft. | Confirmarea designului contului, implementarea SPA și conectarea fluxurilor publice și ale echipei la API. |
+| Frontend | Sistem de design și mock-up-uri HTML. Aplicația React și serviciul Compose `frontend` urmează să fie adăugate. | Sprintul 2 planifică prima pagină de rezervare fără cont. Fluxurile de cont și echipă rămân în fazele ulterioare. |
 | Validare finală | Suite pentru disponibilitate și concurență în repository. | Testare cu PostgreSQL în Docker și verificarea fluxurilor complete, a accesului pe roluri, a politicii Zi Full, a ferestrei Waitlist, a Fidelizării și a afișării pe mobil și desktop în ambele teme. |
 
 [Teste de disponibilitate](server/test/availability.spec.ts) · [Teste de concurență](server/test/concurrency.spec.ts) · [Jurnalul implementării](AI_LOG.md)
