@@ -511,3 +511,11 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Chrome a parcurs rezervarea, revenirea după `409` și confirmarea capturată în Mailpit. Au fost verificate tastatura, temele Light și Dark, lățimile de 390 și 1440 px și stările de încărcare, eroare, text lung și lipsă de sloturi. Prima pornire a relevat `ECONNREFUSED` în proxy cât timp pornea NestJS. Compose a fost ajustat să pornească frontendul după verificarea catalogului.
 - Auditul npm al dependențelor de rulare a raportat aceleași 13 alerte pentru Server ca înainte de Sprintul 2.
 - Pentru pornirea locală, construiește imaginile `server` și `frontend`, pornește PostgreSQL și Mailpit, apoi aplică migrările cu `docker compose run --rm --no-deps server npx prisma migrate deploy`. Rulează `npm run prisma:seed` în containerul Serverului pentru o bază goală. Pornește pagina cu `docker compose up -d --renew-anon-volumes server frontend` și deschide `http://localhost:5173`.
+
+---
+
+## Sesiunea 25 — 25 Noiembrie 2026 — Review Sprint 2 (Partea G)
+
+- Review-ul commitului `36e6c6f` față de `main` a verificat migrarea, păstrarea datelor vizitatoarei pe programare, tranzacția pe etape, confirmarea după commit și fluxul public în Docker.
+- Blocaj de integrare. Disponibilitatea publică a returnat 103 sloturi pentru 6 ianuarie 2020. Tranzacția de rezervare verifică orarul și suprapunerile, însă poate accepta un slot care a început deja și îl poate salva ca `CONFIRMED`. Este necesară excluderea acestor sloturi din disponibilitatea publică și respingerea lor la rezervare, inclusiv pentru orele deja trecute din ziua curentă.
+- Au trecut toate cele 27 de teste din patru suite în Docker, cu PostgreSQL și Mailpit izolate, precum și `git diff --check main` și ledger lint cu `PYTHONUTF8=1`. Suitele actuale nu acoperă sloturile trecute. Integrarea în `main` rămâne blocată.
