@@ -499,3 +499,15 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Review-ul diferențelor față de `main` a identificat două blocaje. Migrarea Prisma lăsa categoriile specialistelor existente necompletate, iar proprietatea duplicată `appointmentStage` oprea compilarea suitei de concurență cu `TS1117`.
 - Commitul `4384225` completează categoriile aprobate pentru Ioana (`BROWS`) și Ana (`MAKEUP`) în migrare. Verificarea pe o bază PostgreSQL cu date din schema veche a confirmat că orarele săptămânale personalizate sunt păstrate. Mock-ul de concurență simulează blocarea tranzacțională, cu aceleași aserțiuni.
 - În Docker au trecut toate cele 17 teste din trei suite, inclusiv testele HTTP cu PostgreSQL, build-ul NestJS, validarea Prisma și aplicarea migrărilor pe o bază nouă. Configurația Compose, `git diff --check` și ledger lint cu `PYTHONUTF8=1` au trecut.
+
+---
+
+## Sesiunea 24 — 25 Noiembrie 2026 — Sprintul 2 · Rezervarea publică fără cont
+
+- `POST /api/bookings` validează datele de contact și salvează programarea `CONFIRMED` cu etapele ei în UTC. Datele vizitatoarei rămân pe programare. Serverul blochează rândul specialistei și revalidează doar suprapunerile între etapele ocupate.
+- Confirmarea SMTP se trimite prin Mailpit după commit. La eșec, programarea rămâne confirmată, Serverul înregistrează eroarea și pagina afișează starea trimiterii.
+- Pagina React `DS-pub-booking` rulează prin Vite în Compose pe portul 5173 și afișează orele în `Europe/Bucharest`. Revizia mock-ului include formularul fără cont și ambele stări ale confirmării prin e-mail.
+- Cele 10 teste noi au primit `404` înaintea implementării. Pe PostgreSQL și Mailpit izolate au trecut apoi toate cele 27 de teste din patru suite, inclusiv cursa `201/409`, intercalarea în ambele ordini, trecerile la ora de vară și de iarnă și eșecul SMTP. Aserțiunile existente au fost păstrate. Migrarea a păstrat programarea din schema anterioară. Build-urile NestJS și Vite, validarea Prisma, configurația Compose și ledger lint cu `PYTHONUTF8=1` au trecut.
+- Chrome a parcurs rezervarea, revenirea după `409` și confirmarea capturată în Mailpit. Au fost verificate tastatura, temele Light și Dark, lățimile de 390 și 1440 px și stările de încărcare, eroare, text lung și lipsă de sloturi. Prima pornire a relevat `ECONNREFUSED` în proxy cât timp pornea NestJS. Compose a fost ajustat să pornească frontendul după verificarea catalogului.
+- Auditul npm al dependențelor de rulare a raportat aceleași 13 alerte pentru Server ca înainte de Sprintul 2.
+- Pentru pornirea locală, construiește imaginile `server` și `frontend`, pornește PostgreSQL și Mailpit, apoi aplică migrările cu `docker compose run --rm --no-deps server npx prisma migrate deploy`. Rulează `npm run prisma:seed` în containerul Serverului pentru o bază goală. Pornește pagina cu `docker compose up -d --renew-anon-volumes server frontend` și deschide `http://localhost:5173`.

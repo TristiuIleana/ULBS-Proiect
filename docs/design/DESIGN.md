@@ -145,6 +145,8 @@
 
 Antetul cardului Beauty Studio afișează mesajul despre rezervarea fără cont imediat deasupra acțiunii „Contul meu / Autentificare”. Mesajul folosește suprafața subtilă a temei, textul principal și raza mică de badge. La 390 px, textul se poate împărți pe rânduri. Vizitatoarea poate alege serviciul, data și ora, completa numele, telefonul și emailul și confirma rezervarea. Contul este opțional și oferă Fidelizare conform D-005.
 
+Pagina din Sprintul 2 afișează mesajul despre rezervarea fără cont în antet și folosește câmpuri separate pentru prenume și nume. Confirmarea apare în aceeași pagină și afișează sumarul în ora studioului. Mesajul indică dacă e-mailul a fost trimis sau dacă programarea a fost salvată cu confirmarea prin e-mail indisponibilă.
+
 ### 6.5. Rolurile personalului
 
 - **Admin (Ioana).** Calendarul arată toate specialistele și serviciile, cu filtru pe specialistă și acces direct la administrarea serviciilor.

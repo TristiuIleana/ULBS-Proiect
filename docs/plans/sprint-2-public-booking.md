@@ -1,12 +1,12 @@
 # Plan — Sprintul 2 · Rezervarea publică fără cont
 
-**Dimensiune M.** Un flux public complet prin React, NestJS, PostgreSQL și Mailpit. Plan propus, în așteptarea aprobării.
+**Dimensiune M.** Un flux public complet prin React, NestJS, PostgreSQL și Mailpit. Plan confirmat la 25 noiembrie 2026.
 
 ## Abordare
 
 1. **API.** `POST /api/bookings` primește `serviceId`, `specialistId`, `slotUtcMs` (valoarea exactă `utcMs` din `/api/availability`) și datele de contact (`firstName`, `lastName`, `phone`, `email`). Serverul validează tipurile, numele, telefonul și e-mailul, derivă ziua în `Europe/Bucharest`, verifică specializarea și calculează prețul din catalog. Contractul propus întoarce `201` cu sumarul programării și starea trimiterii e-mailului, `400` pentru date invalide, `404` pentru serviciu sau specialistă indisponibilă în catalog și `409` pentru un slot pierdut.
-2. **Persistență și concurență.** Propunerea este ca programarea ca vizitatoare să păstreze propriile date de contact și să permită `clientId` nul. Aceeași adresă poate fi folosită la rezervare fără asociere automată la un cont. În `AppointmentsService`, blocarea rândului specialistei cu `FOR UPDATE` precedă citirea disponibilității în aceeași tranzacție PostgreSQL la `READ COMMITTED`. Se reutilizează calculul din `AvailabilityService` pentru orar, excepții, grila de sloturi și coliziuni între etape ocupate pe intervale `[start, end)`. În aceeași tranzacție se salvează programarea și etapele în `CONFIRMED`. Constrângerea GiST rămâne protecția la nivel de bază de date, iar coliziunea produce `409`.
-3. **Confirmare.** Mesajul SMTP pleacă spre Mailpit pe `mailpit:1025` după commit. Dacă trimiterea eșuează, răspunsul păstrează succesul rezervării și comunică separat eșecul confirmării prin e-mail. Se evită retrimiterea automată a cererii de rezervare.
+2. **Persistență și concurență.** Programarea ca vizitatoare păstrează propriile date de contact și are `clientId` nul. Aceeași adresă poate fi folosită la rezervare fără asociere automată la un cont. În `AppointmentsService`, blocarea rândului specialistei cu `FOR UPDATE` precedă citirea disponibilității în aceeași tranzacție PostgreSQL la `READ COMMITTED`. Se reutilizează calculul din `AvailabilityService` pentru orar, excepții, grila de sloturi și coliziuni între etape ocupate pe intervale `[start, end)`. În aceeași tranzacție se salvează programarea și etapele în `CONFIRMED`. Constrângerea GiST rămâne protecția la nivel de bază de date, iar coliziunea produce `409`.
+3. **Confirmare.** Mesajul SMTP pleacă spre Mailpit pe `mailpit:1025` după commit. Dacă trimiterea eșuează, Serverul înregistrează eroarea, păstrează programarea confirmată și comunică separat eșecul trimiterii. Se evită retrimiterea automată a cererii de rezervare.
 4. **Pagină publică.** `frontend/` găzduiește aplicația Vite, React, TypeScript și Tailwind. Serviciul Compose expune `5173:5173`, Vite ascultă pe `0.0.0.0`, iar proxy-ul `/api` trimite cererile către `http://server:3000`. Dockerfile-ul și Compose folosesc același director de lucru, cu manifestul în calea montată și dependențele într-un volum separat. Pagina încarcă serviciile și specialistele compatibile din `/api/services`, apoi sloturile pentru data aleasă. La `409` actualizează sloturile și păstrează datele de contact. La `201` afișează sumarul în aceeași pagină.
 
 ## Fișiere vizate la implementare
@@ -30,7 +30,7 @@
 
 ## Design
 
-`DS-pub-booking` este în `draft`. Se confirmă revizia pentru rezervare fără cont înainte de implementarea vizuală. Se folosesc token-urile D-003 pentru paletă și tipografie. Se verifică Light și Dark la 390 și 1440 px, navigarea cu tastatura, focalizarea, încărcarea, lipsa sloturilor, eroarea, textul lung și confirmarea. Starea de succes rămâne în aceeași pagină. [Mock](../design/mocks/DS-pub-booking.html) · [Registru](../design/registry.yaml) · [Design](../design/DESIGN.md)
+Revizia `DS-pub-booking` pentru rezervarea fără cont este confirmată. Se folosesc token-urile D-003 pentru paletă și tipografie. Se verifică Light și Dark la 390 și 1440 px, navigarea cu tastatura, focalizarea, încărcarea, lipsa sloturilor, eroarea, textul lung și confirmarea. Starea de succes rămâne în aceeași pagină. [Mock](../design/mocks/DS-pub-booking.html) · [Registru](../design/registry.yaml) · [Design](../design/DESIGN.md)
 
 ## Secvență, riscuri și limite
 
@@ -41,5 +41,5 @@
 ## Cunoaștere folosită și confirmări
 
 - Confirmate anterior. D-001 și PATTERN-001 pentru execuție în Docker, C-001 pentru interfața Serverului consumată de frontendul nou, D-002 pentru stivă și blocare la nivel de rând, D-004 pentru orar, intercalare și Mailpit, Q-003–Q-005 pentru specialiste, etape și catalog. [Decizii](../agents/DECISIONS.md) · [Pattern-uri](../agents/PATTERNS.md) · [Contracte](../agents/CONTRACTS.md) · [Întrebări](../agents/OPEN-QUESTIONS.md)
-- De confirmat cu planul. D-003 pentru designul paginii, revizia mock-ului `DS-pub-booking`, păstrarea contactului pe programarea ca vizitatoare și răspunsul API când SMTP eșuează.
+- Confirmate la 25 noiembrie 2026. D-003 pentru designul paginii, revizia mock-ului `DS-pub-booking`, păstrarea datelor vizitatoarei pe programare și înregistrarea erorii SMTP cu păstrarea programării.
 - D-005 și regula Waitlist din D-004 se aplică în etapele lor de produs. Testele HTTP ale Sprintului 1 sunt o referință pentru informare privind mediul PostgreSQL existent. [Teste Sprintul 1](../../server/test/sprint-1.spec.ts)

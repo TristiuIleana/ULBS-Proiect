@@ -16,11 +16,11 @@ Rezervarea publică este disponibilă fără cont, pe bază de nume, telefon și
 | --- | --- | --- |
 | 1. Inițializare și interviu | Definirea proiectului P01, a rolurilor, catalogului, orarelor și regulilor pentru Split service. Clarificarea Q-001–Q-005. | Finalizată la nivel de cerințe. [Întrebări și răspunsuri](docs/agents/OPEN-QUESTIONS.md) · [Jurnal, sesiunile 1–12](AI_LOG.md) |
 | 2. Decizii | Aprobarea infrastructurii, a stivei, a identității vizuale și a regulilor de planificare și Fidelizare. | D-001–D-005 aprobate. [Registrul deciziilor](docs/agents/DECISIONS.md) |
-| 3. Design și prototipare | Opt mock-up-uri HTML, grilă de previzualizare și traseu rezervare–cont–Fidelizare. | Gestiunea programării este aprobată. Rezervarea publică și contul clientei sunt în `draft`. [Grila](docs/design/mocks/preview-grid.html) · [Registrul](docs/design/registry.yaml) |
+| 3. Design și prototipare | Opt mock-up-uri HTML, grilă de previzualizare și traseu rezervare–cont–Fidelizare. | Gestiunea este aprobată, rezervarea publică fără cont este implementată, iar contul clientei este în `draft`. [Grila](docs/design/mocks/preview-grid.html) · [Registrul](docs/design/registry.yaml) |
 | 4. Fundația tehnică | Docker Compose, schema Prisma, migrarea inițială și seed cu serviciile, etapele și orarele. | Fișierele sunt implementate. [Compose](docker-compose.yml) · [Schema](server/prisma/schema.prisma) · [Migrarea](server/prisma/migrations/0_init/migration.sql) · [Seed](server/prisma/seed.ts) |
-| 5. Disponibilitate și rezervare | Calcul de disponibilitate pe etape și salvare tranzacțională a programărilor. | API-ul de disponibilitate și serviciul intern de rezervare există. Intercalarea la salvare și expunerea API-ului de rezervare rămân de completat. |
-| 6. Backend funcțional | API de rezervare și gestiune, acces pe roluri, Fidelizare, Waitlist, e-mailuri și export iCal. | Urmează implementarea și integrarea. |
-| 7. Frontend și validare | SPA React conectată la API, fluxuri publice și de echipă, verificare integrată în Docker. | Urmează implementarea. Prototipurile HTML oferă referința vizuală. |
+| 5. Disponibilitate și rezervare | Calcul de disponibilitate pe etape și salvare tranzacțională a programărilor. | Catalogul, disponibilitatea și rezervarea publică pe etape sunt implementate. |
+| 6. Backend funcțional | API de rezervare și gestiune, acces pe roluri, Fidelizare, Waitlist, e-mailuri și export iCal. | Crearea publică și confirmarea prin Mailpit sunt implementate. Gestiunea programărilor și restul fluxurilor urmează. |
+| 7. Frontend și validare | SPA React conectată la API, fluxuri publice și de echipă, verificare integrată în Docker. | Pagina React de rezervare fără cont este disponibilă în Compose pe portul 5173. |
 
 ### Deciziile aprobate
 
@@ -38,7 +38,7 @@ Sursă pentru formularea completă a regulilor aprobate. [D-001–D-005](docs/ag
 
 | Ecran | Parcurs sau funcție | Status în registru |
 | --- | --- | --- |
-| `DS-pub-booking` | Alegerea serviciului și specialistei, selectarea slotului, date de contact și confirmare. | Draft |
+| `DS-pub-booking` | Alegerea serviciului și specialistei, selectarea slotului, date de contact și confirmare. | Implementat |
 | `DS-pub-manage` | Consultare, anulare sau reprogramare prin link securizat. | Aprobat |
 | `DS-pub-auth` | Acces client, creare cont, progres N/5, programări viitoare și istoric cu reduceri. | Draft |
 | `DS-adm-login` | Autentificare demonstrativă cu sesiune de rol. | Draft |
@@ -58,7 +58,7 @@ Fluxul țintă este **browser → SPA React → API NestJS → Prisma → Postgr
 | `User` | Identitatea clientelor și a personalului, rolurile `CLIENT`, `SPECIALIST`, `ADMIN` și parolă opțională pentru cont. |
 | `Service`, `ServiceStage` | Catalog, categorie, preț, durată și etape ordonate, ocupate sau libere. |
 | `SpecialistSchedule`, `ScheduleOverride` | Orar săptămânal, excepții pe dată și indicatorul politicii Zi Full. |
-| `Appointment`, `AppointmentStage` | Clientă, specialistă, serviciu, preț total, token de gestionare și intervale concrete ale etapelor. Stările sunt `CONFIRMED`, `CANCELLED`, `COMPLETED` și `NO_SHOW`. |
+| `Appointment`, `AppointmentStage` | Clientă sau date de contact ale vizitatoarei, specialistă, serviciu, preț total, token de gestionare și intervale concrete ale etapelor. Stările sunt `CONFIRMED`, `CANCELLED`, `COMPLETED` și `NO_SHOW`. |
 | `WaitlistEntry` | Cerere pe serviciu, specialistă și dată, cu token prioritar și termene de notificare și expirare. Stările sunt `WAITING`, `NOTIFIED`, `CLAIMED` și `EXPIRED`. |
 
 Schema actuală păstrează prețul total, iar persistarea distinctă a reducerii D-005 rămâne de implementat. Sprintul 1 a adăugat categoria specialistei, a expus-o în catalog și verifică în API-ul de disponibilitate dacă serviciul aparține aceleiași categorii. [Schema Prisma](server/prisma/schema.prisma) · [Migrarea categoriei](server/prisma/migrations/1_specialist_category/migration.sql)
@@ -94,22 +94,22 @@ Pentru Laminare sprâncene, cele cinci etape sunt **15 min ocupat → 20 min lib
 2. Modulul încarcă etapele serviciului și intervalele etichetate ocupat ale programărilor confirmate. Durata rezervării este suma etapelor.
 3. Încearcă porniri din 5 în 5 minute, cu toate etapele în interiorul turei. Simulează etapele consecutiv și acceptă pornirea dacă etapele ocupate nu se intersectează cu intervalele ocupate deja. Intervalele sunt de forma `[start, end)`, astfel încât două etape pot avea o limită comună.
 4. `GET /api/availability` primește `serviceId`, `specialistId` și `date` și returnează sloturile ca instante UTC și valori locale. Portalul și calendarul recepției vor consuma același calcul.
-5. Serviciul intern de rezervare folosește o tranzacție serializabilă și un lock consultativ PostgreSQL per specialistă. Migrarea adaugă o constrângere de excludere pentru etapele ocupate confirmate. Verificarea din tranzacție caută astăzi conflicte pe întreaga durată a programării noi. Pentru o laminare creată după un pensat deja rezervat într-o pauză a laminării, această verificare poate respinge un slot afișat ca liber. Următorul pas este alinierea revalidării la algoritmul pe etape și testarea ambelor ordini de rezervare.
+5. `POST /api/bookings` folosește o tranzacție PostgreSQL `READ COMMITTED` și blochează rândul specialistei înainte de revalidarea disponibilității pe etape. Programarea și etapele se salvează împreună în starea `CONFIRMED`. Constrângerea de excludere PostgreSQL protejează etapele ocupate, iar Mailpit primește confirmarea după commit.
 
 [Disponibilitate](server/src/modules/availability/availability.service.ts) · [Rezervare](server/src/modules/appointments/appointments.service.ts) · [Constrângerea SQL](server/prisma/migrations/0_init/migration.sql)
 
 ## 6. Stadiu tehnic și pași următori
 
-[Sprintul 2 — Rezervarea publică fără cont](docs/plans/sprint-2-public-booking.md) propune API-ul de creare, confirmarea prin Mailpit și prima pagină React funcțională. Planul este în așteptarea aprobării.
+[Sprintul 2 — Rezervarea publică fără cont](docs/plans/sprint-2-public-booking.md) include API-ul de creare, confirmarea prin Mailpit și pagina React de rezervare.
 
 | Componentă | Disponibil acum | Urmează |
 | --- | --- | --- |
 | Infrastructură și date | Compose, Dockerfile, Prisma, migrare și seed. | Verificare integrată cu pornirea containerelor, migrare și seed. |
-| Disponibilitate și rezervare | API GET și serviciu intern de creare. Teste versionate pentru orar, intercalare, diferența UTC vară/iarnă și concurență. | Alinierea rezervării pe etape, validarea compatibilității serviciu–specialistă, expunerea și testarea API-ului de creare. |
+| Disponibilitate și rezervare | Catalog, disponibilitate și creare publică prin API. Teste PostgreSQL pentru intercalare, schimbarea orei și concurență. | Conectarea fluxurilor de echipă la același calcul. |
 | Gestiune programări | Modele pentru programări, stări și token. | Consultare, anulare și reprogramare prin token, cu aplicarea politicii Zi Full și eliberarea consecventă a etapelor. |
 | Conturi și Fidelizare | Roluri în schemă, decizie aprobată și flux demonstrativ în mock-up. | Autentificare reală și autorizare, calculul prețului pe Server, stocarea reducerii și afișarea progresului și istoricului. |
-| Waitlist, e-mail și iCal | Model WaitlistEntry și serviciu Mailpit definit în Compose. | Notificări, remindere, blocarea slotului, revendicare și expirare, plus export privat iCal. |
-| Frontend | Sistem de design și mock-up-uri HTML. Aplicația React și serviciul Compose `frontend` urmează să fie adăugate. | Sprintul 2 planifică prima pagină de rezervare fără cont. Fluxurile de cont și echipă rămân în fazele ulterioare. |
+| Waitlist, e-mail și iCal | Model WaitlistEntry și confirmări de rezervare prin Mailpit. | Notificări, remindere, blocarea slotului, revendicare și expirare, plus export privat iCal. |
+| Frontend | Pagina React de rezervare fără cont consumă API-ul prin proxy-ul Vite. | Fluxurile de cont, gestiune și echipă. |
 | Validare finală | Suite pentru disponibilitate și concurență în repository. | Testare cu PostgreSQL în Docker și verificarea fluxurilor complete, a accesului pe roluri, a politicii Zi Full, a ferestrei Waitlist, a Fidelizării și a afișării pe mobil și desktop în ambele teme. |
 
 [Teste de disponibilitate](server/test/availability.spec.ts) · [Teste de concurență](server/test/concurrency.spec.ts) · [Jurnalul implementării](AI_LOG.md)

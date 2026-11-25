@@ -42,7 +42,7 @@
 ## D-003 · Visual identity and design tokens
 - **Status:** approved
 - **Date:** 2026-11-18
-- **Confirmed:** 2026-11-19
+- **Confirmed:** 2026-11-25
 - **Rule:** The user interface follows the Warm Minimalist design system documented in docs/design/DESIGN.md: Nude Rose (#C48B71) primary with Terracotta (#9E6B55) and Muted Gold (#D4AF37) accents, warm linen (#FAF7F2) light surface and deep espresso (#1A1716) dark mode, Playfair Display serif for headings with Plus Jakarta Sans for body and UI elements, 4px-based spacing scale, and soft 10-16px border radii.
 - **Why:** Delivers an intimate, refined, high-end boutique beauty salon experience aligned with client expectations and visual benchmarks (GlossGenius, Aesop).
 - **Rejected:** Generic sterile corporate UI kits or cold dark-slate palettes.

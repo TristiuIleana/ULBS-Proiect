@@ -17,14 +17,14 @@ designs:
 
   - id: DS-pub-booking
     name: Wizard Rezervare Programare
-    description: Rezervare completă ca vizitator (serviciu, dată, oră, date de contact și confirmare), cu acces opțional la cont și Fidelizare.
+    description: Rezervare fără cont cu serviciu, dată, oră, date de contact și confirmare în aceeași pagină.
     kind: screen
     source: frontend/src/pages/public/BookingWizardPage.tsx
     screenshots: [screens/DS-pub-booking.light.png, screens/DS-pub-booking.dark.png]
     design_ref: mocks/DS-pub-booking.html
     # Figma: versiunea aprobată anterior reviziei HTML.
     figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=4-2
-    status: draft
+    status: implemented
 
   - id: DS-pub-confirmation
     name: Confirmare Rezervare
