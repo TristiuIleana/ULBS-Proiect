@@ -491,3 +491,11 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - După migrare și două rulări ale seed-ului în baza PostgreSQL izolată, au trecut 15 teste în două suite, inclusiv ferestrele de 20 și 25 de minute și programul de duminică. Aserțiunile existente au fost păstrate. Build-ul NestJS, validarea Compose și ledger lint au trecut.
 - Serverul pornit prin Compose a răspuns prin HTTP cu 6 servicii, 2 specialiste și 97 de sloturi Make-up pentru duminica de test.
 - Lucrul din afara sprintului a fost păstrat local într-un branch de rezervă și un stash. Verificarea acestui sprint a vizat API-ul.
+
+---
+
+## Sesiunea 23 — 25 Noiembrie 2026 — Review Sprint 1 (Partea G)
+
+- Review-ul diferențelor față de `main` a identificat două blocaje. Migrarea Prisma lăsa categoriile specialistelor existente necompletate, iar proprietatea duplicată `appointmentStage` oprea compilarea suitei de concurență cu `TS1117`.
+- Commitul `4384225` completează categoriile aprobate pentru Ioana (`BROWS`) și Ana (`MAKEUP`) în migrare. Verificarea pe o bază PostgreSQL cu date din schema veche a confirmat că orarele săptămânale personalizate sunt păstrate. Mock-ul de concurență simulează blocarea tranzacțională, cu aceleași aserțiuni.
+- În Docker au trecut toate cele 17 teste din trei suite, inclusiv testele HTTP cu PostgreSQL, build-ul NestJS, validarea Prisma și aplicarea migrărilor pe o bază nouă. Configurația Compose, `git diff --check` și ledger lint cu `PYTHONUTF8=1` au trecut.
