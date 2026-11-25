@@ -20,12 +20,12 @@ import { AvailabilityService } from '../src/modules/availability/availability.se
 // ---------------------------------------------------------------------------
 
 /**
- * Builds a mock AppointmentsService where the underlying $transaction is replaced
- * by a manually-serialised queue with a shared "booked" flag, simulating
- * the advisory lock + re-check in memory.
+ * Simulates the advisory lock with a queue and the re-check with a shared
+ * "booked" flag.
  */
 function buildSerialService(): AppointmentsService {
   let booked = false; // shared state across concurrent calls, like a DB flag
+  let lockReleased = Promise.resolve();
 
   const mockAvailability = {
     resolveShiftWindow: jest.fn().mockResolvedValue({
@@ -54,12 +54,15 @@ function buildSerialService(): AppointmentsService {
       }),
     },
     $transaction: jest.fn().mockImplementation(async (fn) => {
-      // Simulate serialised advisory lock — only one transaction runs at a time.
+      let releaseLock: (() => void) | undefined;
       const tx = {
-        $executeRaw: jest.fn().mockResolvedValue(undefined),
-        appointmentStage: {
-          count: jest.fn().mockImplementation(async () => (booked ? 1 : 0)),
-        },
+        $executeRaw: jest.fn().mockImplementation(async () => {
+          const previousLock = lockReleased;
+          lockReleased = new Promise<void>((resolve) => {
+            releaseLock = resolve;
+          });
+          await previousLock;
+        }),
         appointment: {
           create: jest.fn().mockImplementation(async (data) => {
             booked = true; // mark as taken
@@ -71,7 +74,11 @@ function buildSerialService(): AppointmentsService {
           create: jest.fn().mockResolvedValue({}),
         },
       };
-      return fn(tx);
+      try {
+        return await fn(tx);
+      } finally {
+        releaseLock?.();
+      }
     }),
   } as any;
 
