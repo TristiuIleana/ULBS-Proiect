@@ -652,13 +652,13 @@
   <div class="scenario-bar" id="scenario-bar">
     <span class="scenario-label">Politica de Anulare (Testează Scenariul):</span>
     <button class="scenario-pill active" id="scen-normal" onclick="setScenario('normal')">
-      📅 Zi Normală (Anulare permisă oricând)
+      📅 Zi normală: cel puțin 24 h
     </button>
-    <button class="scenario-pill" id="scen-peak-allowed" onclick="setScenario('peak-allowed')">
-      ⚠️ Zi Full: > 24 ore rămase (Anulare permisă)
+    <button class="scenario-pill" id="scen-normal-late" onclick="setScenario('normal-late')">
+      ⚠️ Zi normală: sub 24 h
     </button>
     <button class="scenario-pill" id="scen-peak-blocked" onclick="setScenario('peak-blocked')">
-      ⛔ Zi Full: &lt; 24 ore rămase (Anulare strict blocată)
+      ⛔ Zi Full: modificare blocată
     </button>
   </div>
 
@@ -722,7 +722,7 @@
 
         <!-- Butoane acțiune -->
         <div class="actions-card">
-          <button class="btn-action btn-reschedule" onclick="openRescheduleModal()">
+          <button id="btn-reschedule-booking" class="btn-action btn-reschedule" onclick="openRescheduleModal()">
             <span>📅</span> Reprogramează la Altă Dată
           </button>
           <button id="btn-cancel-booking" class="btn-action btn-cancel" onclick="openCancelModal()">
@@ -902,14 +902,14 @@
       const cancelText = document.getElementById('btn-cancel-text');
 
       if (scen === 'normal') {
-        // Zi normală: anulare oricând permisă online
+        // Zi normală cu cel puțin 24 de ore rămase
         policyContainer.innerHTML = `
           <div class="policy-banner policy-banner-normal">
             <span class="policy-icon">ℹ️</span>
             <div>
               <div class="policy-title">Politica de Anulare: Program Flexibil</div>
               <div style="font-size:12.5px; color:var(--text-secondary);">
-                Aceasta este o zi cu program obișnuit. Poți anula sau reprograma gratuit direct din această pagină în cazul în care intervine o schimbare în programul tău.
+                Poți anula sau reprograma gratuit cu cel puțin 24 de ore înainte.
               </div>
             </div>
           </div>
@@ -919,42 +919,25 @@
         cancelText.textContent = 'Anulează Rezervarea';
         cancelBtn.title = '';
       } 
-      else if (scen === 'peak-allowed') {
-        // Zi aglomerată cu > 24 ore rămase: anulare permisă cu notificare
-        policyContainer.innerHTML = `
-          <div class="policy-banner policy-banner-peak-allowed">
-            <span class="policy-icon">⚠️</span>
-            <div>
-              <div class="policy-title">Atenție: Aceasta este o Zi Aglomerată (Zi Full)</div>
-              <div style="font-size:12.5px; color:var(--text-secondary);">
-                În zilele marcate ca <strong>Zi Full</strong>, anulările online sunt permise doar cu cel puțin <strong>24 de ore înainte</strong>. Ai mai mult de 24h rămase, așadar poți anula sau reprograma acum gratuit.
-              </div>
-            </div>
-          </div>
-        `;
-        cancelBtn.disabled = false;
-        cancelIcon.textContent = '✕';
-        cancelText.textContent = 'Anulează Rezervarea (Înainte de limita 24h)';
-        cancelBtn.title = '';
-      } 
-      else if (scen === 'peak-blocked') {
-        // Zi aglomerată cu < 24 ore rămase: anulare strict interzisă / blocată
+      else {
+        const full = scen === 'peak-blocked';
         policyContainer.innerHTML = `
           <div class="policy-banner policy-banner-peak-blocked">
             <span class="policy-icon">⛔</span>
             <div>
-              <div class="policy-title">Anularea Online Este Blocată (&lt; 24h pe Zi Aglomerată)</div>
+              <div class="policy-title">${full ? 'Zi Full' : 'Mai puțin de 24 de ore'}</div>
               <div style="font-size:12.5px; color:var(--text-secondary);">
-                Conform politicii salonului, programările din <strong>Zilele Aglomerate (Zile Full)</strong> nu mai pot fi anulate online cu mai puțin de 24 de ore înainte de oră. Pentru situații excepționale sau urgențe medicale, te rugăm să contactezi salonul la <strong>0740 123 456</strong>.
+                Modificarea nu mai este permisă online. Contactează salonul la <strong>0756 062 883</strong>.
               </div>
             </div>
           </div>
         `;
         cancelBtn.disabled = true;
         cancelIcon.textContent = '🔒';
-        cancelText.textContent = 'Anulare Blocată (< 24h)';
-        cancelBtn.title = 'Anularea este blocată conform politicii pentru zilele aglomerate';
+        cancelText.textContent = 'Anulare blocată';
+        cancelBtn.title = 'Contactează salonul pentru modificări';
       }
+      document.getElementById('btn-reschedule-booking').disabled = scen !== 'normal';
     }
 
     // 2. Comutare Stări Preview Toolbar

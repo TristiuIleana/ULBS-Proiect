@@ -32,6 +32,12 @@ enum WaitlistStatus {
   EXPIRED
 }
 
+enum WaitlistWindow {
+  ANY
+  MORNING
+  AFTERNOON
+}
+
 model User {
   id            String    @id @default(uuid()) @db.Uuid
   email         String    @unique
@@ -41,6 +47,10 @@ model User {
   role          Role      @default(CLIENT)
   specialistCategory ServiceCategory? @map("specialist_category")
   passwordHash  String?   @map("password_hash")
+  emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz()
+  verificationHash String? @unique @map("verification_hash")
+  verificationExpiresAt DateTime? @map("verification_expires_at") @db.Timestamptz()
+  lateCancellationCount Int @default(0) @map("late_cancellation_count")
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
@@ -49,8 +59,19 @@ model User {
   clientAppointments     Appointment[]        @relation("ClientAppointments")
   specialistAppointments Appointment[]        @relation("SpecialistAppointments")
   waitlistEntries        WaitlistEntry[]
+  sessions               ClientSession[]
 
   @@map("users")
+}
+
+model ClientSession {
+  tokenHash String @id @map("token_hash")
+  userId String @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz()
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("client_sessions")
 }
 
 model Service {
@@ -134,6 +155,11 @@ model Appointment {
   startTime          DateTime          @map("start_time") @db.Timestamptz()
   endTime            DateTime          @map("end_time") @db.Timestamptz()
   totalPriceRon      Decimal           @map("total_price_ron") @db.Decimal(10, 2)
+  basePriceRon       Decimal?          @map("base_price_ron") @db.Decimal(10, 2)
+  loyaltyDiscountRon Decimal           @default(0) @map("loyalty_discount_ron") @db.Decimal(10, 2)
+  reminderSentAt     DateTime?         @map("reminder_sent_at") @db.Timestamptz()
+  reminderClaimedAt  DateTime?         @map("reminder_claimed_at") @db.Timestamptz()
+  lateCancellation   Boolean           @default(false) @map("late_cancellation")
   status             AppointmentStatus @default(CONFIRMED)
   cancellationReason String?           @map("cancellation_reason")
   cancellationToken  String            @unique @default(uuid()) @map("cancellation_token") @db.Uuid
@@ -147,6 +173,8 @@ model Appointment {
   stages     AppointmentStage[]
 
   @@index([specialistId, startTime, endTime])
+  @@index([clientId, status, startTime])
+  @@index([status, reminderSentAt, startTime])
   @@map("appointments")
 }
 
@@ -170,19 +198,40 @@ model AppointmentStage {
 
 model WaitlistEntry {
   id            String         @id @default(uuid()) @db.Uuid
-  clientId      String         @map("client_id") @db.Uuid
+  clientId      String?        @map("client_id") @db.Uuid
+  guestFirstName String?      @map("guest_first_name")
+  guestLastName String?       @map("guest_last_name")
+  guestPhone    String?       @map("guest_phone")
+  guestEmail    String?       @map("guest_email")
   specialistId  String         @map("specialist_id") @db.Uuid
   serviceId     String         @map("service_id") @db.Uuid
   desiredDate   String         @map("desired_date") // "YYYY-MM-DD"
+  window        WaitlistWindow @default(ANY)
   status        WaitlistStatus @default(WAITING)
   priorityToken String?        @unique @map("priority_token") @db.Uuid
   notifiedAt    DateTime?      @map("notified_at") @db.Timestamptz()
   expiresAt     DateTime?      @map("expires_at") @db.Timestamptz()
+  offeredStartAt DateTime?     @map("offered_start_at") @db.Timestamptz()
+  emailClaimedAt DateTime?     @map("email_claimed_at") @db.Timestamptz()
   createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
 
-  client  User    @relation(fields: [clientId], references: [id])
+  client  User?   @relation(fields: [clientId], references: [id], onDelete: Restrict)
   service Service @relation(fields: [serviceId], references: [id])
+  offerStages WaitlistOfferStage[]
 
+  @@index([specialistId, desiredDate, status, createdAt])
+  @@index([status, expiresAt])
   @@map("waitlist_entries")
+}
+
+model WaitlistOfferStage {
+  id String @id @default(uuid()) @db.Uuid
+  entryId String @map("entry_id") @db.Uuid
+  startTime DateTime @map("start_time") @db.Timestamptz()
+  endTime DateTime @map("end_time") @db.Timestamptz()
+  entry WaitlistEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([entryId])
+  @@map("waitlist_offer_stages")
 }

@@ -10,7 +10,7 @@ import {
 import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 /** IANA timezone for the salon. All local times (schedules, display) use this. */
-const SALON_TZ = 'Europe/Bucharest';
+export const SALON_TZ = 'Europe/Bucharest';
 
 /** Candidate slot resolution in milliseconds (5-minute grid). */
 const SLOT_STEP_MS = 5 * 60 * 1000;
@@ -58,48 +58,72 @@ export class AvailabilityService {
     shift: ShiftWindow,
     stages: StageTemplate[],
     db: Prisma.TransactionClient,
+    omit: { appointmentId?: string; offerId?: string } = {},
   ): Promise<AvailableSlot[]> {
-    if (stages.length === 0) return [];
+    const choices = await this.getSlotChoices(specialistId, shift, stages, db, omit);
+    return choices.filter(slot => slot.available).map(({ utcMs, localIso }) => ({ utcMs, localIso }));
+  }
 
-    const totalMs = stages.reduce((s, st) => s + st.durationMinutes * 60_000, 0);
-    const latestStartMs = shift.endMs - totalMs;
-    if (latestStartMs < Date.now()) return [];
-
-    // 3. Fetch busy intervals for the specialist during this shift window
-    const bookedStages = await db.appointmentStage.findMany({
-      where: {
-        specialistId,
-        isBusy: true,
-        status: 'CONFIRMED',
-        startTime: { lt: new Date(shift.endMs) },
-        endTime: { gt: new Date(shift.startMs) },
-      },
-      select: { startTime: true, endTime: true },
-    });
-
-    const busyIntervals: BusyInterval[] = bookedStages.map((s) => ({
-      startMs: s.startTime.getTime(),
-      endMs: s.endTime.getTime(),
-    }));
-
-    // 4. Walk candidate slots
-    const slots: AvailableSlot[] = [];
-    const now = Date.now();
+  async getSlotChoices(
+    specialistId: string,
+    shift: ShiftWindow,
+    stages: StageTemplate[],
+    db: Prisma.TransactionClient,
+    omit: { appointmentId?: string; offerId?: string } = {},
+  ) {
+    const now = new Date(Date.now());
+    const latestStartMs = shift.endMs - stages.reduce((sum, stage) => sum + stage.durationMinutes * 60_000, 0);
+    if (!stages.length || latestStartMs < now.getTime()) return [];
+    const busyIntervals = await this.busyIntervals(specialistId, shift, db, omit);
+    const slots: (AvailableSlot & { available: boolean })[] = [];
 
     for (
       let candMs = shift.startMs;
       candMs <= latestStartMs;
       candMs += SLOT_STEP_MS
     ) {
-      if (candMs >= now && this.candidateFits(candMs, stages, busyIntervals)) {
+      if (candMs >= now.getTime()) {
         slots.push({
           utcMs: candMs,
           localIso: this.toLocalIso(candMs),
+          available: this.candidateFits(candMs, stages, busyIntervals),
         });
       }
     }
 
     return slots;
+  }
+
+  private async busyIntervals(
+    specialistId: string,
+    shift: ShiftWindow,
+    db: Prisma.TransactionClient,
+    omit: { appointmentId?: string; offerId?: string },
+  ): Promise<BusyInterval[]> {
+    const range = { startTime: { lt: new Date(shift.endMs) }, endTime: { gt: new Date(shift.startMs) } };
+    const select = { startTime: true, endTime: true } as const;
+    const [booked, held] = await Promise.all([
+      db.appointmentStage.findMany({
+        where: {
+          ...range, specialistId, isBusy: true, status: 'CONFIRMED',
+          appointmentId: omit.appointmentId ? { not: omit.appointmentId } : undefined,
+        },
+        select,
+      }),
+      db.waitlistOfferStage.findMany({
+        where: {
+          ...range,
+          entry: {
+            specialistId, status: 'NOTIFIED',
+            id: omit.offerId ? { not: omit.offerId } : undefined,
+          },
+        },
+        select,
+      }),
+    ]);
+    return [...booked, ...held].map(stage => ({
+      startMs: stage.startTime.getTime(), endMs: stage.endTime.getTime(),
+    }));
   }
 
   /**

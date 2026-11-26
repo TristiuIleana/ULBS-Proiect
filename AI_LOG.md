@@ -534,3 +534,14 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - `main` era sincronizat cu `origin/main`. Planul a fost redactat pe branch-ul `feat/sprint-3-client-portal` cu fișiere, teste, verificări vizuale și ordinea implementării. [Planul Sprintului 3](docs/plans/sprint-3-client-portal.md)
 - Pragul documentat pentru reminder este 24 h. Q-006–Q-009 consemnează politica Zi Full și marcările, identitatea clientei, alocarea reducerii și operațiile Admin, respectiv comportamentul reminderelor pentru programări apropiate și reprogramări. Planul rămâne în revizie înainte de `/build`. [Întrebări deschise](docs/agents/OPEN-QUESTIONS.md)
 - Ledger lint cu `PYTHONUTF8=1` a trecut, inclusiv după normalizarea registrului. Testele aplicației și pornirea în Docker fac parte din etapa de implementare.
+
+---
+
+## Sesiunea 27 — 26 Noiembrie 2026 — Build Sprintul 3 · Portal client
+
+- Utilizatorul a aprobat planul și regulile Q-006–Q-009. Commitul `18eb7f1` le-a înregistrat ca D-006–D-009, cu D-008 în locul D-005. [Decizii](docs/agents/DECISIONS.md) · [Plan](docs/plans/sprint-3-client-portal.md)
+- Migrarea adaugă sesiuni, câmpuri pentru preț și Fidelizare, marcări, oferte Waitlist și starea trimiterilor. Gestiunea verifică pragul de 24 h și Zi Full pe Server. Operațiile Admin pot înregistra anularea târzie, finaliza vizita și reseta marcările.
+- Înregistrarea confirmă controlul e-mailului înainte de acces la programările și înscrierile asociate. Waitlist înscrie vizitatoare fără cont, protejează etapa oferită, notifică prima clientă eligibilă și rotește oferta după expirare. Cronul trimite un reminder per programare confirmată în fereastra de 2–24 h.
+- Cele patru teste inițiale au reprodus endpointurile și linkul încă neimplementate. Prima integrare a identificat o constrângere incompatibilă cu asocierea datelor vizitatoarei și validarea unui ID din catalogul inițial. După corecții, toate cele 38 de teste din cinci suite au trecut în Docker, cu PostgreSQL și Mailpit izolate. Testele existente și-au păstrat aserțiunile. Au trecut și migrarea pe bază goală, migrarea cu date din Sprintul 2, validarea Prisma, build-urile NestJS și Vite, configurația Compose și ledger lint cu `PYTHONUTF8=1`.
+- Verificarea Chrome a parcurs rezervarea și recuperarea după `409` cu păstrarea formularului, accesul cu tastatura, înscrierea Waitlist, asocierea după confirmarea e-mailului, anularea și revendicarea ofertei. Au fost verificate încărcarea, eroarea, textul lung și linkul incomplet. Am corectat derularea orizontală care depășea lățimea mobilă. Windows rezerva portul implicit Vite, așa că verificarea a folosit portul local 17173. [Capturi](docs/design/screens/)
+- PATTERN-003 consemnează revendicarea persistentă a unei trimiteri. Rezultatele SMTP ambigue se reconciliază pe baza `Message-ID` înainte de o eventuală retrimitere. [Pattern-uri](docs/agents/PATTERNS.md)
