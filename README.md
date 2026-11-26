@@ -10,7 +10,7 @@
 Aplicația este un sistem complet de programări online dezvoltat pentru un salon real de înfrumusețare de tip boutique / home-based studio (**Beauty Studio - Make-up & Brow Styling**), situat în **Str. Principală nr. 45, Gura Râului, Sibiu** (telefon contact: **0756 062 883**).
 
 ### Echipa Studioului & Orare de Lucru (Partajare Strictă)
-1. **Ioana — Proprietara (Rol: Admin / Recepție / Tehnician Sprâncene):**
+1. **Ioana (Rol: Admin / Recepție / Tehnician Sprâncene):**
    - Gestionează salonul și prestează exclusiv servicii de stilizare sprâncene.
    - Program de lucru: **Luni – Sâmbătă 09:00 – 19:00** (Duminica este închis pentru sprâncene).
 2. **Ana — Colega (Rol: Angajată / Tehnician Make-up):**
@@ -66,7 +66,7 @@ Clientele care și-au creat un cont beneficiază de un **sistem automat de loial
   - Autentificare cu email și parolă.
   - Vizualizează exclusiv propriul calendar de lucru și datele clientelor programate la ea.
   - URL privat de abonare la calendar extern prin **iCal (.ics)** (Google Calendar, Apple Calendar, Outlook).
-- **Admin / Recepție (Proprietara):**
+- **Admin / Recepție (Ioana):**
   - Acces complet la panoul de administrare.
   - Calendar de recepție multi-angajat (zi/săptămână, editare rapidă, blocare manuală de intervale).
   - Gestiune catalog servicii și configurator de etape split (ocupat/liber).
