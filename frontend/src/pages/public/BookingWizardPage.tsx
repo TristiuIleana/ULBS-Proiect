@@ -112,7 +112,7 @@ export function BookingWizardPage() {
     <header className="card studio-header">
       <div className="studio-top">
         <span className="location">📍 Gura Râului, Sibiu</span>
-        <div className="account-actions">
+        <div className="studio-account-actions">
           <p className="guest-notice"><strong>Te poți programa fără cont.</strong> Cont opțional, cu 10% reducere la fiecare a 5-a vizită.</p>
           <a href="/cont" className="secondary-button account-link">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">

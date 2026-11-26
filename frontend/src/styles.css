@@ -210,8 +210,8 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .studio-header h1 { margin: 0; }
 .studio-top { align-items: flex-start; }
 .location { border-radius: 9999px; white-space: nowrap; }
-.guest-notice { margin: 0; font-weight: 400; }
-.account-actions { display: grid; justify-items: end; gap: 8px; max-width: 100%; }
+.guest-notice { margin: 0; font-size: 12px; font-weight: 400; text-align: end; }
+.studio-account-actions { display: grid; justify-items: end; gap: 8px; margin-inline-start: auto; max-width: 100%; }
 .account-link { display: inline-flex; align-items: center; gap: 8px; }
 .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .hero-actions span { font-size: 12px; color: var(--secondary); }
@@ -408,7 +408,8 @@ a.primary-button, a.secondary-button { display: inline-flex; align-items: center
 
 @media (max-width: 480px) {
   .studio-header { padding: 16px; }
-  .account-actions { justify-items: start; }
+  .studio-account-actions { justify-items: start; margin-inline-start: 0; }
+  .guest-notice { text-align: start; }
   .domain-pills { grid-template-columns: 1fr; }
   .booking-summary button { width: 100%; }
   .appointment-card { gap: 8px; padding: 8px; }
