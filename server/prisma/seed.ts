@@ -15,12 +15,12 @@ export async function seed() {
   // 1. Specialists
   const ioana = await prisma.user.upsert({
     where: { email: 'ioana@beautystudio.local' },
-    update: { specialistCategory: ServiceCategory.BROWS, ...adminCredentials },
+    update: { lastName: '', specialistCategory: ServiceCategory.BROWS, ...adminCredentials },
     create: {
       email: 'ioana@beautystudio.local',
       phone: '0756062883',
       firstName: 'Ioana',
-      lastName: 'Proprietara',
+      lastName: '',
       role: Role.ADMIN,
       specialistCategory: ServiceCategory.BROWS,
       ...adminCredentials,

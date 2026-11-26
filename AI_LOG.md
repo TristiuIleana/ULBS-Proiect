@@ -13,7 +13,7 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Menținerea integrității informațiilor fără a inventa detalii despre client (elementele necunoscute devenind întrebări deschise `Q-`).
 
 ### 2. Ce s-a primit de la AI
-- **Interviu iterativ ghidat:** Întrebări adresate pas cu pas privind tipul de afacere, componența echipei (proprietara Admin + colega Angajat make-up), etapele laminării sprâncenelor pe 5 pași, mecanismul listei de așteptare (fereastră prioritară de 30 min) și delimitarea Out-of-Scope.
+- **Interviu iterativ ghidat:** Întrebări adresate pas cu pas privind tipul de afacere, componența echipei (Ioana în rolul Admin și Ana în rolul Angajat make-up), etapele laminării sprâncenelor pe 5 pași, mecanismul listei de așteptare (fereastră prioritară de 30 min) și delimitarea Out-of-Scope.
 - **Clarificarea cerințelor tehnice:** Standardizare fus orar (UTC intern / Europe/Bucharest afișat), prevenirea rezervărilor concurente (tranzacții ACID + row-level locks), export iCal (.ics) și background jobs programate (reminder automat la 24h).
 - **Întrebări deschise înregistrate în ledger (`OPEN-QUESTIONS.md`):**
   - `Q-001`: Soluționată cu alegerea stivei tehnologice.
@@ -134,7 +134,7 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
   - *Make-up ocazie (cu gene)* (170 RON, 1 h 30 min)
   - *Make-up mireasă* (220 RON, 2 h)
 - Eliminarea completă a opțiunii „Oricine este disponibil” de la pasul de selecție specialistă (deoarece specializările nu se suprapun).
-- Introducerea a două butoane dedicate: *„Sprâncene (Proprietara)”* și *„Make-up (Colega)”*, cu legătură bidirecțională automată între categoria serviciului selectat și specialista responsabilă.
+- Introducerea a două butoane dedicate, pentru sprâncene și make-up, cu legătură bidirecțională automată între categoria serviciului selectat și specialista responsabilă.
 - Actualizarea corespunzătoare a documentației (`README.md` și `docs/agents/OPEN-QUESTIONS.md`).
 
 ### 2. Ce s-a primit de la AI
@@ -142,7 +142,7 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
   - Badge locație: `📍 Gura Râului, Sibiu`.
   - Catalog complet cu 6 servicii (3 sprâncene + 3 make-up).
   - Selector specialistă cu 2 butoane (`pill-brows` și `pill-makeup`), cu avatar, denumire și descriere domeniu.
-  - Logică JavaScript sincronizată bidirecțional: selectarea unui serviciu activează automat specialista dedicată (`Sprâncene (Proprietara)` sau `Make-up (Colega)`), iar click pe o specialistă filtrează/activează serviciul corespunzător.
+  - Logică JavaScript sincronizată bidirecțional: selectarea unui serviciu activează automat specialista dedicată, iar click pe o specialistă filtrează/activează serviciul corespunzător.
 - **Actualizare `docs/agents/OPEN-QUESTIONS.md`:** `Q-002` actualizată cu locația Gura Râului; `Q-005` actualizată cu toate cele 6 servicii reale și nota de partajare strictă pe specialiste.
 - **Actualizare `README.md`:** Locația Gura Râului, Sibiu și catalogul complet de servicii și prețuri.
 
@@ -154,13 +154,13 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 ## Sesiunea 7 — 18 Noiembrie 2026: Curățare Termeni Interni & Filtrare Directă pe Domeniu (Sprâncene / Make-up)
 
 ### 1. Ce s-a cerut
-- Eliminarea completă a cuvintelor „Proprietara” și „Colega” din toată interfața mock-ului `docs/design/mocks/DS-pub-booking.html`.
+- Eliminarea etichetelor interne de rol ale specialistelor din interfața mock-ului `docs/design/mocks/DS-pub-booking.html`.
 - Înlocuirea selecției la Pasul 2 cu două butoane simple și curate: *„Sprâncene”* și *„Make-up”*.
 - Filtrarea dinamică a serviciilor și orelor la apăsarea pe „Sprâncene” sau „Make-up”.
 
 ### 2. Ce s-a primit de la AI
 - **Actualizare `docs/design/mocks/DS-pub-booking.html`:**
-  - Curățare totală de termeni interni de rol (0 apariții pentru „Proprietara” sau „Colega”).
+  - Verificarea absenței etichetelor interne de rol ale specialistelor.
   - Pasul 2 redenumit „Alege Categoria & Orarul” cu 2 butoane rafinate: `Sprâncene` (🌿) și `Make-up` (💄).
   - Logică JavaScript `filterByCategory()`: la click pe „Sprâncene”, se afișează exclusiv serviciile de sprâncene; la click pe „Make-up”, se afișează exclusiv serviciile de machiaj.
   - Sincronizare automată a sumarului și ecranului de confirmare cu eticheta categoriei selectate (`Categorie: Sprâncene` / `Categorie: Make-up`).
@@ -309,7 +309,7 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - **Audit de coerență:** Identificate diferențele dintre placeholderul vechi din Q-004 și mock-urile aprobate, precum și necesitatea specificării orarului de Duminică.
 - **Actualizare `docs/agents/OPEN-QUESTIONS.md`:**
   - `Q-002` marcat ca `answered`: Beauty Studio, Str. Principală nr. 45, Gura Râului, Sibiu, tel. 0756 062 883.
-  - `Q-003` marcat ca `answered`: Ioana (Proprietara, Admin/Recepție, Sprâncene) și Ana (Colega, Angajată, Make-up).
+  - `Q-003` marcat ca `answered`: Ioana (Admin/Recepție, Sprâncene) și Ana (Colega, Angajată, Make-up).
   - `Q-004` marcat ca `answered`: 15m (lucru) / 20m (liber) / 15m (lucru) / 25m (liber) / 15m (lucru) = 90m total.
   - **Stare ledger: 0 întrebări deschise rămase** (toate Q-001..Q-005 sunt complet soluționate).
 - **Înregistrare Decizie aprobată `D-004` (`DECISIONS.md`):**

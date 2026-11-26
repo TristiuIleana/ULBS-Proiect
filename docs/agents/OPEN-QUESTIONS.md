@@ -39,8 +39,7 @@
 ## Q-003 · Specialist names and initial staff profile details
 - **Status:** answered
 - **Date:** 2026-11-18
-- **Confirmed:** 2026-11-19
-- **Answer:** 2 specialiste: Ioana (Proprietara – Rol Admin & Recepție, servicii exclusive Sprâncene) și Ana (Colega – Rol Angajată / Tehnician, servicii exclusive Make-up).
+- **Answer:** 2 specialiste: Ioana (rol Admin & Recepție, servicii exclusive Sprâncene) și Ana (Colega – Rol Angajată / Tehnician, servicii exclusive Make-up).
 
 ---
 

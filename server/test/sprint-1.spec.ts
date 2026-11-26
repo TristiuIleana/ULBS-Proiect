@@ -69,6 +69,11 @@ integration('Sprint 1 API with migrated and seeded PostgreSQL', () => {
   const slots = (specialistId: string, serviceId: string, date: string) =>
     request(app.getHttpServer()).get('/api/availability').query({ specialistId, serviceId, date });
 
+  it('stores Ioana without a last name', async () => {
+    const specialist = await prisma.user.findUniqueOrThrow({ where: { id: browsId } });
+    expect(specialist).toMatchObject({ firstName: 'Ioana', lastName: '' });
+  });
+
   it('exposes the seeded active catalog, ordered split stages and public specialist categories', async () => {
     const { body } = await request(app.getHttpServer()).get('/api/services').expect(200);
     expect(body.services).toHaveLength(6);

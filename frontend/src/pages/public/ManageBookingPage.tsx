@@ -114,7 +114,7 @@ export function ManageBookingPage() {
         <dl className="manage-details">
           <div><dt>Data și ora programării</dt><dd>{localDateTime.format(new Date(booking.startsAtLocal))}</dd></div>
           <div><dt>Locație și specialistă</dt><dd>Beauty Studio</dd><dd className="detail-sub">{booking.specialistName} · Gura Râului, Sibiu</dd></div>
-          <div><dt>Clientă</dt><dd>{booking.contact.firstName} {booking.contact.lastName}</dd>
+          <div><dt>Clientă</dt><dd>{`${booking.contact.firstName} ${booking.contact.lastName}`.trim()}</dd>
             <dd className="detail-sub">{booking.contact.phone} · {booking.contact.email}</dd></div>
           <div><dt>Preț total de achitat</dt><dd>{price(booking.totalPriceRon)}</dd><dd className="detail-sub">Plată directă la salon</dd></div>
         </dl>

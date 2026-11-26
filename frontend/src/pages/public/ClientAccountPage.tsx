@@ -117,7 +117,7 @@ export function ClientAccountPage() {
     {error && <p className="feedback error" role="alert">{error}</p>}
     <div className="card profile-card">
       <span className="profile-avatar" aria-hidden="true">{account.firstName.charAt(0)}{account.lastName.charAt(0)}</span>
-      <div><strong>{account.firstName} {account.lastName}</strong><p>{account.email} · {account.phone}</p>
+      <div><strong>{`${account.firstName} ${account.lastName}`.trim()}</strong><p>{account.email} · {account.phone}</p>
         <p>Clientă din {since.format(new Date(account.createdAt))}</p></div>
     </div>
     {account.blocked && <p className="feedback error" role="alert">Rezervarea online este blocată. Contactează salonul pentru deblocare.</p>}
