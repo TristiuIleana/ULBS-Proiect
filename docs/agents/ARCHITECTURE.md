@@ -20,7 +20,7 @@ All server-side services and backends run inside Docker containers.
 | Public portal | `frontend/` | React booking, account, management and offer screens, with a Vite development proxy | Server |
 
 ## Data flow
-1. The browser opens the booking page on port 5173. The Vite development proxy forwards `/api` to the Server.
+1. The browser opens the booking page on host port 17173. Vite listens on container port 5173 and forwards `/api` to the Server.
 2. The Server reads availability from working shifts, busy appointment stages and Waitlist offers. It persists bookings and stages in PostgreSQL and sends confirmations to Mailpit over SMTP after commit.
 3. The Server verifies the account e-mail before linking guest bookings and Waitlist entries. Authenticated actions use a server-side session. Guest management and Waitlist offers use separate tokens.
 4. Cancellation and rescheduling update appointment stages and reserve a priority offer in the same transaction. NestJS Schedule processes expirations and reminders. PostgreSQL records a dispatch claim before SMTP so overlapping instances cannot send a duplicate.

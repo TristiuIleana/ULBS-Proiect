@@ -103,7 +103,7 @@ Toate serviciile rulează containerizat prin Docker și Docker Compose:
 - **Backend:** NestJS (Node.js, TypeScript), arhitectură modulară, TypeORM / Prisma cu tranzacții ACID, NestJS Schedule / BullMQ.
 - **Bază de date:** PostgreSQL (cu suport pentru tranzacții stricte și constrângeri de timp).
 - **Frontend:** React SPA (Vite, TypeScript, Tailwind CSS, FullCalendar, Lucide Icons).
-- **Email local & observabilitate:** Mailpit (server SMTP pe port 1025 și interfață web pe port 8025 pentru vizualizarea în timp real a emailurilor trimise).
+- **Email local & observabilitate:** Mailpit (SMTP pe portul gazdă `11025` și interfață web la `http://localhost:18025`).
 - **Infrastructură:** Docker & Docker Compose per decizia aprobată `D-001`.
 
 ---
@@ -123,4 +123,4 @@ Documentația este gestionată conform regulilor de guvernanță agentică din `
 
 Pentru baza locală, transmite parola de bootstrap prin variabila de mediu `ADMIN_SEED_PASSWORD` a procesului care rulează seed-ul. Rulează `docker compose run --rm -e ADMIN_SEED_PASSWORD server npm run prisma:seed`. Seed-ul actualizează parola contului Admin când variabila este furnizată.
 
-Autentificarea prin `POST /api/client/login` emite cookie-ul de sesiune. Cu sesiunea Admin poți apela `POST /api/admin/appointments/:id/complete` după încheierea vizitei, `POST /api/admin/appointments/:id/cancel` pentru anularea prin salon și `POST /api/admin/clients/:id/unblock` pentru resetarea marcărilor. Mailpit afișează linkurile de cont, gestiune și Waitlist. Serverul folosește `http://localhost:5173` la generarea linkurilor locale și acceptă `PUBLIC_WEB_ORIGIN` când portul frontendului diferă.
+Autentificarea prin `POST /api/client/login` emite cookie-ul de sesiune. Cu sesiunea Admin poți apela `POST /api/admin/appointments/:id/complete` după încheierea vizitei, `POST /api/admin/appointments/:id/cancel` pentru anularea prin salon și `POST /api/admin/clients/:id/unblock` pentru resetarea marcărilor. Mailpit afișează linkurile de cont, gestiune și Waitlist. În Docker Compose, Serverul folosește implicit `http://localhost:17173` la generarea linkurilor locale. Poți seta `PUBLIC_WEB_ORIGIN` dacă frontendul este accesibil la altă adresă.

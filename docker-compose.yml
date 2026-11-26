@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-beautystudio_secret}
       POSTGRES_DB: ${POSTGRES_DB:-beautystudio_db}
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -22,8 +22,8 @@ services:
     container_name: beauty-studio-mailpit
     restart: unless-stopped
     ports:
-      - "1025:1025" # SMTP
-      - "8025:8025" # Web UI
+      - "11025:1025" # SMTP
+      - "18025:8025" # Web UI
 
   server:
     build:
@@ -40,9 +40,10 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-beautystudio}:${POSTGRES_PASSWORD:-beautystudio_secret}@postgres:5432/${POSTGRES_DB:-beautystudio_db}?schema=public
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
+      PUBLIC_WEB_ORIGIN: ${PUBLIC_WEB_ORIGIN:-http://localhost:17173}
       TZ: UTC
     ports:
-      - "3000:3000"
+      - "13000:3000"
     healthcheck:
       test:
         - CMD
@@ -63,8 +64,10 @@ services:
     depends_on:
       server:
         condition: service_healthy
+    environment:
+      VITE_HMR_CLIENT_PORT: "17173"
     ports:
-      - "5173:5173"
+      - "17173:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
