@@ -1,12 +1,17 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { SchedulerRegistry } from '@nestjs/schedule';
+import { Prisma } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import request = require('supertest');
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/modules/prisma/prisma.service';
 import { hashPassword } from '../src/modules/client-access/password';
 import { NotificationJobsService } from '../src/modules/notifications/notification-jobs.service';
+import { AppointmentManagementService } from '../src/modules/appointments/appointment-management.service';
+import { AvailabilityService } from '../src/modules/availability/availability.service';
+import { MailService } from '../src/modules/notifications/mail.service';
+import { WaitlistService } from '../src/modules/waitlist/waitlist.service';
 
 const integration = process.env.RUN_POSTGRES_TESTS === '1' ? describe : describe.skip;
 const password = 'integration-test-password';
@@ -28,6 +33,7 @@ integration('Sprint 3 client portal', () => {
     const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = module.createNestApplication();
     await app.init();
+    for (const job of app.get(SchedulerRegistry).getCronJobs().values()) job.stop();
     db = app.get(PrismaService);
     specialistId = (await db.user.findFirstOrThrow({ where: { role: 'ADMIN' } })).id;
     serviceId = (await db.service.findFirstOrThrow({
@@ -202,6 +208,37 @@ integration('Sprint 3 client portal', () => {
     }
   });
 
+  it('keeps the fifth chronological visit discounted when the sixth is completed first', async () => {
+    const details = contact();
+    const client = await register(details);
+    const { id: clientId } = await db.user.findUniqueOrThrow({ where: { email: details.email } });
+    await db.appointment.createMany({
+      data: [4, 5, 6, 7].map(day => ({
+        clientId, serviceId, specialistId, status: 'COMPLETED',
+        startTime: new Date(Date.UTC(2097, 0, day, 8)),
+        endTime: new Date(Date.UTC(2097, 0, day, 8, 20)),
+        basePriceRon: 50, totalPriceRon: 50,
+      })),
+    });
+    const book = async (day: number) => (await client.post('/api/bookings/account').send({
+      serviceId, specialistId, slotUtcMs: Date.UTC(2097, 0, day, 9),
+    }).expect(201)).body;
+    const fifth = await book(24);
+    const sixth = await book(25);
+    expect([fifth.totalPriceRon, sixth.totalPriceRon]).toEqual(['45', '50']);
+
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2097-01-26T10:00:00Z'));
+    const management = app.get(AppointmentManagementService);
+    await management.change({ id: sixth.id }, 'complete', true);
+    const prices = async () => (await db.appointment.findMany({
+      where: { id: { in: [fifth.id, sixth.id] } },
+      orderBy: { startTime: 'asc' },
+    })).map(booking => [booking.status, booking.totalPriceRon.toString(), booking.loyaltyDiscountRon.toString()]);
+    expect(await prices()).toEqual([['CONFIRMED', '45', '5'], ['COMPLETED', '50', '0']]);
+    await management.change({ id: fifth.id }, 'complete', true);
+    expect(await prices()).toEqual([['COMPLETED', '45', '5'], ['COMPLETED', '50', '0']]);
+  });
+
   it('offers the slot after a successful move and rolls expired priority to the next guest', async () => {
     const date = '2097-01-21';
     await db.scheduleOverride.create({
@@ -271,4 +308,51 @@ integration('Sprint 3 client portal', () => {
     await jobs.reminders();
     expect((await db.appointment.findUniqueOrThrow({ where: { id: fixtures[2].id } })).reminderSentAt).toEqual(sentAt);
   });
+
+  it.each([
+    ['before SMTP', '2097-01-10T14:10:00Z'],
+    ['before SMTP and during claim release', '2097-01-10T13:35:00Z'],
+    ['after SMTP', '2097-01-10T14:40:00Z'],
+  ] as const)(
+    'retries safely after a database failure %s',
+    async (failurePoint, start) => {
+      const details = contact();
+      const { body: { id } } = await api().post('/api/bookings').send(guest(start, details)).expect(201);
+      const failure = new Error('Simulated temporary database failure');
+      const transaction = jest.fn((work: (tx: Prisma.TransactionClient) => Promise<void>) =>
+        db.$transaction(work));
+      const updateClaim = (args: Prisma.AppointmentUpdateManyArgs) => db.appointment.updateMany(args);
+      const updateMany = jest.fn(updateClaim);
+      const smtpAccepted = failurePoint === 'after SMTP';
+      if (!smtpAccepted) {
+        transaction.mockRejectedValueOnce(failure);
+      } else {
+        transaction.mockImplementationOnce(work => db.$transaction(async tx => {
+          await work(tx);
+          throw failure;
+        }));
+      }
+      if (failurePoint === 'before SMTP and during claim release') {
+        updateMany.mockImplementationOnce(updateClaim).mockRejectedValueOnce(failure);
+      }
+      const mail = app.get(MailService);
+      const send = jest.spyOn(mail, 'send');
+      const jobs = new NotificationJobsService(
+        { appointment: { findMany: db.appointment.findMany, updateMany }, $transaction: transaction } as unknown as PrismaService,
+        mail, app.get(AvailabilityService), app.get(WaitlistService),
+      );
+      await jobs.reminders();
+      const first = await db.appointment.findUniqueOrThrow({ where: { id } });
+      expect(first.reminderSentAt).toBeNull();
+      expect(Boolean(first.reminderClaimedAt)).toBe(failurePoint !== 'before SMTP');
+      expect(send).toHaveBeenCalledTimes(smtpAccepted ? 1 : 0);
+
+      await jobs.reminders();
+      await jobs.reminders();
+      const retried = await db.appointment.findUniqueOrThrow({ where: { id } });
+      expect(Boolean(retried.reminderSentAt)).toBe(!smtpAccepted);
+      expect(send).toHaveBeenCalledTimes(1);
+      expect(send.mock.calls[0][3]).toBe(`<reminder-${id}@beautystudio.local>`);
+    },
+  );
 });
