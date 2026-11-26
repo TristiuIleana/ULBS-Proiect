@@ -1,16 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { createTransport } from 'nodemailer';
+import { MailService } from '../notifications/mail.service';
 
 @Injectable()
 export class BookingConfirmationService {
   private readonly logger = new Logger(BookingConfirmationService.name);
-  private readonly transport = createTransport({
-    host: process.env.SMTP_HOST || 'mailpit',
-    port: Number(process.env.SMTP_PORT || 1025),
-    connectionTimeout: 3000,
-    greetingTimeout: 3000,
-    socketTimeout: 5000,
-  });
+  constructor(private readonly mail: MailService) {}
 
   async send(email: string, booking: {
     id: string;
@@ -18,6 +12,7 @@ export class BookingConfirmationService {
     specialistName: string;
     startsAtLocal: string;
     totalPriceRon: string;
+    cancellationToken?: string;
   }): Promise<'sent' | 'failed'> {
     const dateTime = new Intl.DateTimeFormat('ro-RO', {
       timeZone: 'Europe/Bucharest',
@@ -25,18 +20,16 @@ export class BookingConfirmationService {
       timeStyle: 'short',
     }).format(new Date(booking.startsAtLocal));
     try {
-      await this.transport.sendMail({
-        from: 'Beauty Studio <programari@beautystudio.local>',
-        to: { name: '', address: email },
-        subject: 'Programare confirmată la Beauty Studio',
-        text: [
+      await this.mail.send(email, 'Programare confirmată la Beauty Studio', [
           'Programarea ta la Beauty Studio este confirmată.',
           `Serviciu: ${booking.serviceName}`,
           `Specialistă: ${booking.specialistName}`,
           `Data și ora: ${dateTime} (Europe/Bucharest)`,
           `Preț: ${booking.totalPriceRon} RON`,
-        ].join('\n'),
-      });
+          ...(booking.cancellationToken ? [
+            `Consultă sau gestionează programarea: ${this.mail.link('/programare', booking.cancellationToken)}`,
+          ] : []),
+        ].join('\n'));
       return 'sent';
     } catch {
       this.logger.error(`Trimiterea confirmării SMTP a eșuat pentru programarea ${booking.id}.`);

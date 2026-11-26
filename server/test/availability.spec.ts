@@ -180,6 +180,7 @@ describe('AvailabilityService — getAvailableSlots() with mocked Prisma', () =>
           stages: serviceStages,
         }),
       },
+      waitlistOfferStage: { findMany: jest.fn().mockResolvedValue([]) },
       appointmentStage: {
         findMany: jest.fn().mockResolvedValue(
           bookedStages.map(({ startTime, endTime }) => ({ startTime, endTime })),

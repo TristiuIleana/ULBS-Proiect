@@ -8,6 +8,7 @@
 ## Index
 - PATTERN-001 · Containerized server execution · approved
 - PATTERN-002 · Recheck slot availability after a PostgreSQL row lock · candidate
+- PATTERN-003 · Durable claim before a scheduled SMTP send · candidate
 
 ---
 
@@ -29,3 +30,13 @@
 - **Example:** [AppointmentsService](../../server/src/modules/appointments/appointments.service.ts)
 - **Why:** A waiting request rechecks against the committed booking and still permits interleaving during free stages.
 - **Source:** Sprint 2 implementation · confidence high
+
+---
+
+## PATTERN-003 · Durable claim before a scheduled SMTP send
+- **Status:** candidate
+- **Use when:** Concurrent scheduler runs can dispatch the same transactional notification.
+- **How:** Atomically persist a claim for the eligible record, recheck the current appointment state before SMTP, and record acceptance. Reopen a claim only after a definite pre-acceptance failure. Reconcile ambiguous results by stable Message-ID.
+- **Example:** [NotificationJobsService](../../server/src/modules/notifications/notification-jobs.service.ts)
+- **Why:** Repeated runs, concurrent workers and restarts honor the same claim. Ambiguous delivery does not trigger a duplicate.
+- **Source:** Sprint 3 implementation · confidence high

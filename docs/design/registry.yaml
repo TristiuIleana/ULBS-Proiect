@@ -17,7 +17,7 @@ designs:
 
   - id: DS-pub-booking
     name: Wizard Rezervare Programare
-    description: Rezervare fără cont cu serviciu, dată, oră, date de contact și confirmare în aceeași pagină.
+    description: Rezervare cu sau fără cont, bandă de zile, orar grupat, Waitlist și confirmare în aceeași pagină.
     kind: screen
     source: frontend/src/pages/public/BookingWizardPage.tsx
     screenshots: [screens/DS-pub-booking.light.png, screens/DS-pub-booking.dark.png]
@@ -37,22 +37,22 @@ designs:
 
   - id: DS-pub-manage
     name: Gestiune Programare Client (Token Securizat)
-    description: Pagină privată accesibilă prin link-ul din email pentru vizualizare, reprogramare sau anulare conform politicii (permis liber pe zile normale, restricționat sub 24h pe zile Full).
+    description: Gestiunea din cont sau prin linkul din e-mail. Anularea și reprogramarea online sunt blocate sub 24 h sau în Zi Full.
     kind: screen
     source: frontend/src/pages/public/ManageBookingPage.tsx
     screenshots: [screens/DS-pub-manage.light.png, screens/DS-pub-manage.dark.png]
     design_ref: mocks/DS-pub-manage.html
     figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=5-2
-    status: approved
+    status: implemented
 
   - id: DS-pub-waitlist
     name: Înscriere Listă de Așteptare
-    description: Modal / formular de înscriere pe lista de așteptare când o dată sau un interval orar dorit este complet rezervat.
-    kind: screen
-    source: frontend/src/components/public/WaitlistDialog.tsx
+    description: Card de înscriere cu date de contact și interval preferat, integrat în wizard când nu mai sunt locuri.
+    kind: component
+    source: frontend/src/components/public/WaitlistCard.tsx
     screenshots: [screens/DS-pub-waitlist.light.png, screens/DS-pub-waitlist.dark.png]
-    design_ref: none
-    status: proposed
+    design_ref: mocks/DS-pub-booking.html
+    status: implemented
 
   - id: DS-pub-auth
     name: Contul Meu & Fidelizare
@@ -62,12 +62,12 @@ designs:
       spre reducerea de 10%), badge vizual la atingerea pragului, lista
       programărilor viitoare, istoric programări finalizate cu evidența
       reducerilor aplicate, și acțiuni rapide de gestionare a contului.
-      Implementează D-005 (program de fidelizare cu reducere automată recurentă).
+      Implementează D-008 (alocarea automată și cronologică a reducerii).
     kind: screen
     source: frontend/src/pages/public/ClientAccountPage.tsx
-    screenshots: [screens/DS-pub-auth.light.png]
+    screenshots: [screens/DS-pub-auth.light.png, screens/DS-pub-auth.dark.png]
     design_ref: mocks/DS-pub-auth.html
-    status: draft
+    status: implemented
 
   # ==========================================
   # 2. Ecrane Recepție & Administrare (Admin)
@@ -125,7 +125,7 @@ designs:
 
   - id: DS-adm-peak-days
     name: Configurare Zile Aglomerate (Zile Full)
-    description: Selector calendaristic unde Adminul marchează zilele cu cerere mare (evenimente, sărbători) în care anularea online este blocată sub 24h.
+    description: Selector calendaristic unde Adminul marchează zilele cu cerere mare în care gestiunea online este blocată.
     kind: screen
     source: frontend/src/pages/admin/PeakDaysPage.tsx
     screenshots: [screens/DS-adm-peak-days.light.png, screens/DS-adm-peak-days.dark.png]
@@ -176,9 +176,9 @@ designs:
 
   - id: DS-comp-peak-badge
     name: Badge Indicator Zi Aglomerată
-    description: Etichetă distinctivă de alertă afișată pe zilele Full pentru a avertiza clientul cu privire la politica de anulare strictă (min. 24h).
+    description: Punct auriu și etichetă de alertă pe zilele Full, cu banner care îndrumă clienta către salon pentru modificări.
     kind: component
-    source: frontend/src/components/common/PeakDayBadge.tsx
-    screenshots: [screens/DS-comp-peak-badge.light.png, screens/DS-comp-peak-badge.dark.png]
-    design_ref: none
-    status: proposed
+    source: frontend/src/components/public/BookingControls.tsx
+    screenshots: [screens/DS-pub-booking.light.png, screens/DS-pub-booking.dark.png]
+    design_ref: mocks/DS-pub-booking.html
+    status: implemented

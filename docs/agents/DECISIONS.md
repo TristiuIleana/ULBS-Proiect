@@ -11,7 +11,10 @@
 - D-002 · Application stack NestJS PostgreSQL React in Docker
 - D-003 · Visual identity and design tokens
 - D-004 · Salon schedule, split interleaving, waitlist locking and Mailpit
-- D-005 · Client loyalty program with automatic recurring discount
+- D-006 · Gestiunea și blocarea rezervării online
+- D-007 · Waitlist fără cont și asocierea prin e-mail
+- D-008 · Alocarea Fidelizării și operațiile Admin
+- D-009 · Fereastra și idempotența reminderelor
 
 ---
 
@@ -66,12 +69,44 @@
 
 ---
 
-## D-005 · Client loyalty program with automatic recurring discount
+## D-006 · Gestiunea și blocarea rezervării online
 - **Status:** approved
-- **Date:** 2026-11-19
-- **Confirmed:** 2026-11-19
-- **Rule:** Clients with an account accumulate completed visits counted across the entire studio (regardless of service or specialist). The visit counter follows a repeating cycle of 5: at every 5th completed appointment (visit count modulo 5 == 0, i.e. visits 5, 10, 15…), a 10% discount is applied automatically to that appointment's price at booking confirmation time. The discount is computed server-side and stored on the Appointment record (no manual coupon codes or client-side claiming). The public client portal ("Contul Meu & Fidelizare" — DS-pub-auth) shows a progress card (N/5 visits toward the next discount), upcoming bookings, and past booking history with any applied discounts highlighted. The admin dashboard shows the discount flag on affected appointments.
-- **Why:** Incentivizes client retention and repeat bookings through a simple, transparent, and fully automated loyalty mechanic that requires no manual intervention from staff.
-- **Rejected:** Physical stamp cards; percentage escalating by tier; manual coupon codes; one-time-only discount at the 5th visit without repeating cycle.
-- **Evidence:** User explicit confirmation: "Confirm toate cele 3 puncte exact cum le-ai propus: 1. Ciclu repetat: la fiecare a 5-a vizită (5, 10, 15...). 2. Aplicare automată la booking (fără coduri sau revendicare manuală). 3. Numărare per total studio (indiferent de serviciu sau specialist)."
+- **Date:** 2026-11-26
+- **Confirmed:** 2026-11-26
+- **Rule:** Anularea și reprogramarea online sunt gratuite în zile normale cu cel puțin 24 h înainte. Ambele sunt blocate sub 24 h sau în orice Zi Full, cu mesaj de contactare a salonului. O anulare târzie înregistrată adaugă o marcare. La trei marcări rezervarea online se blochează până la resetarea lor de către Admin.
+- **Why:** Aplică politica salonului în gestiune și rezervare.
+- **Evidence:** Confirmarea planului Sprintului 3, Q-006.
+- **Source:** user · confidence high
+
+---
+
+## D-007 · Waitlist fără cont și asocierea prin e-mail
+- **Status:** approved
+- **Date:** 2026-11-26
+- **Confirmed:** 2026-11-26
+- **Rule:** Vizitatoarele se înscriu cu nume, telefon, e-mail, serviciu, dată și interval preferat. Crearea contului asociază automat programările și înscrierile anterioare fără cont pe același e-mail. Serverul verifică adresa înainte de a acorda acces la datele asociate.
+- **Why:** Păstrează opțiunea fără cont și istoricul centralizat.
+- **Evidence:** Confirmarea planului Sprintului 3, Q-007.
+- **Source:** user · confidence high
+
+---
+
+## D-008 · Alocarea Fidelizării și operațiile Admin
+- **Status:** approved
+- **Date:** 2026-11-26
+- **Confirmed:** 2026-11-26
+- **Rule:** La fiecare a cincea vizită, pe baza vizitelor COMPLETED din întregul studio, Serverul alocă automat reducerea de 10% primei programări eligibile în ordine cronologică, persistă prețul și recalculează la anularea unei programări anterioare. Contul afișează progresul și reducerile. Operațiile de finalizare și deblocare cu resetarea marcărilor cer rolul Admin.
+- **Why:** Determină prețul consecvent când se schimbă ordinea programărilor.
+- **Evidence:** Confirmarea planului Sprintului 3, Q-008.
+- **Source:** user · confidence high
+
+---
+
+## D-009 · Fereastra și idempotența reminderelor
+- **Status:** approved
+- **Date:** 2026-11-26
+- **Confirmed:** 2026-11-26
+- **Rule:** Jobul periodic NestJS trimite prin Mailpit pentru programări CONFIRMED cu reminderSentAt nul, între 2 și 24 h inclusiv înainte de start. Programările create sau mutate în fereastră primesc reminder la prima rulare. Un reminder deja trimis rămâne înregistrat la mutarea aceleiași programări.
+- **Why:** Trimite un reminder util și previne duplicatele.
+- **Evidence:** Confirmarea planului Sprintului 3, Q-009.
 - **Source:** user · confidence high

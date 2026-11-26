@@ -55,7 +55,7 @@
 - **Warning / Waitlist (Listă de așteptare, expirare fereastră):**
   - Light: `#C98A2C` (Warm Amber) | Bg: `#FAF2E4`
   - Dark: `#E2A346` | Bg: `#2E2415`
-- **Destructive / Error (Anulare sub 24h blocată, alertă):**
+- **Destructive / Error (Modificare sub 24 h sau în Zi Full blocată, alertă):**
   - Light: `#B84A39` (Terracotta Crimson) | Bg: `#F8ECE9`
   - Dark: `#D96B5A` | Bg: `#2E1916`
 - **Info (Etape split libere):**
@@ -134,7 +134,7 @@
 - **Etape Libere / Intercalabile (2, 4):** Fond Dusty Blue subtil (`#EFF3F7`), contur `#8FA8C4` punctat/dashed, text `#334E68`, etichetă „Slot Disponibil (ex: Pensat / Vopsit)”.
 
 ### 6.2. Indicatorul de Zile Aglomerate („Zile Full”)
-- Marcaj calendaristic cu un punct auriu sau badge discret: Fond `#FAF2E4`, text `#C98A2C`, iconiță calendar cu avertisment: *„Politică de anulare strictă: min. 24h înainte”*.
+- Marcaj calendaristic cu un punct auriu sau badge discret: Fond `#FAF2E4`, text `#C98A2C`, iconiță calendar cu avertisment: *„Anularea și reprogramarea se fac prin salon în Zi Full”*.
 
 ### 6.3. Sloturile de Timp în Calendarul de Rezervare
 - **Slot Disponibil:** Buton cu suprafață albă, contur subtil `#E8E2D9`, hover cu tranziție caldă către `#FAF7F2` și text accent.
@@ -143,7 +143,7 @@
 
 ### 6.4. Rezervare fără cont
 
-Antetul cardului Beauty Studio afișează mesajul despre rezervarea fără cont imediat deasupra acțiunii „Contul meu / Autentificare”. Mesajul folosește suprafața subtilă a temei, textul principal și raza mică de badge. La 390 px, textul se poate împărți pe rânduri. Vizitatoarea poate alege serviciul, data și ora, completa numele, telefonul și emailul și confirma rezervarea. Contul este opțional și oferă Fidelizare conform D-005.
+Antetul cardului Beauty Studio afișează mesajul despre rezervarea fără cont imediat deasupra acțiunii „Contul meu / Autentificare”. Mesajul folosește suprafața subtilă a temei, textul principal și raza mică de badge. La 390 px, textul se poate împărți pe rânduri. Vizitatoarea poate alege serviciul, data și ora, completa numele, telefonul și emailul și confirma rezervarea. Contul este opțional și oferă Fidelizare conform D-008.
 
 Pagina din Sprintul 2 afișează mesajul despre rezervarea fără cont în antet și folosește câmpuri separate pentru prenume și nume. Confirmarea apare în aceeași pagină și afișează sumarul în ora studioului. Mesajul indică dacă e-mailul a fost trimis sau dacă programarea a fost salvată cu confirmarea prin e-mail indisponibilă.
 

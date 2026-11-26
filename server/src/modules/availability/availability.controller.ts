@@ -23,6 +23,41 @@ export class AvailabilityController {
     @Query('date') date: string,
     @Query('specialistId') specialistId: string,
   ): Promise<{ slots: AvailableSlot[] }> {
+    await this.validate(serviceId, specialistId, date);
+    const slots = await this.availabilityService.getAvailableSlots(specialistId, serviceId, date);
+    return { slots };
+  }
+
+  @Get('days')
+  async getDays(
+    @Query('serviceId') serviceId: string,
+    @Query('date') date: string,
+    @Query('specialistId') specialistId: string,
+  ) {
+    const { stages } = await this.validate(serviceId, specialistId, date);
+    const start = Date.parse(`${date}T00:00:00Z`);
+    const dayCount = Math.min(6, 1 + (Date.UTC(9999, 11, 30) - start) / 86_400_000);
+    const days = await Promise.all(Array.from({ length: dayCount }, async (_, index) => {
+      const day = new Date(start + index * 86_400_000).toISOString().slice(0, 10);
+      const [shift, override] = await Promise.all([
+        this.availabilityService.resolveShiftWindow(specialistId, day),
+        this.prisma.scheduleOverride.findUnique({
+          where: { specialistId_date: { specialistId, date: day } }, select: { isFullDayPolicy: true },
+        }),
+      ]);
+      const choices = shift ? await this.availabilityService.getSlotChoices(specialistId, shift, stages, this.prisma) : [];
+      const morning = choices.filter(slot => slot.localIso.slice(11, 16) < '13:00');
+      const afternoon = choices.filter(slot => slot.localIso.slice(11, 16) >= '13:00');
+      const group = (slots: typeof choices) => ({
+        total: slots.length, free: slots.filter(slot => slot.available).length,
+      });
+      const status = !shift || !choices.length ? 'closed' : choices.some(slot => slot.available) ? 'available' : 'full';
+      return { date: day, status, isFullDay: override?.isFullDayPolicy ?? false, morning: group(morning), afternoon: group(afternoon), choices };
+    }));
+    return { days };
+  }
+
+  private async validate(serviceId: string, specialistId: string, date: string) {
     if (!serviceId || !date || !specialistId) {
       throw new BadRequestException(
         'Query params serviceId, date and specialistId are all required.',
@@ -39,7 +74,7 @@ export class AvailabilityController {
     }
     const [service, specialist] = await Promise.all([
       this.prisma.service.findUnique({
-        where: { id: serviceId, isActive: true }, select: { category: true },
+        where: { id: serviceId, isActive: true }, include: { stages: { orderBy: { stageOrder: 'asc' } } },
       }),
       this.prisma.user.findUnique({
         where: { id: specialistId, role: { in: ['ADMIN', 'SPECIALIST'] } },
@@ -51,11 +86,6 @@ export class AvailabilityController {
       throw new BadRequestException('The specialist does not provide this service.');
     }
 
-    const slots = await this.availabilityService.getAvailableSlots(
-      specialistId,
-      serviceId,
-      date,
-    );
-    return { slots };
+    return service;
   }
 }

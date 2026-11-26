@@ -525,3 +525,32 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Disponibilitatea exclude sloturile al căror început a trecut. `POST /api/bookings` răspunde cu `400` pentru aceleași sloturi și verifică din nou ora în tranzacție, înainte de salvare.
 - Cele trei teste de regresie au reprodus problema înainte de corecție. Disponibilitatea afișa ore din ziua anterioară, iar încercările de rezervare pentru un slot din ziua anterioară și unul deja trecut din ziua curentă primeau `201`.
 - După corecție au trecut toate cele 30 de teste din patru suite în Docker, inclusiv verificarea că rezervările respinse nu sunt salvate și nu trimit e-mail. Au trecut și build-ul NestJS, validarea Compose și ledger lint cu `PYTHONUTF8=1`. Review-ul poate fi integrat în `main`.
+
+---
+
+## Sesiunea 26 — 26 Noiembrie 2026 — Plan Sprintul 3 · Portal client
+
+- S-a cerut un plan pentru extinderea rezervării după mock-up-urile HTML, Waitlist, accesul clientei și Fidelizare, politica de anulare și reprogramare, plus remindere programate și idempotente prin Mailpit.
+- `main` era sincronizat cu `origin/main`. Planul a fost redactat pe branch-ul `feat/sprint-3-client-portal` cu fișiere, teste, verificări vizuale și ordinea implementării. [Planul Sprintului 3](docs/plans/sprint-3-client-portal.md)
+- Pragul documentat pentru reminder este 24 h. Q-006–Q-009 consemnează politica Zi Full și marcările, identitatea clientei, alocarea reducerii și operațiile Admin, respectiv comportamentul reminderelor pentru programări apropiate și reprogramări. Planul rămâne în revizie înainte de `/build`. [Întrebări deschise](docs/agents/OPEN-QUESTIONS.md)
+- Ledger lint cu `PYTHONUTF8=1` a trecut, inclusiv după normalizarea registrului. Testele aplicației și pornirea în Docker fac parte din etapa de implementare.
+
+---
+
+## Sesiunea 27 — 26 Noiembrie 2026 — Build Sprintul 3 · Portal client
+
+- Utilizatorul a aprobat planul și regulile Q-006–Q-009. Commitul `18eb7f1` le-a înregistrat ca D-006–D-009, cu D-008 în locul D-005. [Decizii](docs/agents/DECISIONS.md) · [Plan](docs/plans/sprint-3-client-portal.md)
+- Migrarea adaugă sesiuni, câmpuri pentru preț și Fidelizare, marcări, oferte Waitlist și starea trimiterilor. Gestiunea verifică pragul de 24 h și Zi Full pe Server. Operațiile Admin pot înregistra anularea târzie, finaliza vizita și reseta marcările.
+- Înregistrarea confirmă controlul e-mailului înainte de acces la programările și înscrierile asociate. Waitlist înscrie vizitatoare fără cont, protejează etapa oferită, notifică prima clientă eligibilă și rotește oferta după expirare. Cronul trimite un reminder per programare confirmată în fereastra de 2–24 h.
+- Cele patru teste inițiale au reprodus endpointurile și linkul încă neimplementate. Prima integrare a identificat o constrângere incompatibilă cu asocierea datelor vizitatoarei și validarea unui ID din catalogul inițial. După corecții, toate cele 38 de teste din cinci suite au trecut în Docker, cu PostgreSQL și Mailpit izolate. Testele existente și-au păstrat aserțiunile. Au trecut și migrarea pe bază goală, migrarea cu date din Sprintul 2, validarea Prisma, build-urile NestJS și Vite, configurația Compose și ledger lint cu `PYTHONUTF8=1`.
+- Verificarea Chrome a parcurs rezervarea și recuperarea după `409` cu păstrarea formularului, accesul cu tastatura, înscrierea Waitlist, asocierea după confirmarea e-mailului, anularea și revendicarea ofertei. Au fost verificate încărcarea, eroarea, textul lung și linkul incomplet. Am corectat derularea orizontală care depășea lățimea mobilă. Windows rezerva portul implicit Vite, așa că verificarea a folosit portul local 17173. [Capturi](docs/design/screens/)
+- PATTERN-003 consemnează revendicarea persistentă a unei trimiteri. Rezultatele SMTP ambigue se reconciliază pe baza `Message-ID` înainte de o eventuală retrimitere. [Pattern-uri](docs/agents/PATTERNS.md)
+
+---
+
+## Sesiunea 28 — 26 Noiembrie 2026 — Review Sprintul 3 (Partea G)
+
+- Review-ul față de `main` a confirmat politica de 24 h și Zi Full, blocarea după trei marcări și oferta Waitlist cu prioritate. Corecția de aliniere a antetului este în commitul `be31e06`. A fost verificată în Chrome în ambele teme la 390, 1024 și 1440 px după reconstruirea frontendului pe portul local 17173.
+- D-008. Finalizarea vizitei a șasea înaintea celei de-a cincea inversa prețurile așteptate, 45 RON și 50 RON. Calculul comun parcurge vizitele eligibile în ordinea începerii și păstrează reducerea aferentă vizitei a cincea până la finalizare sau anulare.
+- D-009. Eroarea înainte de SMTP lăsa marcajul de preluare setat. Cronul îl eliberează și reîncearcă eliberarea la următoarea rulare dacă PostgreSQL rămâne temporar indisponibil. După acceptarea SMTP, marcajul persistă în cazul unei erori la salvare, cu același `Message-ID` pentru reconciliere.
+- Testele de regresie au reprodus alocarea greșită și cele două cazuri de reminder blocat înaintea corecției. Testul de după acceptarea SMTP a confirmat lipsa unei trimiteri suplimentare. După corecție au trecut toate cele 42 de teste din cinci suite în Docker, cu PostgreSQL și Mailpit izolate. Au trecut și buildul NestJS, validarea Prisma, aplicarea migrărilor și ledger lint cu `PYTHONUTF8=1`. Aserțiunile existente au fost păstrate.

@@ -20,15 +20,15 @@ _Avoid_: multi-part service, fragmented appointment
 **Laminare sprâncene** (noun) — The brow lamination split service modeled across 5 consecutive stages (apply 1, idle 1, apply 2, idle 2, finish).
 _Avoid_: brow lift, tratament sprâncene generic
 
-**Zi Full** (noun) — A high-demand calendar day flagged by Admin where online client cancellation is restricted to at least 24 hours in advance.
+**Zi Full** (noun) — A high-demand calendar day flagged by Admin where online cancellation and rescheduling are blocked.
 _Avoid_: busy day, zi aglomerată neoficială
 
-**Waitlist** (noun) — The automated queue for fully booked slots that dispatches a priority booking link with a 30-minute claim window to the next waiting client upon cancellation.
+**Waitlist** (noun) — The automated queue for fully booked slots that dispatches a priority booking link with a 30-minute claim window to the next waiting client when a cancellation or rescheduling frees a compatible slot.
 _Avoid_: coadă de așteptare, stand-by list
 
 **Mailpit** (noun) — The local SMTP test server and web interface running in Docker on port 8025 to capture and inspect outgoing transactional emails.
 _Avoid_: MailHog, real email credentials in dev
 
-**Fidelizare** (noun) — The automated client loyalty program: a repeating cycle where every 5th completed visit earns a 10% discount applied automatically at booking confirmation (D-005). Counted per studio, regardless of service or specialist.
+**Fidelizare** (noun) — The automated client loyalty program: a repeating cycle where every 5th completed visit earns a 10% discount allocated automatically to the first eligible booking based on completed visits (D-008). Counted per studio, regardless of service or specialist.
 _Avoid_: loyalty points, stamp card, coupon code, manual discount
 

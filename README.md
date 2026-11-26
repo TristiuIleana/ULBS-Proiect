@@ -42,16 +42,16 @@ Spre deosebire de serviciile monolitice, serviciul de **Laminare sprâncene** es
 
 Algoritmul de disponibilitate garantează că programările intercalate nu depășesc intervalul liber și că nu apar suprapuneri (15 + 20 + 15 + 25 + 15 = 90 min).
 
-### C. Programul de Fidelizare Automată (D-005)
+### C. Programul de Fidelizare Automată (D-008)
 Clientele care și-au creat un cont beneficiază de un **sistem automat de loialitate cu ciclu repetat**:
 - Se numără **toate vizitele finalizate** la nivelul întregului studio (indiferent de serviciu sau specialist).
 - La fiecare **a 5-a vizită** (5, 10, 15…), o **reducere de 10%** se aplică automat la prețul programării respective.
-- Reducerea este calculată **server-side** la confirmarea booking-ului și stocată pe înregistrarea Appointment — nu necesită coduri promoționale sau intervenție manuală.
+- Serverul alocă reducerea primei programări eligibile în ordine cronologică și o recalculează când se anulează o programare anterioară.
 - Ecranul **„Contul Meu & Fidelizare"** (DS-pub-auth) afișează cardul de progres (N/5 vizite), badge-ul de reducere, programările viitoare și istoricul cu reducerile aplicate evidențiate.
 
 ### D. Politica de Anulare și Reprogramare Diferențiată
-- **Zile normale:** Anularea și reprogramarea online sunt permise liber de către client în orice moment.
-- **Zile aglomerate / „Full” (marcate ca atare în sistem de către Admin):** Anularea online este permisă doar cu **cel puțin 24 de ore înainte**. În ziua programării (< 24h), anularea directă este blocată în interfață, clienta fiind instruită să contacteze telefonic recepția salonului.
+- **Zile normale:** Anularea și reprogramarea online sunt gratuite cu cel puțin 24 h înainte. Sub 24 h, clienta contactează salonul.
+- **Zi Full:** Anularea și reprogramarea online sunt blocate. Clienta contactează salonul. Anularea târzie înregistrată marchează profilul. La trei marcări rezervarea online este blocată până la resetarea de către Admin.
 
 ---
 
@@ -81,8 +81,8 @@ Clientele care și-au creat un cont beneficiază de un **sistem automat de loial
 - **Controlul Concurenței (Fără Double Booking):** Solicitările simultane pentru același slot sunt gestionate prin tranzacții ACID și blocare la nivel de bază de date (`SELECT ... FOR UPDATE` / exclusion constraints). Demonstrarea se realizează printr-un test automat de concurență.
 - **Standardizare Fus Orar:** Toate datele temporale sunt stocate în UTC în baza de date și convertite în `Europe/Bucharest` la nivel de afișare. Sistemul este testat împotriva tranzițiilor la ora de vară/iarnă (DST).
 - **Joburi de Fundal Programate (Scheduled Crons):**
-  - **Reminder automat pe email:** Trimis automat cu **24 de ore înainte** de programare.
-  - **Procesare Listă de Așteptare:** Când se eliberează un slot în urma unei anulări, sistemul trimite un email primului client din waitlist, oferindu-i o fereastră prioritară de **30 de minute** pentru confirmare.
+  - **Reminder automat pe e-mail:** Cronul trimite o singură dată pentru programarea confirmată când mai sunt între 2 și 24 h până la start.
+  - **Procesare Waitlist:** După o anulare sau o reprogramare, prima clientă eligibilă primește un link prioritar valabil până la 30 de minute.
 - **Export iCal (.ics):** Endpoint securizat cu token pentru sincronizarea automată a calendarului fiecărui angajat.
 
 ---
@@ -112,9 +112,15 @@ Toate serviciile rulează containerizat prin Docker și Docker Compose:
 
 Documentația este gestionată conform regulilor de guvernanță agentică din `AGENTS.md`:
 - [PLAN.md](PLAN.md) — Obiectivele, fazele, arhitectura și stadiul proiectului P01.
-- `docs/agents/DECISIONS.md` — Deciziile arhitecturale și tehnice aprobate (`D-001`..`D-005`).
-- `docs/agents/OPEN-QUESTIONS.md` — Întrebările deschise în curs de clarificare cu clientul (`Q-002`..`Q-005`).
+- `docs/agents/DECISIONS.md` — Deciziile arhitecturale și tehnice aprobate.
+- `docs/agents/OPEN-QUESTIONS.md` — Întrebările proiectului și răspunsurile confirmate.
 - `docs/agents/PATTERNS.md` — Modelele de bune practici reutilizabile (`PATTERN-001`).
 - `docs/agents/CONTRACTS.md` — Contractele de interfață între componente (`C-001`).
 - `CONTEXT.md` — Vocabularul controlat al domeniului aplicației.
 - `AI_LOG.md` — Jurnalul transparent al sesiunilor de lucru cu asistentul AI.
+
+## 8. Operații Admin în Sprintul 3
+
+Pentru baza locală, transmite parola de bootstrap prin variabila de mediu `ADMIN_SEED_PASSWORD` a procesului care rulează seed-ul. Rulează `docker compose run --rm -e ADMIN_SEED_PASSWORD server npm run prisma:seed`. Seed-ul actualizează parola contului Admin când variabila este furnizată.
+
+Autentificarea prin `POST /api/client/login` emite cookie-ul de sesiune. Cu sesiunea Admin poți apela `POST /api/admin/appointments/:id/complete` după încheierea vizitei, `POST /api/admin/appointments/:id/cancel` pentru anularea prin salon și `POST /api/admin/clients/:id/unblock` pentru resetarea marcărilor. Mailpit afișează linkurile de cont, gestiune și Waitlist. Serverul folosește `http://localhost:5173` la generarea linkurilor locale și acceptă `PUBLIC_WEB_ORIGIN` când portul frontendului diferă.

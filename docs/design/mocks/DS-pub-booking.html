@@ -1354,7 +1354,7 @@
           <div class="peak-banner-icon">⚠️</div>
           <div>
             <strong id="peak-banner-title">Sâmbătă, 21 Noiembrie este marcată ca Zi Aglomerată („Zi Full”).</strong>
-            <div id="peak-banner-desc" style="font-size:11px; opacity:0.85; margin-top:2px;">Conform politicii studioului, anularea online este permisă doar cu minim 24 de ore înainte.</div>
+            <div id="peak-banner-desc" style="font-size:11px; opacity:0.85; margin-top:2px;">În Zi Full, anularea și reprogramarea se fac prin salon.</div>
           </div>
         </div>
 
@@ -1370,7 +1370,7 @@
             </div>
           </div>
 
-          <div id="waitlist-form-container">
+          <form id="waitlist-form-container" onsubmit="event.preventDefault(); submitWaitlistForm();">
             <label class="form-label">Alege Intervalul Preferat de Timp</label>
             <div class="waitlist-options">
               <div class="waitlist-radio-pill selected" onclick="selectWaitlistOption(this, 'Oricând în timpul zilei (09:00 - 19:00)')">
@@ -1392,11 +1392,18 @@
               <span><strong>Prioritate 30 minute:</strong> Dacă o clientă anulează o programare, vei primi un email cu link securizat valabil 30 de minute pentru a confirma slotul eliberat înaintea oricui.</span>
             </div>
 
-            <button type="button" class="btn-waitlist-submit" onclick="submitWaitlistForm()">
+            <div class="form-grid">
+              <label class="form-label">Prenume<input class="form-input" autocomplete="given-name" required></label>
+              <label class="form-label">Nume<input class="form-input" autocomplete="family-name" required></label>
+              <label class="form-label">Telefon<input class="form-input" type="tel" autocomplete="tel" required></label>
+              <label class="form-label">E-mail<input id="waitlist-email" class="form-input" type="email" autocomplete="email" required></label>
+            </div>
+
+            <button type="submit" class="btn-waitlist-submit">
               <span>Înscrie-mă pe Lista de Așteptare (Duminică, 22 Nov)</span>
               <span>→</span>
             </button>
-          </div>
+          </form>
 
           <!-- Mesaj de Succes după Înscriere pe Waitlist -->
           <div id="waitlist-success-container" class="waitlist-success-box">
@@ -1653,7 +1660,7 @@
         isPeak: true,
         isFullyBooked: false,
         freeSlots: ['10:30', '14:30', '17:30'], // Zi Full cu câteva locuri libere
-        peakNote: 'Sâmbătă, 21 Noiembrie este marcată ca Zi Aglomerată („Zi Full”). Mai sunt doar 3 sloturi libere. Conform politicii salonului, anularea online este permisă doar cu minim 24 de ore înainte.'
+        peakNote: 'Sâmbătă, 21 Noiembrie este marcată ca Zi Aglomerată („Zi Full”). Mai sunt doar 3 sloturi libere. În Zi Full, anularea și reprogramarea se fac prin salon.'
       },
       'dum-22': {
         isPeak: true,
@@ -1788,7 +1795,7 @@
             : `${fullDate} este Zi Aglomerată („Zi Full”) — doar câteva locuri libere.`;
           bannerDesc.innerText = sched.isFullyBooked
             ? 'Toate intervalele sunt rezervate. Te poți înscrie pe lista de așteptare mai jos.'
-            : 'Conform politicii studioului, anularea online este permisă doar cu minim 24 de ore înainte.';
+            : 'În Zi Full, anularea și reprogramarea se fac prin salon.';
         } else {
           banner.style.display = 'none';
         }
@@ -1892,14 +1899,14 @@
 
     // 7. Trimitere Formular Waitlist
     function submitWaitlistForm() {
-      const email = document.getElementById('input-client-email').value || 'elena.ionescu@gmail.com';
+      const email = document.getElementById('waitlist-email').value;
       document.getElementById('waitlist-form-container').style.display = 'none';
       
       const successBox = document.getElementById('waitlist-success-container');
       const details = document.getElementById('waitlist-success-details');
       
       if (details) {
-        details.innerHTML = `Vei primi o notificare prioritară pe <strong>${email}</strong> cu un link securizat valabil <strong>30 de minute</strong> imediat ce se eliberează un slot compatibil pentru <strong>${bookingState.date.fullDate}</strong> (Interval preferat: <em>${bookingState.waitlistWindow}</em>).`;
+        details.textContent = `Vei primi o notificare prioritară pe ${email} cu un link securizat valabil 30 de minute imediat ce se eliberează un slot compatibil pentru ${bookingState.date.fullDate} (Interval preferat: ${bookingState.waitlistWindow}).`;
       }
       if (successBox) successBox.style.display = 'block';
     }

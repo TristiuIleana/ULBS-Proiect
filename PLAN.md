@@ -15,8 +15,8 @@ Rezervarea publică este disponibilă fără cont, pe bază de nume, telefon și
 | Fază | Rezultat urmărit | Status |
 | --- | --- | --- |
 | 1. Inițializare și interviu | Definirea proiectului P01, a rolurilor, catalogului, orarelor și regulilor pentru Split service. Clarificarea Q-001–Q-005. | Finalizată la nivel de cerințe. [Întrebări și răspunsuri](docs/agents/OPEN-QUESTIONS.md) · [Jurnal, sesiunile 1–12](AI_LOG.md) |
-| 2. Decizii | Aprobarea infrastructurii, a stivei, a identității vizuale și a regulilor de planificare și Fidelizare. | D-001–D-005 aprobate. [Registrul deciziilor](docs/agents/DECISIONS.md) |
-| 3. Design și prototipare | Opt mock-up-uri HTML, grilă de previzualizare și traseu rezervare–cont–Fidelizare. | Gestiunea este aprobată, rezervarea publică fără cont este implementată, iar contul clientei este în `draft`. [Grila](docs/design/mocks/preview-grid.html) · [Registrul](docs/design/registry.yaml) |
+| 2. Decizii | Aprobarea infrastructurii, a stivei, a identității vizuale și a regulilor de planificare și Fidelizare. | D-001–D-004 și D-006–D-009 aprobate. [Registrul deciziilor](docs/agents/DECISIONS.md) |
+| 3. Design și prototipare | Opt mock-up-uri HTML, grilă de previzualizare și traseu rezervare–cont–Fidelizare. | Rezervarea, Waitlist, contul clientei și gestiunea sunt implementate în Sprintul 3. [Grila](docs/design/mocks/preview-grid.html) · [Registrul](docs/design/registry.yaml) |
 | 4. Fundația tehnică | Docker Compose, schema Prisma, migrarea inițială și seed cu serviciile, etapele și orarele. | Fișierele sunt implementate. [Compose](docker-compose.yml) · [Schema](server/prisma/schema.prisma) · [Migrarea](server/prisma/migrations/0_init/migration.sql) · [Seed](server/prisma/seed.ts) |
 | 5. Disponibilitate și rezervare | Calcul de disponibilitate pe etape și salvare tranzacțională a programărilor. | Catalogul, disponibilitatea și rezervarea publică pe etape sunt implementate. |
 | 6. Backend funcțional | API de rezervare și gestiune, acces pe roluri, Fidelizare, Waitlist, e-mailuri și export iCal. | Crearea publică și confirmarea prin Mailpit sunt implementate. Gestiunea programărilor și restul fluxurilor urmează. |
@@ -30,9 +30,12 @@ Rezervarea publică este disponibilă fără cont, pe bază de nume, telefon și
 | D-002 | NestJS și TypeScript pentru API, PostgreSQL cu tranzacții ACID pentru integritatea rezervărilor, joburi prin NestJS Schedule / BullMQ și SPA React separată cu Vite, Tailwind CSS și FullCalendar. |
 | D-003 | Identitate Warm Minimalist cu Nude Rose, Terracotta și Muted Gold, suprafețe Linen și Deep Espresso, Playfair Display și Plus Jakarta Sans, spațiere în multipli de 4 px. |
 | D-004 | Orare separate pe specializări, pauze de 20 și 25 min intercalabile, slot Waitlist blocat 30 min pentru clienta notificată și Mailpit pentru e-mailul local. |
-| D-005 | Reducere recurentă de 10% la fiecare a 5-a vizită a unei cliente cu cont, calculată la confirmarea programării și înregistrată pe programare. |
+| D-006 | Gestiunea online este blocată sub 24 h sau în Zi Full. Trei anulări târzii blochează rezervarea până la resetarea Admin. |
+| D-007 | Waitlist fără cont, cu asocierea datelor pe baza adresei confirmate. |
+| D-008 | Reducere de 10% la fiecare a cincea vizită eligibilă, cu alocare cronologică și recalcul la anulare. |
+| D-009 | Reminder unic prin Mailpit, în fereastra de 2–24 h. |
 
-Sursă pentru formularea completă a regulilor aprobate. [D-001–D-005](docs/agents/DECISIONS.md)
+Sursă pentru formularea completă a regulilor aprobate. [D-001–D-004 și D-006–D-009](docs/agents/DECISIONS.md)
 
 ### Cele opt ecrane prototipate
 
@@ -61,7 +64,7 @@ Fluxul țintă este **browser → SPA React → API NestJS → Prisma → Postgr
 | `Appointment`, `AppointmentStage` | Clientă sau date de contact ale vizitatoarei, specialistă, serviciu, preț total, token de gestionare și intervale concrete ale etapelor. Stările sunt `CONFIRMED`, `CANCELLED`, `COMPLETED` și `NO_SHOW`. |
 | `WaitlistEntry` | Cerere pe serviciu, specialistă și dată, cu token prioritar și termene de notificare și expirare. Stările sunt `WAITING`, `NOTIFIED`, `CLAIMED` și `EXPIRED`. |
 
-Schema actuală păstrează prețul total, iar persistarea distinctă a reducerii D-005 rămâne de implementat. Sprintul 1 a adăugat categoria specialistei, a expus-o în catalog și verifică în API-ul de disponibilitate dacă serviciul aparține aceleiași categorii. [Schema Prisma](server/prisma/schema.prisma) · [Migrarea categoriei](server/prisma/migrations/1_specialist_category/migration.sql)
+Schema păstrează prețul de bază, prețul final și suma reducerii. Sprintul 1 a adăugat categoria specialistei, a expus-o în catalog și verifică în API-ul de disponibilitate dacă serviciul aparține aceleiași categorii. [Schema Prisma](server/prisma/schema.prisma) · [Migrarea categoriei](server/prisma/migrations/1_specialist_category/migration.sql)
 
 ## 4. Roluri și reguli de business
 
@@ -80,11 +83,11 @@ Schema actuală păstrează prețul total, iar persistarea distinctă a reduceri
 | Ana | Make-up ocazie (cu gene) | 90 min | 170 RON |
 | Ana | Make-up mireasă | 120 min | 220 RON |
 
-Specializările sunt exclusive, iar duminica sunt disponibile doar serviciile Make-up. În zilele normale, clienta poate anula sau reprograma online. Într-o Zi Full, anularea online este permisă cu cel puțin 24 de ore înainte. Sub acest prag, clienta contactează recepția.
+Specializările sunt exclusive, iar duminica sunt disponibile doar serviciile Make-up. În zilele normale, clienta poate anula sau reprograma online cu cel puțin 24 h înainte. Sub 24 h și în orice Zi Full, clienta contactează recepția. Anularea târzie înregistrată adaugă o marcare. La trei marcări se blochează rezervarea online până la resetarea de către Admin.
 
-La eliberarea unui slot, prima clientă eligibilă din Waitlist primește prin e-mail un link cu token. Slotul rămâne rezervat acelei cliente timp de 30 de minute. După expirare, oferta trece la următoarea intrare. Reminderul de programare se trimite cu 24 de ore înainte.
+La eliberarea unui slot, prima clientă eligibilă din Waitlist primește prin e-mail un link cu token. Slotul rămâne rezervat acelei cliente până la 30 de minute. După expirare, oferta trece la următoarea intrare. Cronul trimite reminderul o singură dată cu 2–24 h înainte.
 
-Fidelizarea numără vizitele finalizate la nivelul studioului, indiferent de serviciu sau specialistă. La confirmarea programării aferente vizitei 5, 10, 15 și așa mai departe, Serverul calculează și stochează reducerea de 10%. Contul arată progresul și reducerile din istoric, iar panoul Admin evidențiază programările cu reducere. [Cerințe de proiect](README.md) · [Vocabular](CONTEXT.md) · [Decizii](docs/agents/DECISIONS.md)
+Fidelizarea numără vizitele finalizate la nivelul studioului, indiferent de serviciu sau specialistă. Serverul alocă și stochează reducerea de 10% la fiecare a cincea vizită eligibilă și recalculează la anulare. Contul arată progresul și reducerile. Endpointurile protejate Admin susțin finalizarea și resetarea marcărilor. [Cerințe de proiect](README.md) · [Vocabular](CONTEXT.md) · [Decizii](docs/agents/DECISIONS.md)
 
 ## 5. Algoritmul de disponibilitate Split service
 

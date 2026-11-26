@@ -1,14 +1,21 @@
 import { PrismaClient, Role, ServiceCategory } from '@prisma/client';
+import { hashPassword } from '../src/modules/client-access/password';
 
 const prisma = new PrismaClient();
 
 export async function seed() {
   console.log('Seeding Beauty Studio database...');
 
+  const adminPassword = process.env.ADMIN_SEED_PASSWORD;
+  if (adminPassword && (adminPassword.length < 12 || adminPassword.length > 128)) {
+    throw new Error('ADMIN_SEED_PASSWORD must contain 12 to 128 characters.');
+  }
+  const adminCredentials = adminPassword ? { passwordHash: await hashPassword(adminPassword) } : {};
+
   // 1. Specialists
   const ioana = await prisma.user.upsert({
     where: { email: 'ioana@beautystudio.local' },
-    update: { specialistCategory: ServiceCategory.BROWS },
+    update: { specialistCategory: ServiceCategory.BROWS, ...adminCredentials },
     create: {
       email: 'ioana@beautystudio.local',
       phone: '0756062883',
@@ -16,6 +23,7 @@ export async function seed() {
       lastName: 'Proprietara',
       role: Role.ADMIN,
       specialistCategory: ServiceCategory.BROWS,
+      ...adminCredentials,
     },
   });
 
