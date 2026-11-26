@@ -525,3 +525,12 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Disponibilitatea exclude sloturile al căror început a trecut. `POST /api/bookings` răspunde cu `400` pentru aceleași sloturi și verifică din nou ora în tranzacție, înainte de salvare.
 - Cele trei teste de regresie au reprodus problema înainte de corecție. Disponibilitatea afișa ore din ziua anterioară, iar încercările de rezervare pentru un slot din ziua anterioară și unul deja trecut din ziua curentă primeau `201`.
 - După corecție au trecut toate cele 30 de teste din patru suite în Docker, inclusiv verificarea că rezervările respinse nu sunt salvate și nu trimit e-mail. Au trecut și build-ul NestJS, validarea Compose și ledger lint cu `PYTHONUTF8=1`. Review-ul poate fi integrat în `main`.
+
+---
+
+## Sesiunea 26 — 26 Noiembrie 2026 — Plan Sprintul 3 · Portal client
+
+- S-a cerut un plan pentru extinderea rezervării după mock-up-urile HTML, Waitlist, accesul clientei și Fidelizare, politica de anulare și reprogramare, plus remindere programate și idempotente prin Mailpit.
+- `main` era sincronizat cu `origin/main`. Planul a fost redactat pe branch-ul `feat/sprint-3-client-portal` cu fișiere, teste, verificări vizuale și ordinea implementării. [Planul Sprintului 3](docs/plans/sprint-3-client-portal.md)
+- Pragul documentat pentru reminder este 24 h. Q-006–Q-009 consemnează politica Zi Full și marcările, identitatea clientei, alocarea reducerii și operațiile Admin, respectiv comportamentul reminderelor pentru programări apropiate și reprogramări. Planul rămâne în revizie înainte de `/build`. [Întrebări deschise](docs/agents/OPEN-QUESTIONS.md)
+- Ledger lint cu `PYTHONUTF8=1` a trecut, inclusiv după normalizarea registrului. Testele aplicației și pornirea în Docker fac parte din etapa de implementare.
