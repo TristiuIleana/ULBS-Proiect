@@ -14,10 +14,10 @@
 - Q-003 · Specialist names and initial staff profile details · _answered_
 - Q-004 · Exact stage durations for the Brow Lamination split service · _answered_
 - Q-005 · Complete service catalog with prices and standard durations · _answered_
-- Q-006 · Politica sub 24 h și deblocarea rezervării online · _investigating_
-- Q-007 · Identitatea clientei în Waitlist, la înregistrare și în istoric · _investigating_
-- Q-008 · Alocarea Fidelizării și operațiile Admin din Sprintul 3 · _investigating_
-- Q-009 · Reminder pentru rezervări apropiate și reprogramări · _investigating_
+- Q-006 · Politica sub 24 h și deblocarea rezervării online · _answered_
+- Q-007 · Identitatea clientei în Waitlist, la înregistrare și în istoric · _answered_
+- Q-008 · Alocarea Fidelizării și operațiile Admin din Sprintul 3 · _answered_
+- Q-009 · Reminder pentru rezervări apropiate și reprogramări · _answered_
 
 ---
 
@@ -61,27 +61,35 @@
 ---
 
 ## Q-006 · Politica sub 24 h și deblocarea rezervării online
-- **Status:** investigating
+- **Status:** answered
 - **Date:** 2026-11-26
-- **Question:** În zile normale și în Zi Full, când sunt permise anularea și reprogramarea sub 24 h? În Zi Full, fluxul aprobat blochează anularea online. Cum se marchează anulările prin recepție sau prin linkul unei vizitatoare? La deblocare se resetează marcările? Ce identificare se cere la rezervarea fără cont pentru a aplica blocarea unui profil?
+- **Confirmed:** 2026-11-26
+- **Answer:** Anularea și reprogramarea online sunt gratuite în zile normale cu cel puțin 24 h înainte. Ambele sunt blocate sub 24 h sau în orice Zi Full, cu mesaj de contactare a salonului. O anulare târzie înregistrată adaugă o marcare. La trei marcări rezervarea online se blochează până la resetarea lor de către Admin.
+- **Decision:** D-006
 
 ---
 
 ## Q-007 · Identitatea clientei în Waitlist, la înregistrare și în istoric
-- **Status:** investigating
+- **Status:** answered
 - **Date:** 2026-11-26
-- **Question:** Waitlist acceptă vizitatoare cu adresă de e-mail sau cere cont? Dacă acceptă vizitatoare, când se colectează datele de contact pentru confirmarea ofertei? Înregistrarea colectează nume și telefon în formular sau într-un pas de profil? Istoricul și Fidelizarea includ programări anterioare fără cont dacă legătura este verificată?
+- **Confirmed:** 2026-11-26
+- **Answer:** Vizitatoarele se înscriu cu nume, telefon, e-mail, serviciu, dată și interval preferat. Crearea contului asociază automat programările și înscrierile anterioare fără cont pe același e-mail. Serverul verifică adresa înainte de a acorda acces la datele asociate.
+- **Decision:** D-007
 
 ---
 
 ## Q-008 · Alocarea Fidelizării și operațiile Admin din Sprintul 3
-- **Status:** investigating
+- **Status:** answered
 - **Date:** 2026-11-26
-- **Question:** Cum se alocă reducerea confirmată dacă există mai multe programări viitoare la progresul 4/5, dacă ordinea se schimbă sau dacă programarea cu reducere este anulată ori devine neprezentare? Ce interfață Admin trebuie livrată pentru finalizare, evidențierea reducerii și deblocare?
+- **Confirmed:** 2026-11-26
+- **Answer:** La fiecare a cincea vizită, pe baza vizitelor COMPLETED din întregul studio, Serverul alocă automat reducerea de 10% primei programări eligibile în ordine cronologică, persistă prețul și recalculează la anularea unei programări anterioare. Contul afișează progresul și reducerile. Operațiile de finalizare și deblocare cu resetarea marcărilor cer rolul Admin.
+- **Decision:** D-008
 
 ---
 
 ## Q-009 · Reminder pentru rezervări apropiate și reprogramări
-- **Status:** investigating
+- **Status:** answered
 - **Date:** 2026-11-26
-- **Question:** Pentru o programare creată sau mutată la mai puțin de 24 h înainte, se trimite reminder la următoarea rulare sau se omite? Dacă reminderul s-a trimis pentru ora veche, se trimite unul pentru ora nouă?
+- **Confirmed:** 2026-11-26
+- **Answer:** Jobul periodic NestJS trimite prin Mailpit pentru programări CONFIRMED cu reminderSentAt nul, între 2 și 24 h inclusiv înainte de start. Programările create sau mutate în fereastră primesc reminder la prima rulare. Un reminder deja trimis rămâne înregistrat la mutarea aceleiași programări.
+- **Decision:** D-009

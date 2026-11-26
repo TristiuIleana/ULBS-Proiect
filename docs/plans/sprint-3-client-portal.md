@@ -1,6 +1,6 @@
 # Plan — Sprintul 3 · Portal client, Waitlist și remindere
 
-**Stare** · În revizie. Aprobarea planului și răspunsurile Q-006–Q-009 preced `/build` pentru comportamentele dependente de ele.
+**Stare** · Aprobat la 26 noiembrie 2026. Q-006–Q-009 sunt închise prin D-006–D-009.
 
 ## Dimensiune
 
@@ -19,21 +19,21 @@ Extindem wizard-ul React, păstrând fluxul fără cont și folosind catalogul, 
 
 ### 2. Waitlist
 
-- În ziua lucrătoare cu zero intervale disponibile, afișăm cardul integrat „Intră pe lista de așteptare” în locul acțiunii de rezervare. Serviciul, specialista și data provin din selecție. Păstrăm opțiunile din mock-up `Oricând`, `Dimineața` și `După-amiaza`, nota despre prioritatea de 30 de minute și confirmarea înscrierii. Propunem aceeași apartenență după ora de început ca în grila orară. Sursa datelor de contact și accesul fără cont depind de Q-007.
+- În ziua lucrătoare cu zero intervale disponibile, afișăm cardul integrat „Intră pe lista de așteptare” în locul acțiunii de rezervare. Serviciul, specialista și data provin din selecție. Păstrăm opțiunile din mock-up `Oricând`, `Dimineața` și `După-amiaza`, nota despre prioritatea de 30 de minute și confirmarea înscrierii. Propunem aceeași apartenență după ora de început ca în grila orară. D-007 permite înscrierea fără cont. Cardul preia numele, telefonul și e-mailul.
 - La anulare sau reprogramare, în aceeași tranzacție cu eliberarea etapelor, alegem prima intrare eligibilă în ordinea `createdAt, id` și persistăm oferta concretă și trimiterea în așteptare. Eligibilitatea se recalculează pe specialista, data, serviciul și intervalul solicitat, cu orar, etapele rămase și politica de blocare a profilului. Comparăm disponibilitatea înainte și după modificare pentru a oferi un început efectiv eliberat, inclusiv când serviciul de pe listă diferă de cel mutat sau anulat.
 - Oferta rezervă etapele ocupate necesare timp de 30 de minute. API-ul de disponibilitate și toate scrierile care rezervă timp verifică oferta, inclusiv porniri diferite cu etape ocupate suprapuse. Linkul trimis prin Mailpit se leagă de o singură ofertă, iar revendicarea și rezervarea se salvează împreună sub blocare. Verificăm expirarea la acces și la revendicare. Jobul de expirare oferă un interval încă disponibil următoarei intrări eligibile sau îl redă rezervării publice. Expedierea se face după commit.
 
 ### 3. Acces client, Fidelizare și gestiune
 
-- Construim formularele `Autentificare` și `Creează cont nou`, sesiunea reală și ecranul `Contul meu și fidelizare`. Serverul validează datele, stochează hash-ul parolei și gestionează sesiunea cu cookie HttpOnly, expirare și invalidare la deconectare. Identitatea și rolul vin din sesiune. Rezervările fără cont deja înregistrate își păstrează datele, iar eventualele legături cu noul cont cer dovada identității conform Q-007.
-- Panoul arată progresul `N/5`, programările viitoare și istoricul cu stări și reduceri. În D-005, Serverul numără vizitele `COMPLETED` din întregul studio și aplică la confirmare 10% pentru vizitele 5, 10, 15 și următoarele multipli de 5. Persistăm valoarea monetară și marcajul reducerii pe programare, folosind calcule zecimale. Serializăm alocarea pentru același client inclusiv dacă rezervă la specialiste diferite. Regula pentru mai multe confirmări viitoare și suprafața Admin pentru finalizare și afișarea reducerii depind de Q-008.
+- Construim formularele `Autentificare` și `Creează cont nou`, sesiunea reală și ecranul `Contul meu și fidelizare`. Serverul validează datele, stochează hash-ul parolei și gestionează sesiunea cu cookie HttpOnly, expirare și invalidare la deconectare. Identitatea și rolul vin din sesiune. Rezervările fără cont deja înregistrate își păstrează datele, iar la crearea contului Serverul asociază programările și înscrierile Waitlist pe același e-mail, cu verificare a adresei înainte de acces.
+- Panoul arată progresul `N/5`, programările viitoare și istoricul cu stări și reduceri. În D-008, Serverul numără vizitele `COMPLETED` din întregul studio și aplică la confirmare 10% pentru vizitele 5, 10, 15 și următoarele multipli de 5. Persistăm valoarea monetară și marcajul reducerii pe programare, folosind calcule zecimale. Serializăm alocarea pentru același client inclusiv dacă rezervă la specialiste diferite. Alocăm reducerea primei programări eligibile în ordine cronologică și recalculăm la anulare. Endpointurile de finalizare și resetare cer rol Admin.
 - Acțiunile de anulare și reprogramare din cont refolosesc structura `DS-pub-manage`. Planificăm consultarea și gestiunea fără cont prin tokenul de pe programare, conform fluxului aprobat al ecranului. Răspunsurile validează proprietarul ori tokenul și afișează acțiunile permise. Anularea actualizează programarea și etapele. Reprogramarea revalidează slotul țintă omițând etapele proprii care urmează să fie mutate. La conflict, programarea inițială rămâne întreagă. Ambele căi apelează Waitlist după o eliberare efectivă, iar mesajul reflectă rezultatul real.
-- Politica solicitată prevede anulare și reprogramare gratuite cu cel puțin 24 de ore înainte, o marcare per anulare târzie acceptată și blocare după trei marcări, până la deblocare Admin. Verificarea pragului și actualizarea marcării se fac pe Server, în aceeași tranzacție cu anularea, astfel încât repetarea cererii să producă o singură marcare. Blocarea se verifică în toate căile online care creează o rezervare pentru identitatea blocată, inclusiv la revendicarea Waitlist. Matricea pentru Zi Full, anulările prin recepție, mutările târzii, vizitatoarele și resetarea marcărilor depinde de Q-006.
+- Politica solicitată prevede anulare și reprogramare gratuite cu cel puțin 24 de ore înainte, o marcare per anulare târzie acceptată și blocare după trei marcări, până la deblocare Admin. Verificarea pragului și actualizarea marcării se fac pe Server, în aceeași tranzacție cu anularea, astfel încât repetarea cererii să producă o singură marcare. Blocarea se verifică în toate căile online care creează o rezervare pentru identitatea blocată, inclusiv la revendicarea Waitlist. Anularea și mutarea online sunt blocate sub 24 h sau în orice Zi Full. Admin înregistrează anularea târzie și resetează marcările.
 
 ### 4. Reminder programat
 
 - Înregistrăm jobul periodic la pornirea NestJS. Timpul de trimitere este începutul programării minus `N`, cu `N = 24 h` conform documentației proiectului. Jobul caută trimiterile scadente pentru programări viitoare confirmate, verifică la expediere că ora și starea sunt încă valabile și refolosește Nodemailer pentru Mailpit. Pentru vizitatoare folosește adresa de pe programare, iar pentru cliente cu cont adresa contului. [Cerința reminderului](../../README.md)
-- Persistăm o cheie unică per reminder, cu identitatea programării și, dacă Q-009 aprobă retrimiterea la mutare, versiunea programată. Revendicarea atomică împiedică două rulări sau două instanțe să expediaze aceeași notificare. Reîncercăm un eșec SMTP confirmat înainte de acceptare. Rezultatul ambiguu rămâne de reconciliat, deoarece SMTP și PostgreSQL confirmă separat. Un `Message-ID` stabil ajută reconcilierea în Mailpit. Q-009 stabilește comportamentul pentru rezervări foarte apropiate și pentru ora nouă după un reminder deja trimis.
+- Persistăm o cheie unică per reminder, cu identitatea programării. Revendicarea atomică împiedică două rulări sau două instanțe să expediaze aceeași notificare. Reîncercăm un eșec SMTP confirmat înainte de acceptare. Rezultatul ambiguu rămâne de reconciliat, deoarece SMTP și PostgreSQL confirmă separat. Un `Message-ID` stabil ajută reconcilierea în Mailpit. Fereastra D-009 este 2–24 h inclusiv, cu reminderSentAt nul. Ora schimbată păstrează trimiterea deja înregistrată.
 
 ## Fișiere
 
@@ -55,9 +55,9 @@ Extindem wizard-ul React, păstrând fluxul fără cont și folosind catalogul, 
 |---|---|---|
 | 1 | Bandă, contori și ore | HTTP/PostgreSQL în `server/test/availability.spec.ts` și `server/test/sprint-1.spec.ts`. Toate stările de zi, 13:00, ture scurtate, programul de duminică, începuturi trecute, oferte active, compatibilitate cu răspunsul vechi și treceri de oră. |
 | 2 | Cont și acces | `server/test/client-access.spec.ts`, HTTP/PostgreSQL. Înregistrare, e-mail unic, sesiune și deconectare, separarea rolurilor, istoric propriu, acces respins pentru alt cont sau token invalid și regresia rezervării fără cont. |
-| 3 | Fidelizare și politică | `server/test/appointment-management.spec.ts`, HTTP/PostgreSQL. Vizitele 5 și 10 peste categorii, stări care nu adaugă o vizită, prețul persistat și confirmări concurente. Teste pentru pragul exact de 24 h, cu 1 ms sub prag, anulare repetată, trei marcări și deblocare doar de către Admin. Aplicăm cazurile Q-006–Q-008 după confirmare. |
+| 3 | Fidelizare și politică | `server/test/appointment-management.spec.ts`, HTTP/PostgreSQL. Vizitele 5 și 10 peste categorii, stări care nu adaugă o vizită, prețul persistat și confirmări concurente. Teste pentru pragul exact de 24 h, cu 1 ms sub prag, anulare repetată, trei marcări și deblocare doar de către Admin. Acoperim D-006–D-008. |
 | 4 | Eliberare și exclusivitate | `server/test/waitlist.spec.ts`, HTTP/PostgreSQL și Mailpit. FIFO cu intrare incompatibilă, anulare, mutare reușită și conflict, revendicare înainte de expirare, reluare și token reutilizat, expirare cu rotație sau eliberare, blocare publică a suprapunerilor și intercalare permisă între etapele libere. |
-| 5 | Reminder fără trafic HTTP | `server/test/reminders.spec.ts`, ceas controlat, PostgreSQL și Mailpit. Pragul de 24 h, rulări periodice, suprapuse și după restart, destinatari din cont și fără cont, anulări, ore vechi, eșec SMTP cert și rezultat ambiguu fără retrimitere automată. Cazurile de reprogramare și rezervare apropiată urmează Q-009. |
+| 5 | Reminder fără trafic HTTP | `server/test/reminders.spec.ts`, ceas controlat, PostgreSQL și Mailpit. Pragul de 24 h, rulări periodice, suprapuse și după restart, destinatari din cont și fără cont, anulări, ore vechi, eșec SMTP cert și rezultat ambiguu fără retrimitere automată. Cazurile de reprogramare și rezervare apropiată urmează D-009. |
 | 6 | Regresii și migrare | Toate suitele Jest din `server/test/` în Docker, inclusiv `public-booking.spec.ts` și `concurrency.spec.ts`, fără modificarea aserțiunilor existente. Aplicăm migrarea pe bază goală și pe o copie de test cu date Sprint 2. Verificăm Prisma, build-urile NestJS și Vite, Compose, pornirea serviciilor și ledger lint cu `PYTHONUTF8=1`. |
 | 7 | Parcurs vizual și accesibilitate | Browser și capturi la 390 și 1440 px în Light și Dark. Fluxul rezervare–cont–gestiune, Waitlist până la linkul Mailpit, recuperare după `409`, tastatură, focus, derulare, text lung, încărcare, eroare, stare goală și confirmare. Frontendul are script de build și acoperirea interacțiunilor vizuale se face în browser. |
 
@@ -80,33 +80,21 @@ Un builder. După aprobare, scriem testele care lipsesc, stabilim migrarea și c
 
 ## Limitele sprintului
 
-Sunt în afara sprintului iCal, panoul Admin de monitorizare Waitlist, rapoartele și livrarea SMTP externă. Comportamentele dependente de deciziile încă deschise intră în build după confirmare.
+Sunt în afara sprintului iCal, panoul Admin de monitorizare Waitlist, rapoartele și livrarea SMTP externă. Panoul Admin complet este în afara sprintului.
 
 ## Cunoaștere folosită
 
-Confirmate anterior. D-001 și PATTERN-001 pentru Docker, D-002 pentru stivă și joburi, D-003 pentru design, D-004 pentru orare, Split service, Waitlist și Mailpit, D-005 pentru Fidelizare, C-001 pentru interfața Compose, Q-002–Q-005 pentru datele studioului, specialiste, etape și catalog. Consumatorii C-001 păstrează porturile, verificarea de sănătate și configurația SMTP existentă. [Decizii](../agents/DECISIONS.md) · [Pattern-uri](../agents/PATTERNS.md) · [Contracte](../agents/CONTRACTS.md)
+Confirmate anterior. D-001 și PATTERN-001 pentru Docker, D-002 pentru stivă și joburi, D-003 pentru design, D-004 pentru orare, Split service, Waitlist și Mailpit, D-008 pentru Fidelizare, C-001 pentru interfața Compose, Q-002–Q-005 pentru datele studioului, specialiste, etape și catalog. Consumatorii C-001 păstrează porturile, verificarea de sănătate și configurația SMTP existentă. [Decizii](../agents/DECISIONS.md) · [Pattern-uri](../agents/PATTERNS.md) · [Contracte](../agents/CONTRACTS.md)
 
 | Intrare | Aplicare | Apel |
 |---|---|---|
 | Q-001 | Stiva și joburile de fundal. Răspunsul este deja consemnat, iar D-002 fixează stiva. | confirm |
-| Q-006 | Matricea sub 24 h, identitatea blocată și deblocarea. | răspuns necesar |
-| Q-007 | Acces Waitlist, câmpuri la înregistrare și asocierea istoricului. | răspuns necesar |
-| Q-008 | Alocarea reducerii între programări viitoare și minimul Admin. | răspuns necesar |
-| Q-009 | Reminder în interiorul ferestrei și după schimbarea orei. | răspuns necesar |
+| D-006, Q-006 | Blocarea online, marcările și resetarea. | confirmat |
+| D-007, Q-007 | Waitlist fără cont și asocierea pe e-mail. | confirmat |
+| D-008, Q-008 | Fidelizare cronologică, finalizare și deblocare Admin. | confirmat |
+| D-009, Q-009 | Reminder unic în fereastra 2–24 h. | confirmat |
 
-### Propuneri de confirmat
-
-- Calculăm apartenența la fereastra Waitlist și la grupa orară după începutul local al slotului. Încărcăm banda în ferestre cu acces la date ulterioare, fără un orizont comercial nou.
-- Aprobăm `DS-pub-auth` prin comparație cu HTML-ul și completăm detaliile formularului în funcție de Q-007. Pentru deblocare și finalizare, stabilim suprafața Admin prin Q-008 înainte de a cere un design.
-
-```text
-PROPOSAL: add-decision
-- Existing: none pentru marcări și blocarea profilului. CONTEXT și DS-pub-manage stabilesc restricția online pentru Zi Full sub 24 h.
-- Proposed: Anularea și reprogramarea sunt gratuite cu cel puțin 24 h înainte. O anulare târzie acceptată marchează profilul o singură dată. La trei marcări, Serverul blochează rezervarea online a profilului până la deblocarea de către Admin. Matricea exactă face obiectul Q-006.
-- Why now: Sprintul 3 cere aplicarea politicii în gestiunea programărilor și la rezervare.
-- Impact: CONTEXT.md, README.md, PLAN.md, DS-pub-booking, DS-pub-manage, DS-pub-auth și fluxurile de rezervare, gestiune și Waitlist.
-- If approved: se adaugă o decizie după răspunsul la Q-006 și se aliniază documentația și mock-up-urile afectate.
-```
+Aprobarea include HTML-ul indicat pentru ecranele publice, cu mesajele de gestiune actualizate conform D-006. Banda păstrează accesul la date ulterioare. Grupele și preferințele Waitlist folosesc începutul local al slotului.
 
 ### Consultate pentru informare
 
