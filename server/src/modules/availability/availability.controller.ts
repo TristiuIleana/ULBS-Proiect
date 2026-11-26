@@ -1,4 +1,5 @@
-import { Controller, Get, Query, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Query, BadRequestException, NotFoundException, ParseUUIDPipe, Sse } from '@nestjs/common';
+import { interval, map, merge, startWith } from 'rxjs';
 import { AvailabilityService } from './availability.service';
 import { AvailableSlot } from './availability.types';
 import { PrismaService } from '../prisma/prisma.service';
@@ -11,6 +12,14 @@ export class AvailabilityController {
     private readonly availabilityService: AvailabilityService,
     private readonly prisma: PrismaService,
   ) {}
+
+  @Sse('changes')
+  changes(@Query('specialistId', ParseUUIDPipe) specialistId: string) {
+    return merge(
+      this.availabilityService.changes(specialistId).pipe(map(({ date }) => ({ data: date }))),
+      interval(25_000).pipe(map(() => ({ type: 'heartbeat', data: 'tick' }))),
+    ).pipe(startWith({ type: 'ready', data: 'ready' }));
+  }
 
   /**
    * GET /api/availability

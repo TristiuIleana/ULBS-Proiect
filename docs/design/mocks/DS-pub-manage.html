@@ -637,6 +637,7 @@
     <div class="mock-controls">
       <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">STARE:</span>
       <button class="mock-btn active" id="btn-state-default" onclick="switchState('default')">Interactiv (Implicit)</button>
+      <button class="mock-btn" id="btn-state-pending" onclick="switchState('pending')">În așteptarea confirmării</button>
       <button class="mock-btn" id="btn-state-loading" onclick="switchState('loading')">Se încarcă</button>
       <button class="mock-btn" id="btn-state-token-error" onclick="switchState('error')">Link Expirat / Nevalid</button>
       <button class="mock-btn" id="btn-state-cancelled" onclick="switchState('cancelled')">Programare Anulată</button>
@@ -679,7 +680,7 @@
     <div id="state-view-default" class="booking-card">
       <div class="card-top-bar">
         <span class="card-status-badge badge-confirmed" id="badge-status">
-          <span>●</span> Confirmată
+          Programare confirmată
         </span>
         <span class="booking-token-ref">Cod Rezervare: #BS-84291</span>
       </div>
@@ -687,6 +688,15 @@
       <div class="card-body">
         <div class="service-category-tag" id="val-category">🌿 Categoria Sprâncene</div>
         <h1 class="service-hero-title" id="val-service">Laminare sprâncene</h1>
+        <div id="pending-confirmation" hidden>
+          <div class="policy-banner policy-banner-peak-allowed">
+            <div>
+              <strong style="display:block;">⚠️ Programarea NU este confirmată încă — te rugăm să accesezi linkul de confirmare trimis pe email</strong>
+              <p id="resend-status" role="status" hidden>Am retrimis e-mailul de confirmare.</p>
+              <button type="button" class="btn-action btn-cancel" style="margin-top:8px;" onclick="document.getElementById('resend-status').hidden = false">Retrimite e-mailul de confirmare</button>
+            </div>
+          </div>
+        </div>
 
         <!-- Detalii programare -->
         <div class="details-grid">
@@ -948,6 +958,7 @@
 
       const btnMap = {
         'default': 'btn-state-default',
+        'pending': 'btn-state-pending',
         'loading': 'btn-state-loading',
         'error': 'btn-state-token-error',
         'cancelled': 'btn-state-cancelled',
@@ -966,7 +977,13 @@
       document.getElementById('state-view-empty').classList.remove('active');
       document.getElementById('scenario-bar').style.display = 'none';
 
-      if (stateName === 'default') {
+      const pending = stateName === 'pending';
+      document.getElementById('pending-confirmation').hidden = !pending;
+      document.getElementById('resend-status').hidden = true;
+      const badge = document.getElementById('badge-status');
+      badge.classList.toggle('badge-confirmed', !pending);
+      badge.textContent = pending ? 'În așteptarea confirmării' : 'Programare confirmată';
+      if (stateName === 'default' || pending) {
         document.getElementById('state-view-default').style.display = 'block';
         document.getElementById('scenario-bar').style.display = 'flex';
       } else if (stateName === 'loading') {

@@ -9,6 +9,7 @@
 - PATTERN-001 · Containerized server execution · approved
 - PATTERN-002 · Recheck slot availability after a PostgreSQL row lock · candidate
 - PATTERN-003 · Durable claim before a scheduled SMTP send · candidate
+- PATTERN-004 · Reîncarcă disponibilitatea după commit prin SSE · candidate
 
 ---
 
@@ -40,3 +41,13 @@
 - **Example:** [NotificationJobsService](../../server/src/modules/notifications/notification-jobs.service.ts)
 - **Why:** Repeated runs, concurrent workers and restarts honor the same claim. Ambiguous delivery does not trigger a duplicate.
 - **Source:** Sprint 3 implementation · confidence high
+
+---
+
+## PATTERN-004 · Reîncarcă disponibilitatea după commit prin SSE
+- **Status:** candidate
+- **Use when:** Mai multe pagini deschise afișează sloturile unei specialiste.
+- **How:** După commit, Serverul publică prin SSE numai ziua afectată pe fluxul specialistei. Browserul recitește disponibilitatea pentru perioada afișată și la reconectare. Tranzacția verifică din nou disponibilitatea înainte de a salva.
+- **Example:** [AvailabilityController](../../server/src/modules/availability/availability.controller.ts) și [BookingControls](../../frontend/src/components/public/BookingControls.tsx)
+- **Why:** Paginile deschise primesc rapid starea actuală, inclusiv după o reconectare.
+- **Source:** Implementarea D-010 · confidence high

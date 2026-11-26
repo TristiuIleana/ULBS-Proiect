@@ -19,6 +19,7 @@ enum ServiceCategory {
 }
 
 enum AppointmentStatus {
+  PENDING_CONFIRMATION
   CONFIRMED
   CANCELLED
   COMPLETED
@@ -160,9 +161,10 @@ model Appointment {
   reminderSentAt     DateTime?         @map("reminder_sent_at") @db.Timestamptz()
   reminderClaimedAt  DateTime?         @map("reminder_claimed_at") @db.Timestamptz()
   lateCancellation   Boolean           @default(false) @map("late_cancellation")
-  status             AppointmentStatus @default(CONFIRMED)
+  status             AppointmentStatus @default(PENDING_CONFIRMATION)
   cancellationReason String?           @map("cancellation_reason")
   cancellationToken  String            @unique @default(uuid()) @map("cancellation_token") @db.Uuid
+  confirmationToken  String?           @unique @map("confirmation_token") @db.Uuid
   notes              String?
   createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz()
@@ -186,7 +188,7 @@ model AppointmentStage {
   startTime     DateTime          @map("start_time") @db.Timestamptz()
   endTime       DateTime          @map("end_time") @db.Timestamptz()
   isBusy        Boolean           @default(true) @map("is_busy")
-  status        AppointmentStatus @default(CONFIRMED)
+  status        AppointmentStatus @default(PENDING_CONFIRMATION)
   createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt     DateTime          @updatedAt @map("updated_at") @db.Timestamptz()
 

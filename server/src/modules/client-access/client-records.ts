@@ -1,5 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { activeAppointmentStatuses } from '../availability/availability.service';
 
 export function emailKey(email: string) {
   return email.trim().toLowerCase();
@@ -29,7 +30,7 @@ export function assertNotBlocked(user: { lateCancellationCount: number } | null)
 
 export async function allocateLoyalty(tx: Prisma.TransactionClient, clientId: string) {
   const visits = await tx.appointment.findMany({
-    where: { clientId, status: { in: ['COMPLETED', 'CONFIRMED'] } },
+    where: { clientId, status: { in: ['COMPLETED', ...activeAppointmentStatuses] } },
     orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
     select: { id: true, status: true, basePriceRon: true, totalPriceRon: true, loyaltyDiscountRon: true },
   });
@@ -38,7 +39,7 @@ export async function allocateLoyalty(tx: Prisma.TransactionClient, clientId: st
   for (const booking of visits) {
     const completed = booking.status === 'COMPLETED';
     const earnsDiscount = (visitNumber + 1) % 5 === 0 && (completed || !pendingDiscountReserved);
-    // A confirmed discounted visit reserves its place if a later visit is completed first.
+    // An active discounted visit reserves its place if a later visit is completed first.
     if (completed || earnsDiscount) visitNumber++;
     if (!completed && earnsDiscount) pendingDiscountReserved = true;
     const price = booking.basePriceRon ?? booking.totalPriceRon;

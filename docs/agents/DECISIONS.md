@@ -15,6 +15,7 @@
 - D-007 · Waitlist fără cont și asocierea prin e-mail
 - D-008 · Alocarea Fidelizării și operațiile Admin
 - D-009 · Fereastra și idempotența reminderelor
+- D-010 · Blocarea slotului și confirmarea programării prin e-mail
 
 ---
 
@@ -109,4 +110,15 @@
 - **Rule:** Jobul periodic NestJS trimite prin Mailpit pentru programări CONFIRMED cu reminderSentAt nul, între 2 și 24 h inclusiv înainte de start. Programările create sau mutate în fereastră primesc reminder la prima rulare. Un reminder deja trimis rămâne înregistrat la mutarea aceleiași programări.
 - **Why:** Trimite un reminder util și previne duplicatele.
 - **Evidence:** Confirmarea planului Sprintului 3, Q-009.
+- **Source:** user · confidence high
+
+---
+
+## D-010 · Blocarea slotului și confirmarea programării prin e-mail
+- **Status:** approved
+- **Date:** 2026-11-26
+- **Confirmed:** 2026-11-26
+- **Rule:** Rezervările fără cont, cele din cont și cele revendicate prin Waitlist pornesc în `PENDING_CONFIRMATION`. Etapele ocupate blochează sloturile imediat după salvare, inclusiv când trimiterea e-mailului eșuează. Numai accesarea linkului dedicat din e-mail trece programarea în `CONFIRMED`. Sumarul și pagina de gestiune afișează starea și permit retrimiterea în așteptarea confirmării.
+- **Why:** Protejează intervalul de rezervări concurente și comunică starea reală a programării.
+- **Evidence:** Utilizatorul a confirmat planul și decizia D-010.
 - **Source:** user · confidence high

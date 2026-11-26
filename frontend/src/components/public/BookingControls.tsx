@@ -39,7 +39,23 @@ export function errorMessage(error: unknown, fallback: string) {
 
 export function useBookingDays(serviceId: string, specialistId: string | undefined, start: string, refresh: number) {
   const key = `${serviceId}/${specialistId}/${start}/${refresh}`;
+  const [liveRefresh, setLiveRefresh] = useState(0);
   const [result, setResult] = useState<{ key: string; days: BookingDay[]; error?: string }>();
+  useEffect(() => {
+    if (!specialistId) return;
+    const refreshDays = () => setLiveRefresh(current => current + 1);
+    const connection = new EventSource(`/api/availability/changes?specialistId=${encodeURIComponent(specialistId)}`);
+    connection.addEventListener('ready', refreshDays);
+    connection.onmessage = ({ data }) => {
+      const offset = Date.parse(data) - Date.parse(start);
+      if (offset >= 0 && offset < 6 * 86_400_000) refreshDays();
+    };
+    window.addEventListener('focus', refreshDays);
+    return () => {
+      connection.close();
+      window.removeEventListener('focus', refreshDays);
+    };
+  }, [specialistId, start]);
   useEffect(() => {
     if (!serviceId || !specialistId) return;
     const controller = new AbortController();
@@ -51,7 +67,7 @@ export function useBookingDays(serviceId: string, specialistId: string | undefin
       }
     });
     return () => controller.abort();
-  }, [key, serviceId, specialistId, start]);
+  }, [key, serviceId, specialistId, start, liveRefresh]);
   return result?.key === key ? result : undefined;
 }
 

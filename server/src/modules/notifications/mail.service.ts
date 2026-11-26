@@ -19,9 +19,10 @@ export class MailService {
     });
   }
 
-  link(path: string, token: string) {
+  link(path: string, token: string, placement: 'query' | 'fragment' = 'query') {
     const url = new URL(path, process.env.PUBLIC_WEB_ORIGIN || 'http://localhost:5173');
-    url.searchParams.set('token', token);
+    if (placement === 'fragment') url.hash = new URLSearchParams({ token }).toString();
+    else url.searchParams.set('token', token);
     return url.href;
   }
 }

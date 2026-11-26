@@ -78,12 +78,7 @@ export class WaitlistController {
       if (!claimed.count) throw new ConflictException('Oferta a expirat.');
       return { booking, address };
     });
-    const summary = {
-      id: booking.id, serviceName: booking.service.name, specialistName: booking.specialist.firstName,
-      startsAtLocal: this.availability.toLocalIso(booking.startTime.getTime()),
-      totalPriceRon: booking.totalPriceRon.toString(),
-    };
-    const emailStatus = await this.confirmation.send(address, { ...summary, cancellationToken: booking.cancellationToken });
-    return { ...summary, status: booking.status, emailStatus };
+    this.availability.invalidate(booking.specialistId, booking.startTime);
+    return this.confirmation.notifyCreated(booking, address);
   }
 }

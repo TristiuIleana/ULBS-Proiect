@@ -4,6 +4,7 @@ import '@fontsource-variable/playfair-display';
 import '@fontsource-variable/plus-jakarta-sans';
 import { BookingWizardPage } from './pages/public/BookingWizardPage';
 import { ClientAccountPage } from './pages/public/ClientAccountPage';
+import { ConfirmBookingPage } from './pages/public/ConfirmBookingPage';
 import { ManageBookingPage } from './pages/public/ManageBookingPage';
 import { WaitlistOfferPage } from './pages/public/WaitlistOfferPage';
 import './styles.css';
@@ -25,6 +26,7 @@ function App() {
       </button>
     </div>
     {path === '/cont' ? <ClientAccountPage /> : path === '/programare' ? <ManageBookingPage /> :
+      path === '/confirmare' ? <ConfirmBookingPage /> :
       path === '/oferta' ? <WaitlistOfferPage /> : <BookingWizardPage />}
   </>;
 }

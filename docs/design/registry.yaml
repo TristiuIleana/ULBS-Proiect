@@ -17,7 +17,7 @@ designs:
 
   - id: DS-pub-booking
     name: Wizard Rezervare Programare
-    description: Rezervare cu sau fără cont, bandă de zile, orar grupat, Waitlist și confirmare în aceeași pagină.
+    description: Rezervare cu sau fără cont, bandă de zile, orar grupat, Waitlist și sumar cu avertisment și retrimiterea e-mailului înainte de confirmare.
     kind: screen
     source: frontend/src/pages/public/BookingWizardPage.tsx
     screenshots: [screens/DS-pub-booking.light.png, screens/DS-pub-booking.dark.png]
@@ -28,16 +28,16 @@ designs:
 
   - id: DS-pub-confirmation
     name: Confirmare Rezervare
-    description: Ecran de succes afișat după salvarea rezervării, sumarul detaliilor, informații despre confirmarea pe email și link securizat.
+    description: Linkul din e-mail trece programarea în starea confirmată și deschide pagina de gestiune.
     kind: screen
-    source: frontend/src/pages/public/BookingConfirmationPage.tsx
+    source: frontend/src/pages/public/ConfirmBookingPage.tsx
     screenshots: [screens/DS-pub-confirmation.light.png, screens/DS-pub-confirmation.dark.png]
-    design_ref: none
-    status: proposed
+    design_ref: mocks/DS-pub-manage.html
+    status: implemented
 
   - id: DS-pub-manage
     name: Gestiune Programare Client (Token Securizat)
-    description: Gestiunea din cont sau prin linkul din e-mail. Anularea și reprogramarea online sunt blocate sub 24 h sau în Zi Full.
+    description: Gestiunea din cont sau prin link. Afișează starea confirmării și permite retrimiterea e-mailului cât timp programarea este în așteptare. Anularea și reprogramarea online sunt blocate sub 24 h sau în Zi Full.
     kind: screen
     source: frontend/src/pages/public/ManageBookingPage.tsx
     screenshots: [screens/DS-pub-manage.light.png, screens/DS-pub-manage.dark.png]
@@ -60,7 +60,7 @@ designs:
       Ecranul „Acces client” pentru autentificare și creare cont, urmat de panoul
       de cont: card de progres fidelizare (N/5 vizite
       spre reducerea de 10%), badge vizual la atingerea pragului, lista
-      programărilor viitoare, istoric programări finalizate cu evidența
+      programărilor viitoare, inclusiv cele în așteptarea confirmării, istoric programări finalizate cu evidența
       reducerilor aplicate, și acțiuni rapide de gestionare a contului.
       Implementează D-008 (alocarea automată și cronologică a reducerii).
     kind: screen

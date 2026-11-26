@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Headers, HttpCode, Post, Res, ValidationPipe } from '@nestjs/common';
 import { IsEmail, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import type { Response } from 'express';
+import { activeAppointmentStatuses } from '../availability/availability.service';
 import { ContactDto } from '../appointments/public-booking.dto';
 import { ClientAccessService, sessionCookie, sessionMaxAge } from './client-access.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -76,16 +77,17 @@ export class ClientAccessController {
     });
     const completed = bookings.filter(booking => booking.status === 'COMPLETED').length;
     const now = Date.now();
-    const upcoming = bookings.filter(booking => booking.status === 'CONFIRMED' && booking.startTime.getTime() > now);
+    const isUpcoming = (booking: typeof bookings[number]) =>
+      activeAppointmentStatuses.includes(booking.status) && booking.startTime.getTime() > now;
     const progress = completed % 5;
     return {
       firstName: user.firstName, lastName: user.lastName, phone: user.phone, email: user.email,
       createdAt: user.createdAt,
       blocked: user.lateCancellationCount >= 3, lateCancellationCount: user.lateCancellationCount, progress,
       nextDiscount: progress === 4 && !bookings.some(booking =>
-        booking.status === 'CONFIRMED' && booking.loyaltyDiscountRon.gt(0)),
-      upcoming,
-      history: bookings.filter(booking => booking.status !== 'CONFIRMED' || booking.startTime.getTime() <= now).reverse(),
+        activeAppointmentStatuses.includes(booking.status) && booking.loyaltyDiscountRon.gt(0)),
+      upcoming: bookings.filter(isUpcoming),
+      history: bookings.filter(booking => !isUpcoming(booking)).reverse(),
     };
   }
 }

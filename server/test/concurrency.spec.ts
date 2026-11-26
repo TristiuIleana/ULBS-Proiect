@@ -28,6 +28,7 @@ function buildSerialService(): AppointmentsService {
   let lockReleased = Promise.resolve();
 
   const mockAvailability = {
+    invalidate: jest.fn(),
     resolveShiftWindow: jest.fn().mockResolvedValue({
       startMs: Date.UTC(2026, 10, 23, 7, 0, 0),
       endMs: Date.UTC(2026, 10, 23, 17, 0, 0),
@@ -116,5 +117,13 @@ describe('AppointmentsService — concurrency (plan test #6)', () => {
     const svc = buildSerialService();
     const result = await svc.bookAppointment({ ...baseRequest });
     expect(result).toHaveProperty('id');
+  });
+
+  it('creates the booking and all of its stages in the pending state', async () => {
+    const result = await buildSerialService().bookAppointment(baseRequest);
+    expect(result).toMatchObject({ status: 'PENDING_CONFIRMATION', stages: { create: [
+      { status: 'PENDING_CONFIRMATION' }, { status: 'PENDING_CONFIRMATION' },
+      { status: 'PENDING_CONFIRMATION' }, { status: 'PENDING_CONFIRMATION' }, { status: 'PENDING_CONFIRMATION' },
+    ] } });
   });
 });

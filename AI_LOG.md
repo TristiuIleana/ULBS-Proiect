@@ -554,3 +554,13 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - D-008. Finalizarea vizitei a șasea înaintea celei de-a cincea inversa prețurile așteptate, 45 RON și 50 RON. Calculul comun parcurge vizitele eligibile în ordinea începerii și păstrează reducerea aferentă vizitei a cincea până la finalizare sau anulare.
 - D-009. Eroarea înainte de SMTP lăsa marcajul de preluare setat. Cronul îl eliberează și reîncearcă eliberarea la următoarea rulare dacă PostgreSQL rămâne temporar indisponibil. După acceptarea SMTP, marcajul persistă în cazul unei erori la salvare, cu același `Message-ID` pentru reconciliere.
 - Testele de regresie au reprodus alocarea greșită și cele două cazuri de reminder blocat înaintea corecției. Testul de după acceptarea SMTP a confirmat lipsa unei trimiteri suplimentare. După corecție au trecut toate cele 42 de teste din cinci suite în Docker, cu PostgreSQL și Mailpit izolate. Au trecut și buildul NestJS, validarea Prisma, aplicarea migrărilor și ledger lint cu `PYTHONUTF8=1`. Aserțiunile existente au fost păstrate.
+
+---
+
+## Sesiunea 29 — 26 Noiembrie 2026 — Blocarea slotului și confirmarea prin e-mail
+
+- D-010 confirmă că rezervările fără cont, din cont și prin Waitlist pornesc în `PENDING_CONFIRMATION`. PostgreSQL protejează etapele ocupate în ambele stări active și permite intercalarea în pauzele serviciilor split. Serverul trimite o notificare de disponibilitate după commit, înainte de SMTP, iar paginile deschise recitesc sloturile. [Decizie](docs/agents/DECISIONS.md) · [Pattern SSE](docs/agents/PATTERNS.md)
+- Linkul dedicat din e-mail confirmă programarea și etapele în aceeași tranzacție. Sumarul și gestiunea afișează avertismentul și acțiunea de retrimitere. Sumarul primește o credențială limitată la retrimiterea pe adresa existentă. Linkul de gestiune rămâne în e-mail. Reminderele se trimit pentru programări confirmate.
+- Testele inițiale au reprodus starea `CONFIRMED` la creare. După implementare au trecut 44 de teste unitare și de integrare în Docker, validarea Prisma, buildurile NestJS și Vite, migrările pe o bază nouă și pe baza locală existentă și ledger lint cu `PYTHONUTF8=1`.
+- Playwright a verificat două sesiuni Chrome, ora devenită indisponibilă, avertismentul, retrimiterea și confirmarea prin linkul preluat din Mailpit. O preluare HTTP a paginii de confirmare a păstrat starea în așteptare. Capturile acoperă sumarul și gestiunea în ambele teme, la 1440 px și 390 px. [Capturi](docs/design/screens/)
+- Testul E2E se rulează din `frontend/` cu `npm ci`, `npx playwright install chromium` și `npm run test:e2e`, cu aplicația și Mailpit pornite în Docker Compose. Pentru Chrome instalat local se poate seta `PLAYWRIGHT_CHROMIUM_CHANNEL=chrome`.

@@ -1,11 +1,21 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsInt, IsString, Matches, Max, MaxLength, Min } from 'class-validator';
+import { IsEmail, IsInt, IsString, IsUUID, Matches, Max, MaxLength, Min } from 'class-validator';
 
 export const UUID = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const NAME = /^(?!.*\p{Cc}).*\p{L}.*$/u;
 const PHONE = /^\+?(?=(?:\D*\d){7,15}\D*$)[\d ().-]+$/;
 
 const trimText = ({ value }: { value: unknown }) => typeof value === 'string' ? value.trim() : value;
+
+export class TokenDto {
+  @IsUUID()
+  token!: string;
+}
+
+export class ResendTokenDto {
+  @Matches(/^[a-f0-9]{64}$/)
+  resendToken!: string;
+}
 
 export class SlotBookingDto {
   @IsString()

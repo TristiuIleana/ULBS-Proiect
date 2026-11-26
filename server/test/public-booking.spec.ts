@@ -81,9 +81,50 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
     url.searchParams.set('query', `to:${email}`);
     const response = await fetch(url);
     expect(response.ok).toBe(true);
-    const result = await response.json() as { messages: { Subject: string }[] | null };
+    const result = await response.json() as { messages: { ID: string; Subject: string }[] | null };
     return result.messages ?? [];
   }
+
+  it('blocks the slot while pending and confirms only with the token delivered by Mailpit', async () => {
+    const date = '2099-01-17';
+    const payload = guestBooking(`${date}T07:00:00Z`, makeupServiceId, makeupId);
+    const http = () => request(app.getHttpServer());
+    const query = { date, serviceId: payload.serviceId, specialistId: payload.specialistId };
+    const { body } = await book(payload);
+    expect(body).toMatchObject({ status: 'PENDING_CONFIRMATION', emailStatus: 'sent' });
+    expect(body).not.toHaveProperty('confirmationToken');
+    expect(body).not.toHaveProperty('managementToken');
+    expect((await http().get('/api/availability').query(query).expect(200)).body.slots)
+      .not.toContainEqual(expect.objectContaining({ utcMs: payload.slotUtcMs }));
+    expect((await http().get('/api/availability/days').query(query).expect(200)).body.days[0].choices)
+      .toContainEqual(expect.objectContaining({ utcMs: payload.slotUtcMs, available: false }));
+    expect((await book({ ...payload, email: `${randomUUID()}@example.test` })).status).toBe(409);
+    await expect(prisma.appointmentStage.create({
+      data: { appointmentId: body.id, specialistId: payload.specialistId, stageOrder: 99, status: 'CONFIRMED',
+        startTime: new Date(payload.slotUtcMs), endTime: new Date(payload.slotUtcMs + 60_000) },
+    })).rejects.toThrow('no_specialist_busy_overlap');
+    const receipt = `/api/bookings/${body.id}/resend-confirmation`;
+    await http().post(receipt).send({ resendToken: '0'.repeat(64) }).expect(404);
+    await http().post(receipt).send({ resendToken: body.resendToken }).expect(200, { emailStatus: 'sent' });
+    const messages = await mailFor(payload.email);
+    expect(messages).toHaveLength(2);
+    const origin = process.env.MAILPIT_API_URL || 'http://mailpit:8025';
+    const mail = await fetch(new URL(`/api/v1/message/${messages[0].ID}`, origin));
+    const { Text } = await mail.json() as { Text: string };
+    const token = Text.match(/\/confirmare#token=([\w-]+)/)?.[1];
+    const managementToken = Text.match(/\/programare\?token=([\w-]+)/)?.[1];
+    expect(token).toBeDefined();
+    expect(managementToken).toBeDefined();
+    await http().post('/api/bookings/confirm').send({ token: managementToken }).expect(404);
+    expect((await http().get('/api/appointments/by-token').query({ token: managementToken }).expect(200)).body.status)
+      .toBe('PENDING_CONFIRMATION');
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await http().post('/api/bookings/confirm').send({ token }).expect(200, { status: 'CONFIRMED', managementToken });
+    }
+    expect((await prisma.appointment.findUniqueOrThrow({ where: { id: body.id }, include: { stages: true } })))
+      .toMatchObject({ status: 'CONFIRMED', stages: [{ status: 'CONFIRMED' }] });
+    await http().post('/api/appointments/by-token/resend-confirmation').send({ token: managementToken }).expect(409);
+  });
 
   it('lists no slots for yesterday and only upcoming slots for today in Bucharest', async () => {
     const slotsFor = (date: string) => request(app.getHttpServer()).get('/api/availability')
@@ -110,7 +151,7 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
     },
   );
 
-  it('stores the guest contact and confirmed UTC stages without modifying or linking an existing account', async () => {
+  it('stores the guest contact and pending UTC stages without modifying or linking an existing account', async () => {
     const payload = guestBooking('2099-01-10T07:00:00Z');
     const account = await prisma.user.create({
       data: { email: payload.email, firstName: 'Cont', lastName: 'Test', phone: '0700000001', passwordHash: 'fixture' },
@@ -120,7 +161,7 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
     const result = await book(payload);
     expect(result.status).toBe(201);
     expect(result.body).toMatchObject({
-      status: 'CONFIRMED', startsAtLocal: '2099-01-10T09:00:00+02:00', totalPriceRon: '50', emailStatus: 'sent',
+      status: 'PENDING_CONFIRMATION', startsAtLocal: '2099-01-10T09:00:00+02:00', totalPriceRon: '50', emailStatus: 'sent',
     });
     expect(result.body).not.toHaveProperty('cancellationToken');
     expect(result.body).not.toHaveProperty('guestEmail');
@@ -128,14 +169,14 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
     expect(saved).toMatchObject({
       clientId: null, guestFirstName: payload.firstName, guestLastName: payload.lastName,
       guestPhone: payload.phone, guestEmail: payload.email, startTime: new Date(payload.slotUtcMs),
-      status: 'CONFIRMED',
+      status: 'PENDING_CONFIRMATION',
       stages: [{
         startTime: new Date(payload.slotUtcMs), endTime: new Date(payload.slotUtcMs + 20 * 60_000),
-        status: 'CONFIRMED', isBusy: true,
+        status: 'PENDING_CONFIRMATION', isBusy: true,
       }],
     });
     expect(await prisma.user.findUniqueOrThrow({ where: { id: account.id } })).toEqual(account);
-    expect(await mailFor(payload.email)).toEqual([expect.objectContaining({ Subject: 'Programare confirmată la Beauty Studio' })]);
+    expect(await mailFor(payload.email)).toEqual([expect.objectContaining({ Subject: 'Confirmă programarea la Beauty Studio' })]);
   });
 
   it('rejects malformed contacts, mismatched categories and unavailable times without saving or sending mail', async () => {
@@ -196,7 +237,7 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
     expect(saved.startTime).toEqual(new Date(payload.slotUtcMs));
   });
 
-  it('keeps the confirmed booking and logs a failure when SMTP is unreachable', async () => {
+  it('keeps the pending booking and its hold when SMTP is unreachable', async () => {
     const previousHost = process.env.SMTP_HOST;
     const previousPort = process.env.SMTP_PORT;
     const log = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
@@ -208,11 +249,15 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
       const payload = guestBooking('2099-01-16T07:00:00Z', makeupServiceId, makeupId);
       const result = await book(payload, withoutSmtp);
       expect(result.status).toBe(201);
-      expect(result.body).toMatchObject({ status: 'CONFIRMED', emailStatus: 'failed' });
+      expect(result.body).toMatchObject({ status: 'PENDING_CONFIRMATION', emailStatus: 'failed' });
       expect(await prisma.appointment.findUniqueOrThrow({ where: { id: result.body.id } }))
-        .toMatchObject({ status: 'CONFIRMED' });
+        .toMatchObject({ status: 'PENDING_CONFIRMATION' });
+      expect((await book({ ...payload, email: `${randomUUID()}@example.test` })).status).toBe(409);
       expect(log).toHaveBeenCalled();
       expect(await mailFor(payload.email)).toHaveLength(0);
+      await request(app.getHttpServer()).post(`/api/bookings/${result.body.id}/resend-confirmation`)
+        .send({ resendToken: result.body.resendToken }).expect(200, { emailStatus: 'sent' });
+      expect(await mailFor(payload.email)).toHaveLength(1);
     } finally {
       await withoutSmtp?.close();
       if (previousHost === undefined) delete process.env.SMTP_HOST;

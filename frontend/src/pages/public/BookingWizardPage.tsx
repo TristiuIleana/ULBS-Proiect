@@ -4,6 +4,7 @@ import { ApiError, createBooking, fetchAccount, fetchCatalog } from '../../booki
 import type { Account, Catalog, Category, Confirmation, Service } from '../../booking-api';
 import { ContactFields, DayBanner, DayStrip, SlotGroups, emptyContact, errorMessage, localDateTime, price, salonToday, useBookingDays } from '../../components/public/BookingControls';
 import { WaitlistCard } from '../../components/public/WaitlistCard';
+import { PendingBookingNotice } from '../../components/public/PendingBookingNotice';
 
 const categories: { id: Category; label: string; icon: string; detail: string }[] = [
   { id: 'BROWS', label: 'Sprâncene', icon: '🌿', detail: 'Laminare, pensat cu vopsit & pensat simplu' },
@@ -93,6 +94,8 @@ export function BookingWizardPage() {
         { serviceId: service.id, specialistId: specialist.id, slotUtcMs: slot.utcMs },
         account ? undefined : contact,
       ));
+      clearSlot();
+      setRefresh(current => current + 1);
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         setSelectedSlot(undefined);
@@ -127,15 +130,18 @@ export function BookingWizardPage() {
       <p className="studio-bio">Studio intim de înfrumusețare dedicat serviciilor profesionale de make-up și stilizării sprâncenelor. Alege domeniul dorit și verifică disponibilitatea în timp real.</p>
       {!confirmation && <div className="hero-actions">
         <a className="primary-button" href="#services">Programează-te acum <span aria-hidden="true">↓</span></a>
-        <span>Servicii de sprâncene și make-up · Confirmare automată pe e-mail</span>
+        <span>Servicii de sprâncene și make-up · Confirmare prin e-mail</span>
       </div>}
     </header>
 
     {confirmation ? <section className="card confirmation" aria-labelledby="confirmation-heading">
-      <div className="confirmation-mark" aria-hidden="true">✓</div>
-      <h2 id="confirmation-heading" tabIndex={-1} ref={confirmationHeading}>Programare confirmată</h2>
-      <p>{confirmation.emailStatus === 'sent' ? 'Am trimis detaliile programării prin e-mail.' :
-        'Programarea este salvată. Nu am putut trimite confirmarea prin e-mail.'}</p>
+      {confirmation.status === 'CONFIRMED' && <div className="confirmation-mark" aria-hidden="true">✓</div>}
+      <h2 id="confirmation-heading" tabIndex={-1} ref={confirmationHeading}>
+        {confirmation.status === 'PENDING_CONFIRMATION' ? 'Programare salvată' : 'Programare confirmată'}
+      </h2>
+      {confirmation.status === 'PENDING_CONFIRMATION' && <PendingBookingNotice
+        path={`/api/bookings/${confirmation.id}`} credentials={{ resendToken: confirmation.resendToken }}
+        emailStatus={confirmation.emailStatus} />}
       <dl className="confirmation-details">
         <div><dt>Serviciu</dt><dd>{confirmation.serviceName}</dd></div>
         <div><dt>Specialistă</dt><dd>{confirmation.specialistName}</dd></div>
@@ -219,9 +225,9 @@ export function BookingWizardPage() {
             <ContactFields value={contact} change={setContact} /></fieldset>}
           <div className="booking-summary">
             <div><strong>{service.name} · {price(displayPrice ?? service.priceRon)}</strong>
-              <p>{slot ? localDateTime.format(new Date(slot.localIso)) : 'Alege o oră pentru a confirma.'}</p></div>
+              <p>{slot ? localDateTime.format(new Date(slot.localIso)) : 'Alege o oră pentru a rezerva.'}</p></div>
             <button type="submit" className="primary-button" disabled={!slot || sending || account?.blocked}>
-              {sending ? 'Se confirmă…' : `Confirmă Rezervarea · ${price(displayPrice ?? service.priceRon)} →`}
+              {sending ? 'Se rezervă…' : `Rezervă intervalul · ${price(displayPrice ?? service.priceRon)} →`}
             </button>
           </div>
         </form>

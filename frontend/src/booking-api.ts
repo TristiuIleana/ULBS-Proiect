@@ -49,7 +49,7 @@ export interface BookingDay {
   choices: (Slot & { available: boolean })[];
 }
 
-export type BookingStatus = 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW';
+export type BookingStatus = 'PENDING_CONFIRMATION' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW';
 export interface AccountBooking {
   id: string;
   status: BookingStatus;
@@ -73,7 +73,8 @@ export interface Account extends Contact {
 
 export interface Confirmation {
   id: string;
-  status: 'CONFIRMED';
+  status: 'PENDING_CONFIRMATION' | 'CONFIRMED';
+  resendToken: string;
   serviceName: string;
   specialistName: string;
   startsAtLocal: string;
@@ -83,7 +84,7 @@ export interface Confirmation {
   emailStatus: 'sent' | 'failed';
 }
 
-export interface ManagedBooking extends Omit<Confirmation, 'status' | 'emailStatus'> {
+export interface ManagedBooking extends Omit<Confirmation, 'status' | 'emailStatus' | 'resendToken'> {
   serviceId: string;
   specialistId: string;
   status: BookingStatus;

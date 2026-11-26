@@ -45,11 +45,12 @@ integration('Sprint 1 API with migrated and seeded PostgreSQL', () => {
     const stages = lamination.stages.map(stage => {
       const startTime = new Date(cursor);
       cursor += stage.durationMinutes * 60_000;
-      return { stageOrder: stage.stageOrder, isBusy: stage.isBusy, specialistId: browsId, startTime, endTime: new Date(cursor) };
+      return { stageOrder: stage.stageOrder, isBusy: stage.isBusy, specialistId: browsId,
+        startTime, endTime: new Date(cursor), status: 'CONFIRMED' as const };
     });
     const appointment = await prisma.appointment.create({
       data: {
-        clientId, specialistId: browsId, serviceId: laminationId,
+        clientId, specialistId: browsId, serviceId: laminationId, status: 'CONFIRMED',
         startTime, endTime: new Date(cursor), totalPriceRon: lamination.priceRon,
         stages: { create: stages },
       },

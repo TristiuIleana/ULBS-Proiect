@@ -69,9 +69,17 @@ integration('Sprint 3 client portal', () => {
     for (const { ID } of result.messages ?? []) {
       const message = await (await fetch(`${origin}/api/v1/message/${ID}`)).json() as { Text: string };
       const link = message.Text.split(/\s+/).find(word => word.includes(fragment));
-      if (link) return new URL(link).searchParams.get('token');
+      if (link) {
+        const url = new URL(link);
+        return fragment.includes('#') ? new URLSearchParams(url.hash.slice(1)).get('token') : url.searchParams.get('token');
+      }
     }
     throw new Error(`No mail link for ${fragment}`);
+  }
+
+  async function confirmBooking(address: string) {
+    const token = await emailLink(address, '/confirmare#token=');
+    await api().post('/api/bookings/confirm').send({ token }).expect(200);
   }
 
   async function register(details = contact()) {
@@ -117,7 +125,7 @@ integration('Sprint 3 client portal', () => {
     await api().post('/api/appointments/by-token/cancel').send({ token }).expect(403);
     await api().post('/api/appointments/by-token/reschedule')
       .send({ token, slotUtcMs: Date.parse('2097-01-16T08:00:00Z') }).expect(403);
-    expect((await db.appointment.findUniqueOrThrow({ where: { id: booking.body.id } })).status).toBe('CONFIRMED');
+    expect((await db.appointment.findUniqueOrThrow({ where: { id: booking.body.id } })).status).toBe('PENDING_CONFIRMATION');
   });
 
   it('protects Admin actions and allows public entry to a filled waitlist window', async () => {
@@ -139,9 +147,15 @@ integration('Sprint 3 client portal', () => {
       expect(await db.waitlistEntry.count({ where: { clientId: enrolledUser.id, desiredDate: day } })).toBe(1);
       const token = await emailLink(details.email, '/programare?token=');
       await api().post('/api/appointments/by-token/cancel').send({ token }).expect(200);
+      const confirmationToken = await emailLink(details.email, '/confirmare#token=');
+      await api().post('/api/bookings/confirm').send({ token: confirmationToken }).expect(409);
       await api().post('/api/bookings').send(guest('2097-01-15T08:00:00Z')).expect(409);
       const offer = await emailLink(wait.email, '/oferta?token=');
-      await api().post('/api/waitlist/claim').send({ token: offer }).expect(201);
+      const claim = await api().post('/api/waitlist/claim').send({ token: offer }).expect(201);
+      expect(claim.body.status).toBe('PENDING_CONFIRMATION');
+      await api().post('/api/bookings').send(guest('2097-01-15T08:00:00Z')).expect(409);
+      await confirmBooking(wait.email);
+      expect((await db.appointment.findUniqueOrThrow({ where: { id: claim.body.id } })).status).toBe('CONFIRMED');
       await api().post('/api/waitlist/claim').send({ token: offer }).expect(409);
     } finally {
       await db.scheduleOverride.delete({ where: { specialistId_date: { specialistId, date: day } } });
@@ -163,6 +177,7 @@ integration('Sprint 3 client portal', () => {
       const prior = [];
       for (const hour of [7, 8, 9, 10]) {
         prior.push((await book(`2097-01-12T${String(hour).padStart(2, '0')}:00:00Z`).expect(201)).body.id);
+        await confirmBooking(details.email);
       }
       jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2097-01-12T11:00:00Z'));
       await client.post(`/api/admin/appointments/${prior[0]}/complete`).expect(403);
@@ -226,6 +241,9 @@ integration('Sprint 3 client portal', () => {
     const fifth = await book(24);
     const sixth = await book(25);
     expect([fifth.totalPriceRon, sixth.totalPriceRon]).toEqual(['45', '50']);
+    const fifthToken = (await db.appointment.findUniqueOrThrow({ where: { id: fifth.id } })).confirmationToken;
+    await api().post('/api/bookings/confirm').send({ token: fifthToken }).expect(200);
+    await confirmBooking(details.email);
 
     jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2097-01-26T10:00:00Z'));
     const management = app.get(AppointmentManagementService);
@@ -285,8 +303,12 @@ integration('Sprint 3 client portal', () => {
     ].map(async value => {
       const details = contact();
       const response = await api().post('/api/bookings').send(guest(value, details)).expect(201);
+      await confirmBooking(details.email);
       return { id: response.body.id as string, email: details.email };
     }));
+    const pending = contact();
+    const { body: pendingBooking } = await api().post('/api/bookings')
+      .send(guest('2097-01-10T13:05:00Z', pending)).expect(201);
     await Promise.all([jobs.reminders(), jobs.reminders()]);
     await jobs.reminders();
     const sent = await Promise.all(fixtures.map(async ({ id, email }) => {
@@ -301,6 +323,8 @@ integration('Sprint 3 client portal', () => {
       { count: 0, recorded: false }, { count: 1, recorded: true },
       { count: 1, recorded: true }, { count: 0, recorded: false },
     ]);
+    expect(await db.appointment.findUniqueOrThrow({ where: { id: pendingBooking.id } }))
+      .toMatchObject({ status: 'PENDING_CONFIRMATION', reminderSentAt: null });
     const token = await emailLink(fixtures[2].email, '/programare?token=');
     await api().post('/api/appointments/by-token/reschedule')
       .send({ token, slotUtcMs: Date.parse('2097-01-10T15:00:00Z') }).expect(200);
@@ -318,6 +342,7 @@ integration('Sprint 3 client portal', () => {
     async (failurePoint, start) => {
       const details = contact();
       const { body: { id } } = await api().post('/api/bookings').send(guest(start, details)).expect(201);
+      await confirmBooking(details.email);
       const failure = new Error('Simulated temporary database failure');
       const transaction = jest.fn((work: (tx: Prisma.TransactionClient) => Promise<void>) =>
         db.$transaction(work));

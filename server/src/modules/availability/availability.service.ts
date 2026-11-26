@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { AppointmentStatus, Prisma } from '@prisma/client';
+import { Subject, filter } from 'rxjs';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AvailableSlot,
@@ -15,9 +16,21 @@ export const SALON_TZ = 'Europe/Bucharest';
 /** Candidate slot resolution in milliseconds (5-minute grid). */
 const SLOT_STEP_MS = 5 * 60 * 1000;
 
+export const activeAppointmentStatuses: AppointmentStatus[] = ['PENDING_CONFIRMATION', 'CONFIRMED'];
+
 @Injectable()
 export class AvailabilityService {
+  private readonly updates = new Subject<{ specialistId: string; date: string }>();
+
   constructor(private readonly prisma: PrismaService) {}
+
+  changes(specialistId: string) {
+    return this.updates.pipe(filter(update => update.specialistId === specialistId));
+  }
+
+  invalidate(specialistId: string, startTime: Date) {
+    this.updates.next({ specialistId, date: this.toLocalIso(startTime.getTime()).slice(0, 10) });
+  }
 
   /**
    * Returns available start times (in SALON_TZ) for a given service, date and
@@ -26,7 +39,7 @@ export class AvailabilityService {
    * Algorithm:
    * 1. Resolve the specialist's working shift for the given date in SALON_TZ → UTC
    *    bounds [W_start, W_end).
-   * 2. Fetch all CONFIRMED busy AppointmentStage intervals for the specialist
+   * 2. Fetch pending and confirmed busy AppointmentStage intervals for the specialist
    *    within the shift window.
    * 3. Walk candidate start times in 5-minute steps from W_start to
    *    W_end − totalDuration. For each candidate T₀:
@@ -105,7 +118,7 @@ export class AvailabilityService {
     const [booked, held] = await Promise.all([
       db.appointmentStage.findMany({
         where: {
-          ...range, specialistId, isBusy: true, status: 'CONFIRMED',
+          ...range, specialistId, isBusy: true, status: { in: activeAppointmentStatuses },
           appointmentId: omit.appointmentId ? { not: omit.appointmentId } : undefined,
         },
         select,

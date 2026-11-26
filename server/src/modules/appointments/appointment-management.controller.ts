@@ -3,11 +3,7 @@ import { IsInt, IsUUID, Max, Min } from 'class-validator';
 import { strictBody } from '../client-access/client-access.controller';
 import { ClientAccessService } from '../client-access/client-access.service';
 import { AppointmentManagementService } from './appointment-management.service';
-
-class TokenDto {
-  @IsUUID()
-  token!: string;
-}
+import { TokenDto } from './public-booking.dto';
 
 class MoveDto {
   @IsInt()
@@ -30,6 +26,12 @@ export class AppointmentManagementController {
     return this.appointments.get({ token });
   }
 
+  @Post('by-token/resend-confirmation')
+  @HttpCode(200)
+  resendByToken(@Body(strictBody) { token }: TokenDto) {
+    return this.appointments.resendConfirmation({ token });
+  }
+
   @Post('by-token/cancel')
   @HttpCode(200)
   cancelByToken(@Body(strictBody) { token }: TokenDto) {
@@ -46,6 +48,13 @@ export class AppointmentManagementController {
   async get(@Param('id', ParseUUIDPipe) id: string, @Headers('cookie') cookie: string | undefined) {
     const user = await this.access.requireUser(cookie, 'CLIENT');
     return this.appointments.get({ id, clientId: user.id });
+  }
+
+  @Post(':id/resend-confirmation')
+  @HttpCode(200)
+  async resend(@Param('id', ParseUUIDPipe) id: string, @Headers('cookie') cookie: string | undefined) {
+    const user = await this.access.requireUser(cookie, 'CLIENT');
+    return this.appointments.resendConfirmation({ id, clientId: user.id });
   }
 
   @Post(':id/cancel')

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, post, request } from '../../booking-api';
 import type { ManagedBooking } from '../../booking-api';
+import { PendingBookingNotice } from '../../components/public/PendingBookingNotice';
 import { DayStrip, SlotGroups, errorMessage, localDateTime, price, salonToday, useBookingDays } from '../../components/public/BookingControls';
 
 const phone = { display: '0756 062 883', href: 'tel:+40756062883' };
@@ -58,6 +59,12 @@ export function ManageBookingPage() {
   }, [detailPath, id, token, refresh]);
 
   useEffect(() => {
+    const reload = () => setRefresh(value => value + 1);
+    window.addEventListener('focus', reload);
+    return () => window.removeEventListener('focus', reload);
+  }, []);
+
+  useEffect(() => {
     if (action && !dialog.current?.open) dialog.current?.showModal();
   }, [action]);
 
@@ -77,8 +84,8 @@ export function ManageBookingPage() {
       });
       setBooking(data);
       setUpdate(action === 'reschedule' ? (data.emailStatus === 'failed'
-        ? 'Programarea a fost mutată. Nu am putut trimite confirmarea prin e-mail.'
-        : 'Programarea a fost mutată. Am trimis confirmarea prin e-mail.') : '');
+        ? 'Programarea a fost mutată. E-mailul nu a putut fi trimis.'
+        : 'Programarea a fost mutată. Am trimis un e-mail cu detaliile.') : '');
       dialog.current?.close();
     } catch (error) {
       setError(errorMessage(error, 'Modificarea nu a putut fi finalizată.'));
@@ -94,7 +101,9 @@ export function ManageBookingPage() {
     }
   }
 
-  const status = { CONFIRMED: '● Confirmată', CANCELLED: 'Anulată', COMPLETED: '✓ Finalizată', NO_SHOW: 'Neprezentare' };
+  const status = { PENDING_CONFIRMATION: 'În așteptarea confirmării', CONFIRMED: 'Programare confirmată',
+    CANCELLED: 'Anulată', COMPLETED: '✓ Finalizată', NO_SHOW: 'Neprezentare' };
+  const isActive = booking?.status === 'PENDING_CONFIRMATION' || booking?.status === 'CONFIRMED';
   return <main className="booking-page manage-page">
     <header className="manage-studio account-title"><h1>Beauty Studio</h1>
       <p>📍 Gura Râului, Sibiu · Gestiune Rezervare Online</p></header>
@@ -111,6 +120,8 @@ export function ManageBookingPage() {
           <span>Cod rezervare #{booking.id.slice(0, 8).toUpperCase()}</span></div>
         <span className="step-tag">{booking.category === 'BROWS' ? '🌿 Sprâncene' : '💄 Make-up'}</span>
         <h2 className="manage-service">{booking.serviceName}</h2>
+        {booking.status === 'PENDING_CONFIRMATION' && <PendingBookingNotice
+          path={path} credentials={token ? { token } : undefined} emailStatus={booking.emailStatus} />}
         <dl className="manage-details">
           <div><dt>Data și ora programării</dt><dd>{localDateTime.format(new Date(booking.startsAtLocal))}</dd></div>
           <div><dt>Locație și specialistă</dt><dd>Beauty Studio</dd><dd className="detail-sub">{booking.specialistName} · Gura Râului, Sibiu</dd></div>
@@ -118,14 +129,14 @@ export function ManageBookingPage() {
             <dd className="detail-sub">{booking.contact.phone} · {booking.contact.email}</dd></div>
           <div><dt>Preț total de achitat</dt><dd>{price(booking.totalPriceRon)}</dd><dd className="detail-sub">Plată directă la salon</dd></div>
         </dl>
-        {booking.status === 'CONFIRMED' && <div className={`day-banner ${booking.canManage ? 'available' : 'warning'}`}>
+        {isActive && <div className={`day-banner ${booking.canManage ? 'available' : 'warning'}`}>
           <span aria-hidden="true">{booking.canManage ? '📅' : '⚠️'}</span>
           <div><strong>{booking.isFullDay ? 'Zi Full' : 'Politica de anulare și reprogramare'}</strong>
             <p>{booking.canManage ? 'Poți anula sau reprograma gratuit cu cel puțin 24 de ore înainte.' :
               <>Modificarea nu mai este permisă online. Contactează salonul la <a className="text-link" href={phone.href}>{phone.display}</a>.</>}</p>
           </div>
         </div>}
-        {booking.status === 'CONFIRMED' && <div className="manage-actions">
+        {isActive && <div className="manage-actions">
           <button type="button" className="primary-button" disabled={!booking.canManage} onClick={() => open('reschedule')}>📅 Reprogramează la altă dată</button>
           <button type="button" className="secondary-button destructive" disabled={!booking.canManage} onClick={() => open('cancel')}>Anulează rezervarea</button>
         </div>}

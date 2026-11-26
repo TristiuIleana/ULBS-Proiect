@@ -8,7 +8,8 @@ const time = new Intl.DateTimeFormat('ro-RO', { timeZone: salonTimeZone, timeSty
 const day = new Intl.DateTimeFormat('ro-RO', { timeZone: salonTimeZone, day: '2-digit' });
 const month = new Intl.DateTimeFormat('ro-RO', { timeZone: salonTimeZone, month: 'short' });
 const since = new Intl.DateTimeFormat('ro-RO', { timeZone: salonTimeZone, month: 'long', year: 'numeric' });
-const status = { CONFIRMED: '● Confirmată', CANCELLED: 'Anulată', COMPLETED: '✓ Finalizată', NO_SHOW: 'Neprezentare' };
+const status = { PENDING_CONFIRMATION: 'În așteptarea confirmării', CONFIRMED: '● Confirmată',
+  CANCELLED: 'Anulată', COMPLETED: '✓ Finalizată', NO_SHOW: 'Neprezentare' };
 
 function BookingList({ title, bookings, upcoming }: { title: string; bookings: AccountBooking[]; upcoming?: boolean }) {
   return <section className="account-bookings">

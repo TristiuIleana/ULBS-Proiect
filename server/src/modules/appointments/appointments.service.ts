@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, ServiceCategory } from '@prisma/client';
+import { AppointmentStatus, Prisma, ServiceCategory } from '@prisma/client';
+import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AvailabilityService } from '../availability/availability.service';
 import { StageTemplate } from '../availability/availability.types';
@@ -23,7 +24,7 @@ export function bookingStages(startMs: number, specialistId: string, templates: 
     cursor += stage.durationMinutes * 60_000;
     return {
       specialistId, stageOrder: stage.stageOrder, isBusy: stage.isBusy,
-      startTime, endTime: new Date(cursor), status: 'CONFIRMED' as const,
+      startTime, endTime: new Date(cursor),
     };
   });
 }
@@ -61,8 +62,10 @@ export class AppointmentsService {
     }
   }
 
-  bookAppointment(req: BookingInput, sessionClientId?: string) {
-    return this.transaction(tx => this.reserve(tx, req, sessionClientId));
+  async bookAppointment(req: BookingInput, sessionClientId?: string) {
+    const booking = await this.transaction(tx => this.reserve(tx, req, sessionClientId));
+    this.availability.invalidate(booking.specialistId, booking.startTime);
+    return booking;
   }
 
   async reserve(tx: Prisma.TransactionClient, req: BookingInput, sessionClientId?: string, offerId?: string) {
@@ -72,7 +75,8 @@ export class AppointmentsService {
     const data: Prisma.AppointmentUncheckedCreateInput = {
       specialistId: req.specialistId, serviceId: req.serviceId, startTime: stages[0].startTime,
       endTime: stages[stages.length - 1].endTime, totalPriceRon: service.priceRon, basePriceRon: service.priceRon,
-      status: 'CONFIRMED', stages: { create: stages },
+      status: AppointmentStatus.PENDING_CONFIRMATION, confirmationToken: randomUUID(),
+      stages: { create: stages.map(stage => ({ ...stage, status: AppointmentStatus.PENDING_CONFIRMATION })) },
     };
     if ('clientId' in req) {
       data.clientId = req.clientId;
