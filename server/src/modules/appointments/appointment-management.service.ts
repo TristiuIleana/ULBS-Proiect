@@ -100,17 +100,7 @@ export class AppointmentManagementService {
         });
       } else if (action === 'complete') {
         if (booking.endTime.getTime() > Date.now()) throw new ConflictException('Vizita este încă în desfășurare sau viitoare.');
-        if (booking.clientId) {
-          const count = await tx.appointment.count({ where: { clientId: booking.clientId, status: 'COMPLETED' } });
-          const base = booking.basePriceRon ?? booking.totalPriceRon;
-          const discount = count % 5 === 4 ? base.times(0.1).toDecimalPlaces(2) : new Prisma.Decimal(0);
-          await tx.appointment.update({
-            where: { id: booking.id },
-            data: { status: targetStatus, loyaltyDiscountRon: discount, totalPriceRon: base.minus(discount) },
-          });
-        } else {
-          await tx.appointment.update({ where: { id: booking.id }, data: { status: targetStatus } });
-        }
+        await tx.appointment.update({ where: { id: booking.id }, data: { status: targetStatus } });
         await tx.appointmentStage.updateMany({ where: { appointmentId: booking.id }, data: { status: targetStatus } });
       } else {
         const lateCancellation = booking.startTime.getTime() - Date.now() < dayMs;

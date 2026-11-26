@@ -28,18 +28,21 @@ export function assertNotBlocked(user: { lateCancellationCount: number } | null)
 }
 
 export async function allocateLoyalty(tx: Prisma.TransactionClient, clientId: string) {
-  const completed = await tx.appointment.count({ where: { clientId, status: 'COMPLETED' } });
-  const pending = await tx.appointment.findMany({
-    where: { clientId, status: 'CONFIRMED' },
+  const visits = await tx.appointment.findMany({
+    where: { clientId, status: { in: ['COMPLETED', 'CONFIRMED'] } },
     orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
-    select: { id: true, startTime: true, basePriceRon: true, totalPriceRon: true, loyaltyDiscountRon: true },
+    select: { id: true, status: true, basePriceRon: true, totalPriceRon: true, loyaltyDiscountRon: true },
   });
-  const eligible = completed % 5 === 4
-    ? pending.find(booking => booking.startTime.getTime() >= Date.now() || booking.loyaltyDiscountRon.gt(0))
-    : undefined;
-  for (const booking of pending) {
+  let visitNumber = 0;
+  let pendingDiscountReserved = false;
+  for (const booking of visits) {
+    const completed = booking.status === 'COMPLETED';
+    const earnsDiscount = (visitNumber + 1) % 5 === 0 && (completed || !pendingDiscountReserved);
+    // A confirmed discounted visit reserves its place if a later visit is completed first.
+    if (completed || earnsDiscount) visitNumber++;
+    if (!completed && earnsDiscount) pendingDiscountReserved = true;
     const price = booking.basePriceRon ?? booking.totalPriceRon;
-    const discount = booking.id === eligible?.id ? price.times(0.1).toDecimalPlaces(2) : new Prisma.Decimal(0);
+    const discount = earnsDiscount ? price.times(0.1).toDecimalPlaces(2) : new Prisma.Decimal(0);
     if (!booking.loyaltyDiscountRon.eq(discount)) {
       await tx.appointment.update({
         where: { id: booking.id },
