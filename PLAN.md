@@ -105,13 +105,15 @@ Pentru Laminare sprâncene, cele cinci etape sunt **15 min ocupat → 20 min lib
 
 [Sprintul 2 — Rezervarea publică fără cont](docs/plans/sprint-2-public-booking.md) include API-ul de creare, confirmarea prin Mailpit și pagina React de rezervare.
 
+**Sprintul 4 este finalizat.** Ioana administrează ambele agende din Recepție, creează programări direct `CONFIRMED`, gestionează anulările și mutările și poate consulta Waitlist și expedia oferte active nestrimise. Ana consultă și exportă propria agendă și își marchează vizitele încheiate. Playwright a trecut ambele teste integrate pe stiva Docker izolată după mutarea proiectului pe D:. Verificarea importului în Google Calendar și Apple Calendar rămâne manuală. [Plan Sprintul 4](docs/plans/sprint-4-staff-reception.md) · [Jurnal](AI_LOG.md)
+
 | Componentă | Disponibil acum | Urmează |
 | --- | --- | --- |
 | Infrastructură și date | Compose, Dockerfile, Prisma, migrare și seed. | Verificare integrată cu pornirea containerelor, migrare și seed. |
 | Disponibilitate și rezervare | Catalog, disponibilitate și creare publică prin API. Teste PostgreSQL pentru intercalare, schimbarea orei și concurență. | Conectarea fluxurilor de echipă la același calcul. |
 | Gestiune programări | Modele pentru programări, stări și token. | Consultare, anulare și reprogramare prin token, cu aplicarea politicii Zi Full și eliberarea consecventă a etapelor. |
 | Conturi și Fidelizare | Roluri în schemă, decizie aprobată și flux demonstrativ în mock-up. | Autentificare reală și autorizare, calculul prețului pe Server, stocarea reducerii și afișarea progresului și istoricului. |
-| Waitlist, e-mail și iCalendar | WaitlistEntry și confirmări prin Mailpit. | Notificări, remindere, blocarea slotului, revendicare și expirare, plus descărcarea .ics din agenda autorizată. |
+| Waitlist, e-mail și iCalendar | Confirmări și remindere prin Mailpit, listare și expedierea manuală a ofertelor eligibile din Recepție, export `.ics` din agenda autorizată. | Verificarea și completarea înscrierii publice, a automatizării ofertelor Waitlist și a conversiei directe din Recepție în Sprintul 5. |
 | Frontend | Pagina React de rezervare fără cont consumă API-ul prin proxy-ul Vite. | Fluxurile de cont, gestiune și echipă. |
 | Validare finală | Suite pentru disponibilitate și concurență în repository. | Testare cu PostgreSQL în Docker și verificarea fluxurilor complete, a accesului pe roluri, a politicii Zi Full, a ferestrei Waitlist, a Fidelizării și a afișării pe mobil și desktop în ambele teme. |
 

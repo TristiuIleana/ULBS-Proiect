@@ -35,7 +35,7 @@ test('Ioana can create a visit at reception and Ana sees only her own calendar',
         await page.getByRole('button', { name: 'Programare nouă' }).click();
         const form = page.getByRole('dialog');
         await form.getByLabel('Specialistă').selectOption({ label: 'Ana' });
-        await form.getByLabel('Serviciu').selectOption({ label: 'Make-up ocazie (fără gene)' });
+        await form.getByLabel(/^Serviciu/).selectOption({ label: 'Make-up ocazie (fără gene)' });
         const tomorrow = new Date(Date.now() + 86_400_000);
         const day = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Bucharest' }).format(tomorrow);
         await form.getByLabel('Data programării').fill(day);

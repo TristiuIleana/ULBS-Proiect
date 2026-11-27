@@ -601,3 +601,10 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 
 - Stiva Sprintului 4 a pornit cu volumele de dependențe existente. Frontendul a răspuns inițial cu HTTP 503 la `/staff/receptie` după ce Serverul de test s-a oprit. Docker și PostgreSQL au raportat `read-only file system`, iar C: avea 0 octeți liberi.
 - Playwright a raportat un test eșuat cu `ECONNREFUSED` pe portul 17174 și un test omis deoarece seed-ul de test nu era disponibil. Verificarea integrată rămâne blocată de starea mediului. Merge-ul și push-ul rămân în așteptarea unei rulări verzi.
+
+### Finalizarea Sprintului 4 după mutarea pe D:
+
+- Docker Compose a construit imaginile din proiectul mutat în `D:\Proiecte\ULBS-Proiect`. Pe stiva izolată au trecut toate cele șapte migrări Prisma și seed-ul ambelor conturi de test.
+- Volumul vechi de test a returnat `P1010` la migrare. Rularea pe un volum nou a ajuns la autentificare, unde Serverul a respins originea diferită de `PUBLIC_WEB_ORIGIN`. Am aliniat originea Serverului cu cea din Playwright.
+- Selectorul de serviciu potrivea și câmpul de oră. Am restrâns potrivirea la începutul etichetei, păstrând aserțiunile și comportamentul aplicației.
+- `npm run test:e2e -- test/staff-reception.spec.ts` a trecut în Chrome, cu **2 teste trecute, 0 omise**. Testele acoperă accesul direct fără sesiune, Recepția Ioanei, vizibilitatea agendei Anei, Waitlist, descărcarea `.ics` și afișarea agendei la 390 px în ambele teme. Importul efectiv în Google Calendar și Apple Calendar rămâne neverificat.
