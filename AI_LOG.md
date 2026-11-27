@@ -575,3 +575,12 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Pe versiunea inițială au eșuat cele patru cazuri noi Jest pentru filtrarea după termen, mesajul din e-mail și jobul de expirare. Testul Playwright a reprodus lipsa mesajului de 1 oră în sumar. Aserțiunile testelor existente au fost păstrate.
 - Au trecut în Docker toate cele 49 de teste Jest cu PostgreSQL și Mailpit, ambele teste Playwright, build-urile NestJS și Vite, construirea imaginilor, migrările pe baza izolată, validarea Prisma și configurația Compose. Ledger lint cu `PYTHONUTF8=1` a trecut. Capturile din ambele teme acoperă sumarul, gestiunea și linkul expirat. [Capturi](docs/design/screens/)
 - La prima rulare Docker a raportat `HTTP 500` și `read-only file system` la extragerea imaginilor. Verificările au fost reluate după repornirea motorului. TypeScript a raportat `TS2353` pentru o opțiune indisponibilă în versiunea fixată de NestJS Schedule. Prima încercare Playwright a raportat că socketul local PostgreSQL nu exista. Rularea finală folosește opțiunile acceptate de scheduler și conexiunea TCP la baza izolată.
+
+---
+
+## Sesiunea 31 — 27 Noiembrie 2026 — Plan Sprintul 4 · Personal și Recepție
+
+- `main` a fost sincronizat la `614dfcd`. Planul de pe `feat/sprint-4-staff-reception` acoperă seed-ul celor două conturi fixe, sesiunile și protecția rutelor interne, agendele, recepția, Waitlist și descărcarea iCalendar. [Plan Sprintul 4](docs/plans/sprint-4-staff-reception.md)
+- Utilizatorul a confirmat programări confirmate direct la recepție, crearea și mutarea pentru clientele blocate online fără resetarea marcărilor, consultarea Waitlist și expedierea ofertelor active nestrimise. Fiecare specialistă își poate marca vizitele încheiate, iar exportul include programările confirmate din perioada afișată. [Q-010–Q-012](docs/agents/OPEN-QUESTIONS.md)
+- Planul propune supersedarea D-008 pentru finalizarea în agenda proprie și decizii noi pentru accesul celor două conturi și operațiile recepției. Referințele HTML sunt în stadiu draft, iar planul consemnează reviziile necesare. Implementarea și testele aplicației sunt programate după aprobare.
+- Indexul întrebărilor a fost regenerat și ledger lint a trecut cu `PYTHONUTF8=1`.

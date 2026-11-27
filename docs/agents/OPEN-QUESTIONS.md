@@ -18,6 +18,9 @@
 - Q-007 · Identitatea clientei în Waitlist, la înregistrare și în istoric · _answered_
 - Q-008 · Alocarea Fidelizării și operațiile Admin din Sprintul 3 · _answered_
 - Q-009 · Reminder pentru rezervări apropiate și reprogramări · _answered_
+- Q-010 · Confirmarea programărilor create la recepție · _answered_
+- Q-011 · Programări blocate online și operații Waitlist la recepție · _answered_
+- Q-012 · Marcarea vizitelor și domeniul exportului calendaristic · _answered_
 
 ---
 
@@ -92,3 +95,27 @@
 - **Confirmed:** 2026-11-26
 - **Answer:** Jobul periodic NestJS trimite prin Mailpit pentru programări CONFIRMED cu reminderSentAt nul, între 2 și 24 h inclusiv înainte de start. Programările create sau mutate în fereastră primesc reminder la prima rulare. Un reminder deja trimis rămâne înregistrat la mutarea aceleiași programări.
 - **Decision:** D-009
+
+---
+
+## Q-010 · Confirmarea programărilor create la recepție
+- **Status:** answered
+- **Date:** 2026-11-27
+- **Confirmed:** 2026-11-27
+- **Answer:** Recepția confirmă direct programările create la ghișeu sau telefonic. Numele și telefonul sunt suficiente. D-010 continuă să se aplice rezervărilor publice.
+
+---
+
+## Q-011 · Programări blocate online și operații Waitlist la recepție
+- **Status:** answered
+- **Date:** 2026-11-27
+- **Confirmed:** 2026-11-27
+- **Answer:** Recepția poate crea și muta programări pentru clientele cu blocare online după trei marcări, fără resetarea marcărilor. Poate consulta Waitlist și expedia o ofertă activă nestrimisă. Prioritatea rămâne conform D-004.
+
+---
+
+## Q-012 · Marcarea vizitelor și domeniul exportului calendaristic
+- **Status:** answered
+- **Date:** 2026-11-27
+- **Confirmed:** 2026-11-27
+- **Answer:** Fiecare specialistă își poate marca vizitele CONFIRMED după ora de sfârșit cu COMPLETED sau NO_SHOW. NO_SHOW nu adaugă marcări și nu declanșează oferte Waitlist. Exportul include programările CONFIRMED din ziua sau săptămâna afișată.
