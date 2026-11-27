@@ -596,3 +596,8 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Testele noi au reprodus lipsa endpointului de login prin HTTP 404. Toate cele 54 de teste Jest au trecut cu PostgreSQL și Mailpit în Docker, împreună cu validarea Prisma și buildul NestJS. Aserțiunile existente au fost păstrate. Migrarea a fost aplicată pe baza izolată cu schema anterioară. Prima rulare a regresiei Sprintului 3 a întors HTTP 401 deoarece ceasul testului sărea peste expirarea sesiunii Admin. Fixture-ul deschide sesiunea după schimbarea ceasului.
 - Buildul Vite a trecut și Chrome a verificat ecranele cu API simulat și date sintetice, în ambele teme, inclusiv afișarea la 390 px și focusul după închiderea dialogului. Capturile sunt în registru. [Capturi](docs/design/screens/)
 - Spațiul de pe C: s-a epuizat la finalizarea imaginii Docker. După repornire, crearea containerului Server pentru stiva Playwright izolată a returnat `502 Bad Gateway`, iar C: a rămas din nou fără spațiu. Verificarea Playwright end-to-end pe stiva integrată și importul în Google Calendar sau Apple Calendar rămân nevalidate. Serializerul și domeniul exportului au fost verificate în Jest.
+
+### Reluarea testului integrat în Docker
+
+- Stiva Sprintului 4 a pornit cu volumele de dependențe existente. Frontendul a răspuns inițial cu HTTP 503 la `/staff/receptie` după ce Serverul de test s-a oprit. Docker și PostgreSQL au raportat `read-only file system`, iar C: avea 0 octeți liberi.
+- Playwright a raportat un test eșuat cu `ECONNREFUSED` pe portul 17174 și un test omis deoarece seed-ul de test nu era disponibil. Verificarea integrată rămâne blocată de starea mediului. Merge-ul și push-ul rămân în așteptarea unei rulări verzi.
