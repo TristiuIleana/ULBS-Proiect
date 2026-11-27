@@ -13,9 +13,11 @@
 - D-004 · Salon schedule, split interleaving, waitlist locking and Mailpit
 - D-006 · Gestiunea și blocarea rezervării online
 - D-007 · Waitlist fără cont și asocierea prin e-mail
-- D-008 · Alocarea Fidelizării și operațiile Admin
 - D-009 · Fereastra și idempotența reminderelor
 - D-010 · Blocarea slotului și confirmarea programării prin e-mail
+- D-011 · Fidelizare și marcarea vizitelor după rol
+- D-012 · Acces exclusiv și drepturi distincte pentru personal
+- D-013 · Recepție Admin, Waitlist și export iCalendar
 
 ---
 
@@ -92,17 +94,6 @@
 
 ---
 
-## D-008 · Alocarea Fidelizării și operațiile Admin
-- **Status:** approved
-- **Date:** 2026-11-26
-- **Confirmed:** 2026-11-26
-- **Rule:** La fiecare a cincea vizită, pe baza vizitelor COMPLETED din întregul studio, Serverul alocă automat reducerea de 10% primei programări eligibile în ordine cronologică, persistă prețul și recalculează la anularea unei programări anterioare. Contul afișează progresul și reducerile. Operațiile de finalizare și deblocare cu resetarea marcărilor cer rolul Admin.
-- **Why:** Determină prețul consecvent când se schimbă ordinea programărilor.
-- **Evidence:** Confirmarea planului Sprintului 3, Q-008.
-- **Source:** user · confidence high
-
----
-
 ## D-009 · Fereastra și idempotența reminderelor
 - **Status:** approved
 - **Date:** 2026-11-26
@@ -122,4 +113,37 @@
   La expirare, slotul redevine disponibil public, sub rezerva ofertelor Waitlist deja active conform D-004. Serverul marchează programarea și etapele `CANCELLED`, cu motivul `CONFIRMATION_EXPIRED`. Expirarea nu lansează o ofertă Waitlist și nu adaugă marcări de anulare târzie. Un link expirat îi spune clientei că termenul de 1 oră a expirat și îi cere să facă o programare nouă. Sumarul și pagina de gestiune afișează starea și permit retrimiterea cât timp confirmarea este posibilă.
 - **Why:** Protejează intervalul de rezervări concurente, îl eliberează după termen și comunică starea programării.
 - **Evidence:** Utilizatorul a confirmat planul de extindere a D-010 și regula Waitlist la expirare.
+- **Source:** user · confidence high
+
+---
+
+## D-011 · Fidelizare și marcarea vizitelor după rol
+- **Status:** approved
+- **Date:** 2026-11-27
+- **Confirmed:** 2026-11-27
+- **Rule:** Serverul calculează Fidelizarea pe baza vizitelor COMPLETED din întregul studio. Alocă reducerea de 10% la fiecare a cincea vizită, primei programări eligibile în ordine cronologică, persistă prețul și recalculează la anularea unei programări anterioare. Contul clientei afișează progresul și reducerile. Ioana poate marca vizitele oricărei specialiste. Ana poate marca exclusiv vizitele proprii. Trecerea la COMPLETED sau NO_SHOW este permisă din CONFIRMED după ora de sfârșit. NO_SHOW nu adaugă marcări de anulare și nu declanșează Waitlist. Deblocarea clientelor cu resetarea marcărilor rămâne operație Admin.
+- **Why:** Permite operarea agendei proprii și administrarea salonului, păstrând calculul comun al Fidelizării.
+- **Evidence:** Q-012 și cererea de ajustare a drepturilor înainte de buildul Sprintului 4.
+- **Source:** user · confidence high
+
+---
+
+## D-012 · Acces exclusiv și drepturi distincte pentru personal
+- **Status:** approved
+- **Date:** 2026-11-27
+- **Confirmed:** 2026-11-27
+- **Rule:** Accesul intern aparține exclusiv conturilor fixe din seed: ioana@admin.com (Ioana, ADMIN, BROWS) și ana@admin.com (Ana, SPECIALIST, MAKEUP). Parolele se configurează local pentru seed. Serverul verifică la fiecare cerere internă sesiunea, identitatea și dreptul pentru operație. Accesul personalului nu are înregistrare publică. Ioana vede și administrează toate programările, filtrează pe specialistă sau vede agendele simultan și are acces la Recepție. Ana își vede exclusiv agenda, fără acces la Recepție sau la programările Ioanei, inclusiv prin API.
+- **Why:** Limitează accesul la datele clientelor și separă administrarea salonului de operațiile specialistei.
+- **Evidence:** Cerința Sprintului 4 și matricea de drepturi ajustată de utilizator.
+- **Source:** user · confidence high
+
+---
+
+## D-013 · Recepție Admin, Waitlist și export iCalendar
+- **Status:** approved
+- **Date:** 2026-11-27
+- **Confirmed:** 2026-11-27
+- **Rule:** Ioana creează la recepție programări direct CONFIRMED cu nume și telefon, gestionează anulările și mutările în Zi Full și sub 24 h și poate crea sau muta pentru clientele blocate online fără resetare. Waitlist la recepție permite consultarea și expedierea unei oferte active nestrimise cu prioritatea D-004. Descărcarea .ics include programările CONFIRMED din ziua sau săptămâna afișată. Ioana poate exporta una sau ambele agende. Ana poate exporta exclusiv propria agendă. Fluxurile publice respectă D-006, D-007, D-009 și D-010.
+- **Why:** Permite gestionarea programărilor la ghișeu și telefon și importul calendarului cu aceleași limite de acces ca în aplicație.
+- **Evidence:** Q-010, Q-011 și Q-012, cu rolurile precizate în ajustarea Sprintului 4.
 - **Source:** user · confidence high

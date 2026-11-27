@@ -29,6 +29,6 @@ _Avoid_: coadă de așteptare, stand-by list
 **Mailpit** (noun) — The local SMTP test server and web interface running in Docker on port 8025 to capture and inspect outgoing transactional emails.
 _Avoid_: MailHog, real email credentials in dev
 
-**Fidelizare** (noun) — The automated client loyalty program: a repeating cycle where every 5th completed visit earns a 10% discount allocated automatically to the first eligible booking based on completed visits (D-008). Counted per studio, regardless of service or specialist.
+**Fidelizare** (noun) — The automated client loyalty program: a repeating cycle where every 5th completed visit earns a 10% discount allocated automatically to the first eligible booking based on completed visits (D-011). Counted per studio, regardless of service or specialist.
 _Avoid_: loyalty points, stamp card, coupon code, manual discount
 

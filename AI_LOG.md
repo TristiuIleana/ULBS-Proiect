@@ -584,3 +584,8 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 - Utilizatorul a confirmat programări confirmate direct la recepție, crearea și mutarea pentru clientele blocate online fără resetarea marcărilor, consultarea Waitlist și expedierea ofertelor active nestrimise. Fiecare specialistă își poate marca vizitele încheiate, iar exportul include programările confirmate din perioada afișată. [Q-010–Q-012](docs/agents/OPEN-QUESTIONS.md)
 - Planul propune supersedarea D-008 pentru finalizarea în agenda proprie și decizii noi pentru accesul celor două conturi și operațiile recepției. Referințele HTML sunt în stadiu draft, iar planul consemnează reviziile necesare. Implementarea și testele aplicației sunt programate după aprobare.
 - Indexul întrebărilor a fost regenerat și ledger lint a trecut cu `PYTHONUTF8=1`.
+
+### Ajustarea drepturilor înainte de build
+
+- Ioana are acces complet la calendarul salonului, Recepție, Waitlist, operații Admin și exportul fiecărei agende sau al ambelor. Ana vede și exportă exclusiv agenda proprie și își poate marca vizitele confirmate după ora de sfârșit. [Plan Sprintul 4](docs/plans/sprint-4-staff-reception.md)
+- Utilizatorul a autorizat buildul cu separarea revizuită. D-011 supersedează D-008 păstrând algoritmul Fidelizării, iar D-012 și D-013 consemnează accesul, operațiile de Recepție și descărcarea iCalendar. [Decizii](docs/agents/DECISIONS.md)

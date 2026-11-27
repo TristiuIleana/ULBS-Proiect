@@ -9,6 +9,7 @@
 
 ## Index
 - D-005 · Client loyalty program with automatic recurring discount · _superseded-by D-008_
+- D-008 · Alocarea Fidelizării și operațiile Admin · _superseded-by D-011_
 
 ---
 
@@ -19,6 +20,16 @@
 - **Why:** Incentivizes client retention and repeat bookings through a simple, transparent, and fully automated loyalty mechanic that requires no manual intervention from staff.
 - **Rejected:** Physical stamp cards; percentage escalating by tier; manual coupon codes; one-time-only discount at the 5th visit without repeating cycle.
 - **Evidence:** User explicit confirmation: "Confirm toate cele 3 puncte exact cum le-ai propus: 1. Ciclu repetat: la fiecare a 5-a vizită (5, 10, 15...). 2. Aplicare automată la booking (fără coduri sau revendicare manuală). 3. Numărare per total studio (indiferent de serviciu sau specialist)."
+- **Source:** user · confidence high
+
+---
+
+## D-008 · Alocarea Fidelizării și operațiile Admin
+- **Status:** superseded-by D-011
+- **Date:** 2026-11-26
+- **Rule:** La fiecare a cincea vizită, pe baza vizitelor COMPLETED din întregul studio, Serverul alocă automat reducerea de 10% primei programări eligibile în ordine cronologică, persistă prețul și recalculează la anularea unei programări anterioare. Contul afișează progresul și reducerile. Operațiile de finalizare și deblocare cu resetarea marcărilor cer rolul Admin.
+- **Why:** Determină prețul consecvent când se schimbă ordinea programărilor.
+- **Evidence:** Confirmarea planului Sprintului 3, Q-008.
 - **Source:** user · confidence high
 
 ---

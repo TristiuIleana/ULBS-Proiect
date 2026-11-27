@@ -1,6 +1,6 @@
 # Plan — Sprintul 4 · Acces personal, recepție și export calendar
 
-**Stare** · Propus spre aprobare, 27 noiembrie 2026. Regulile funcționale Q-010–Q-012 sunt confirmate. Propunerile de decizie și reviziile de design rămân la aprobare înainte de `/build`.
+**Stare** · Build autorizat la 27 noiembrie 2026 cu matricea de acces revizuită. D-011–D-013 sunt aprobate. Implementarea ecranelor urmează confirmarea reviziilor HTML.
 
 **Bază** · `main` sincronizat la `614dfcd`. Branch `feat/sprint-4-staff-reception`.
 
@@ -26,23 +26,25 @@
 |---|---|---|
 | Agenda proprie, detalii și export | Programări Ioana | Programări Ana |
 | `COMPLETED` / `NO_SHOW` din agenda proprie | Programări Ioana | Programări Ana |
-| Recepție, detalii, creare, reprogramare, anulare, Waitlist și export | Ambele specialiste | Ambele specialiste |
-| Operațiile Admin existente de finalizare și deblocare cu resetare | Admin | Acces refuzat |
+| Recepție, creare, reprogramare, anulare, Zi Full și Waitlist | Toate programările | Acces refuzat |
+| Calendar combinat, filtru, detalii și export din Recepție | Ioana, Ana sau ambele | Acces refuzat |
+| `COMPLETED` / `NO_SHOW` din calendarul salonului | Toate programările eligibile | Acces refuzat |
+| Deblocare cu resetarea marcărilor | Admin | Acces refuzat |
 
-- Agenda zilnică și săptămânală derivă `specialistId` din sesiune, inclusiv pentru Ioana. Recepția afișează Ioana și Ana împreună și permite filtrarea. Serverul limitează cererile la o zi sau o săptămână și interpretează zilele civile în `Europe/Bucharest`, cu limite UTC calculate separat la schimbarea orei.
+- Agenda zilnică și săptămânală derivă `specialistId` din sesiune. Recepția afișează ambele specialiste simultan și permite filtrarea, exclusiv pentru Ioana. Accesul Anei la documentul Recepției și la toate endpointurile globale, inclusiv detalii, Waitlist, disponibilitate internă, mutații și export, este refuzat la Server. Un filtru sau un ID trimis de Ana nu poate extinde agenda proprie. Serverul limitează cererile la o zi sau o săptămână și interpretează zilele civile în `Europe/Bucharest`, cu limite UTC calculate separat la schimbarea orei.
 - Detaliile autorizate includ numele, telefonul, e-mailul disponibil, notițele existente, serviciul, startul și sfârșitul, specialista și starea. Serverul alege datele din cont sau din câmpurile programării fără cont și întoarce doar câmpurile necesare. Autorizarea se aplică înaintea returnării detaliilor sau modificării pe ID.
-- Acțiunile rapide permit trecerea unei programări proprii `CONFIRMED` în `COMPLETED` sau `NO_SHOW` după încheiere. Actualizarea programării și a etapelor se face atomic, cu reverificarea proprietarului și a stării în tranzacție. Repetarea acțiunii nu dublează efectele. `COMPLETED` folosește calculul existent de Fidelizare. `NO_SHOW` nu reprezintă o vizită finalizată și nu adaugă marcări sau oferte Waitlist. Finalizarea prin API-ul Admin existent păstrează semantica și cere sesiunea Ioanei.
+- Acțiunile rapide permit trecerea unei programări `CONFIRMED` în `COMPLETED` sau `NO_SHOW` după încheiere. Ana operează doar propriile vizite. Ioana poate opera orice vizită eligibilă din calendarul salonului. Actualizarea programării și a etapelor se face atomic, cu reverificarea domeniului accesului și a stării în tranzacție. Repetarea acțiunii nu dublează efectele. `COMPLETED` folosește calculul existent de Fidelizare. `NO_SHOW` nu reprezintă o vizită finalizată și nu adaugă marcări sau oferte Waitlist. Finalizarea prin API-ul Admin existent păstrează semantica și cere sesiunea Ioanei.
 
 ### Recepție și Waitlist
 
-- La ghișeu sau telefon, personalul selectează specialista, serviciul și un slot confirmat de Server. Numele și telefonul sunt suficiente. Serverul creează programarea și etapele direct în `CONFIRMED` pe calea recepției. Calea publică își păstrează confirmarea prin e-mail, termenul inițial la reprogramare și expirarea la o oră. Pentru programările de recepție, reminderul D-009 se aplică unde există o adresă de livrare.
+- La ghișeu sau telefon, Ioana selectează specialista, serviciul și un slot confirmat de Server. Numele și telefonul sunt suficiente. Serverul creează programarea și etapele direct în `CONFIRMED` pe calea recepției. Calea publică își păstrează confirmarea prin e-mail, termenul inițial la reprogramare și expirarea la o oră. Pentru programările de recepție, reminderul D-009 se aplică unde există o adresă de livrare.
 - Disponibilitatea folosește `AvailabilityService`, `AppointmentsService.fit`, blocarea specialistei și constrângerea PostgreSQL pentru etapele ocupate. Se păstrează încadrarea serviciului în categorie, orarul, intercalarea pentru **Laminare sprâncene**, excepțiile și ofertele active Waitlist. O coliziune lasă programarea veche intactă. După commit se actualizează zilele afectate prin mecanismul existent de invalidare. Crearea asociată unei cliente și modificările folosesc regulile existente de Fidelizare și asocierea verificată D-007.
 - Recepția poate anula și reprograma o programare eligibilă inclusiv în Zi Full și sub 24 h. Calea publică păstrează blocarea în aceste cazuri. Recepția poate crea sau muta și pentru o clientă blocată online, fără să îi reseteze marcările. O anulare târzie înregistrată păstrează marcarea prevăzută de D-006. Se reutilizează gestiunea tranzacțională și se trimit notificările existente unde sunt aplicabile.
 - Panoul Waitlist din recepție arată cererile, filtrele după zi și specialistă, starea notificării și expirarea ofertei. Acțiunea de expediere se aplică unei oferte active nestrimise, prin `WaitlistService.notifyPending` și revendicarea SMTP existentă. `offer` și `expire` continuă să aleagă prima cerere compatibilă și să gestioneze prioritatea și expirarea. Fereastra rămâne de până la 30 de minute, limitată de startul slotului. UI-ul nu afișează tokenul.
 
 ### Descărcare iCalendar
 
-- Butonul „Descarcă .ics” exportă programările `CONFIRMED` din ziua sau săptămâna afișată. Același guard și aceeași filtrare se aplică exportului. Recepția respectă selecția Ioana, Ana sau ambele. Serverul trimite un atașament `text/calendar; charset=utf-8` cu nume de fișier determinat de dată și vizualizare.
+- Butonul „Descarcă .ics” exportă programările `CONFIRMED` din ziua sau săptămâna afișată. Același guard și aceeași filtrare se aplică exportului. Ana descarcă doar agenda proprie, iar Ioana poate alege la Recepție oricare dintre agende sau ambele. Serverul trimite un atașament `text/calendar; charset=utf-8` cu nume de fișier determinat de dată și vizualizare.
 - Un `VEVENT` per programare, cu `UID` stabil la reprogramare, `DTSTAMP`, `DTSTART` și `DTEND` în UTC și titlu din serviciu și specialistă. Fișierul omite datele de contact, notițele și tokenurile. Serializarea folosește UTF‑8, CRLF, escape pentru valori TEXT și pliere la 75 de octeți fără tăierea unui caracter multioctet. Verificarea include importul cu date sintetice în calendare de test Google și Apple. [RFC 5545](https://www.rfc-editor.org/rfc/rfc5545) · [Google Calendar](https://support.google.com/calendar/answer/37118) · [Apple Calendar](https://support.apple.com/en-ca/guide/calendar/icl1023/mac)
 
 ## Fișiere
@@ -67,12 +69,12 @@ Contractul C-001 rămâne la interfața existentă. Consumatorii de verificat su
 | # | Comportament | Acoperire |
 |---|---|---|
 | 1 | Instalare curată, upgrade păstrând ID-uri și relații, seed repetat, rotație, valori lipsă și coliziune fără preluare de cont | Jest cu PostgreSQL, `staff-reception.spec.ts` |
-| 2 | Ambele logări fixe, refuz pentru clientă, alt `ADMIN`, adresa veche, parolă greșită și sesiune expirată sau revocată. Refuz pentru cookie client, origini nepermise și rutele Admin din contul Anei | Jest HTTP, `staff-reception.spec.ts`, `sprint-3.spec.ts` |
-| 3 | Agendă zi/săptămână, acces după ID, date clientă cu și fără cont, finalizare și neprezentare după sfârșit, refuz prematur, conflict și repetare sigură. Fidelizarea numără numai `COMPLETED` | Jest HTTP, `staff-reception.spec.ts`, `sprint-3.spec.ts` |
-| 4 | Ambele conturi creează direct `CONFIRMED` cu telefon, inclusiv pentru profil blocat online. Creare și mutare concurente, pierderea slotului, split și orarul de duminică. Reprogramare și anulare prin recepție versus refuz public în Zi Full și sub 24 h | Jest + PostgreSQL, `staff-reception.spec.ts`, `availability.spec.ts`, `concurrency.spec.ts` |
+| 2 | Ambele logări fixe, refuz pentru clientă, alt `ADMIN`, adresa veche, parolă greșită și sesiune expirată sau revocată. Refuz pentru cookie client, origini nepermise și toate rutele de Recepție și Admin din contul Anei | Jest HTTP, `staff-reception.spec.ts`, `sprint-3.spec.ts` |
+| 3 | Agendă zi/săptămână, filtrele Ioanei, refuz la detalii sau acțiuni externe agendei Anei, date clientă cu și fără cont, finalizare și neprezentare după sfârșit, refuz prematur, conflict și repetare sigură. Ioana poate marca și vizitele Anei. Fidelizarea numără numai `COMPLETED` | Jest HTTP, `staff-reception.spec.ts`, `sprint-3.spec.ts` |
+| 4 | Ioana creează direct `CONFIRMED` cu telefon, inclusiv pentru profil blocat online. Creare și mutare concurente, pierderea slotului, split și orarul de duminică. Reprogramare și anulare prin recepție versus refuz public în Zi Full și sub 24 h | Jest + PostgreSQL, `staff-reception.spec.ts`, `availability.spec.ts`, `concurrency.spec.ts` |
 | 5 | Anularea sau mutarea oferă primul slot compatibil, respectă fereastra activă și ordinea la expirare. Expedierea concurentă din recepție și job produce cel mult o notificare. Marcările și reminderul își păstrează regulile | Jest + PostgreSQL/Mailpit, `staff-reception.spec.ts`, `sprint-3.spec.ts`, `public-booking.spec.ts` |
-| 6 | Atașament, fără acces din exterior sau din cont client, filtru zi/săptămână și specialistă, doar `CONFIRMED`, UID stabil, conversie DST, escape și diacritice, fără date de contact | Jest HTTP și serializer, `staff-reception.spec.ts`, `calendar-export.spec.ts` |
-| 7 | Navigare directă fără sesiune și verificarea răspunsului HTTP inițial, login, logout, ambele agende și recepția, formular și eroare de conflict, Waitlist și descărcare .ics | Playwright, `staff-reception.spec.ts` |
+| 6 | Atașament, refuz pentru vizitatoare și cliente, refuz pentru Ana la exportul global sau al Ioanei, filtru zi/săptămână și specialistă, doar `CONFIRMED`, UID stabil, conversie DST, escape și diacritice, fără date de contact | Jest HTTP și serializer, `staff-reception.spec.ts`, `calendar-export.spec.ts` |
+| 7 | Navigare directă fără sesiune, refuz pe ruta Recepției pentru Ana și verificarea răspunsului HTTP inițial, login, logout, agenda Anei și Recepția Ioanei, formular și eroare de conflict, Waitlist și descărcare .ics | Playwright, `staff-reception.spec.ts` |
 | 8 | Capturi light/dark pe desktop și la 390 px, comparație cu reviziile HTML. Ore și număr de evenimente corecte la importul Google/Apple Calendar | Playwright pentru capturi. Verificare manuală pentru import, care cere aplicațiile externe și calendare de test |
 
 La build se rulează mai întâi cazurile de regresie noi, apoi toate suitele Jest cu PostgreSQL și Mailpit în Docker, validarea Prisma, migrarea pe bază nouă și pe o copie izolată a schemei precedente, seed, build-urile NestJS și Vite, verificarea Compose, Playwright și ledger lint cu `PYTHONUTF8=1`.
@@ -108,10 +110,10 @@ Administrarea conturilor de personal, resetarea parolei prin UI, editarea progra
 | Intrare | Aplicare | Validare |
 |---|---|---|
 | D-001, D-002, D-003, D-004, D-006, D-007, D-009, D-010, PATTERN-001, C-001, Q-004, Q-005, Q-006, Q-007, Q-009 | 15 intrări confirmate anterior. Docker, stivă și design, orar și split, politici publice, identitate clientă, remindere, confirmări publice și contractul Compose | Aplică versiunile curente. D-010 are ca domeniu rezervările publice |
-| D-008, Q-008 | Fidelizare și privilegii Admin. Agenda Anei cere o permisiune nouă pentru finalizare | Confirmă propunerea de supersedare D-008 |
+| D-011, D-012, D-013 | Fidelizare și marca vizitelor, accesul exclusiv după rol, recepție și export iCalendar | Aprobate la 27 noiembrie 2026. D-011 supersedează D-008, care explică istoricul Q-008 |
 | Q-001 | Originea stivei și a funcțiilor planificate | Răspuns consemnat, aplică D-002 |
-| Q-003 | Ioana Admin și Sprâncene, Ana Specialistă Make-up. Recepția fusese atribuită Ioanei | Confirmă extinderea accesului de recepție prin noua decizie. Răspunsul istoric rămâne consemnat |
-| Q-010, Q-011, Q-012 | Confirmare directă, acces la recepție și Waitlist, marcarea vizitelor și exportul | Răspunsuri confirmate explicit la 27 noiembrie 2026. Confirmă propunerile de decizie de mai jos |
+| Q-003 | Ioana Admin și Sprâncene, Ana Specialistă Make-up | D-012 confirmă Recepția exclusiv pentru Ioana |
+| Q-010, Q-011, Q-012 | Confirmare directă, operații de recepție și Waitlist, marcarea vizitelor și exportul | Răspunsuri confirmate explicit la 27 noiembrie 2026 și aplicate conform D-011–D-013 |
 
 Referințe de registru. [Decizii](../agents/DECISIONS.md) · [Patterns](../agents/PATTERNS.md) · [Contracte](../agents/CONTRACTS.md) · [Întrebări](../agents/OPEN-QUESTIONS.md) · [Arhitectură](../agents/ARCHITECTURE.md) · [Vocabular](../../CONTEXT.md)
 
@@ -121,31 +123,6 @@ Referințe de registru. [Decizii](../agents/DECISIONS.md) · [Patterns](../agent
 - Q-002 · Denumirea Beauty Studio vine din CONTEXT. Datele de contact istorice nu intră în export.
 - Registrul propunerilor respinse nu are o intrare aplicabilă. [REJECTED.md](../agents/REJECTED.md)
 
-### Propuneri de aprobat
+### Alegeri tehnice
 
-```text
-PROPOSAL: supersede
-- Existing: D-008 cere rolul Admin pentru finalizare și resetarea marcărilor.
-- Proposed: Păstrează algoritmul de Fidelizare și operațiile Admin existente. Permite fiecărei specialiste să marcheze propria programare CONFIRMED drept COMPLETED sau NO_SHOW după încheiere. NO_SHOW nu adaugă marcări și nu declanșează Waitlist. Resetarea marcărilor cere Admin.
-- Why now: Q-012 confirmă acțiunile din agenda fiecărei specialiste.
-- Impact: appointment-management.controller.ts, appointment-management.service.ts, sprint-3.spec.ts, agenda angajatului.
-- If approved: D-008 → superseded-by D-011 (kept, not deleted).
-
-PROPOSAL: add-decision
-- Existing: none. Q-003 consemnează accesul istoric al Ioanei la recepție.
-- Proposed: Accesul intern este exclusiv pentru cele două conturi fixe din seed, prin sesiuni verificate de Server. Ioana și Ana au acces la agenda proprie și la recepție. Ioana păstrează operațiile Admin.
-- Why now: Cerința Sprintului 4 extinde accesul de recepție la Ana și fixează identitățile.
-- Impact: seed.ts, schema.prisma, accesul client și personal, controlerele interne, paginile și documentația de dezvoltare.
-- If approved: adaugă D-012.
-
-PROPOSAL: add-decision
-- Existing: none. D-004, D-006, D-007, D-009 și D-010 guvernează regulile existente.
-- Proposed: Recepția creează programări CONFIRMED cu nume și telefon, gestionează excepțiile Zi Full și poate crea sau muta pentru cliente blocate online fără resetare. Waitlist permite consultarea și expedierea unei oferte active nestrimise, cu prioritatea existentă. Exportul autenticat include programările CONFIRMED din ziua sau săptămâna afișată.
-- Why now: Q-010, Q-011 și Q-012 confirmă operațiile specifice recepției și exportului.
-- Impact: appointments.service.ts, appointment-management.service.ts, waitlist.service.ts, calendarul recepției și descărcarea .ics.
-- If approved: adaugă D-013.
-```
-
-### Ipoteze tehnice de confirmat cu planul
-
-Reutilizarea proxy-ului Compose pentru poarta documentelor interne, sesiunile persistente de personal, săptămâna de luni până duminică și alegerea câmpurilor din fișier sunt propuneri de implementare. Confirmarea planului validează și aceste alegeri. Aprobarea deciziilor și a mock-urilor revizuite deblochează `/build`.
+Proxy-ul Compose verifică accesul la documentele interne, sesiunea de personal persistă în PostgreSQL, iar săptămâna afișată este de luni până duminică. Exportul include strict câmpurile de calendar descrise în plan.
