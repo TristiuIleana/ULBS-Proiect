@@ -1,11 +1,12 @@
-import { Body, Controller, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { IsInt, IsUUID, Max, Min } from 'class-validator';
 import { strictBody } from '../client-access/client-access.controller';
 import { ClientAccessService } from '../client-access/client-access.service';
 import { AppointmentManagementService } from './appointment-management.service';
 import { TokenDto } from './public-booking.dto';
+import { StaffAdminGuard } from '../staff-access/staff-access.controller';
 
-class MoveDto {
+export class MoveDto {
   @IsInt()
   @Min(0)
   @Max(Date.UTC(9999, 11, 30, 23, 59, 59, 999))
@@ -74,27 +75,25 @@ export class AppointmentManagementController {
 }
 
 @Controller('api/admin')
+@UseGuards(StaffAdminGuard)
 export class AdminAppointmentsController {
-  constructor(private readonly appointments: AppointmentManagementService, private readonly access: ClientAccessService) {}
+  constructor(private readonly appointments: AppointmentManagementService) {}
 
   @Post('appointments/:id/complete')
   @HttpCode(200)
-  async complete(@Param('id', ParseUUIDPipe) id: string, @Headers('cookie') cookie: string | undefined) {
-    await this.access.requireUser(cookie, 'ADMIN');
+  complete(@Param('id', ParseUUIDPipe) id: string) {
     return this.appointments.change({ id }, 'complete', true);
   }
 
   @Post('appointments/:id/cancel')
   @HttpCode(200)
-  async cancel(@Param('id', ParseUUIDPipe) id: string, @Headers('cookie') cookie: string | undefined) {
-    await this.access.requireUser(cookie, 'ADMIN');
+  cancel(@Param('id', ParseUUIDPipe) id: string) {
     return this.appointments.change({ id }, 'cancel', true);
   }
 
   @Post('clients/:id/unblock')
   @HttpCode(200)
-  async unblock(@Param('id', ParseUUIDPipe) id: string, @Headers('cookie') cookie: string | undefined) {
-    await this.access.requireUser(cookie, 'ADMIN');
+  unblock(@Param('id', ParseUUIDPipe) id: string) {
     return this.appointments.unblock(id);
   }
 }

@@ -33,8 +33,8 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
     app = await createApp();
     prisma = app.get(PrismaService);
     const [brows, makeup, services] = await Promise.all([
-      prisma.user.findUniqueOrThrow({ where: { email: 'ioana@beautystudio.local' } }),
-      prisma.user.findUniqueOrThrow({ where: { email: 'ana@beautystudio.local' } }),
+      prisma.user.findUniqueOrThrow({ where: { email: 'ioana@admin.com' } }),
+      prisma.user.findUniqueOrThrow({ where: { email: 'ana@admin.com' } }),
       prisma.service.findMany(),
     ]);
     browsId = brows.id;

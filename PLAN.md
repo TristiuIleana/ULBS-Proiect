@@ -32,7 +32,7 @@ Rezervarea publică este disponibilă fără cont, pe bază de nume, telefon și
 | D-004 | Orare separate pe specializări, pauze de 20 și 25 min intercalabile, slot Waitlist blocat 30 min pentru clienta notificată și Mailpit pentru e-mailul local. |
 | D-006 | Gestiunea online este blocată sub 24 h sau în Zi Full. Trei anulări târzii blochează rezervarea până la resetarea Admin. |
 | D-007 | Waitlist fără cont, cu asocierea datelor pe baza adresei confirmate. |
-| D-008 | Reducere de 10% la fiecare a cincea vizită eligibilă, cu alocare cronologică și recalcul la anulare. |
+| D-011 | Reducere de 10% la fiecare a cincea vizită eligibilă, cu alocare cronologică și recalcul la anulare. Marcarea vizitelor respectă domeniul rolului. |
 | D-009 | Reminder unic prin Mailpit, în fereastra de 2–24 h. |
 
 Sursă pentru formularea completă a regulilor aprobate. [D-001–D-004 și D-006–D-009](docs/agents/DECISIONS.md)
@@ -71,8 +71,8 @@ Schema păstrează prețul de bază, prețul final și suma reducerii. Sprintul 
 | Rol | Acces și responsabilități |
 | --- | --- |
 | Clientă | Rezervă din portal, primește confirmarea și linkul securizat pentru gestiune, se înscrie în Waitlist și poate crea un cont pentru istoric și Fidelizare. |
-| Specialistă | Ana prestează Make-up și consultă propriile programări și datele clientelor aferente. Calendarul propriu va fi disponibil și printr-un link privat iCal. |
-| Admin | Ioana gestionează recepția, calendarul echipei, rezervările telefonice, catalogul, personalul, excepțiile de program, zilele marcate Zi Full și Waitlist. Ioana prestează și serviciile de sprâncene. |
+| Specialistă | Ana prestează Make-up, consultă și exportă propria agendă și marchează propriile vizite încheiate. |
+| Admin | Ioana gestionează Recepția, ambele agende și exportul lor, rezervările telefonice, excepțiile Zi Full și Waitlist. Ioana prestează și serviciile de sprâncene. |
 
 | Specialistă și program | Serviciu | Durată | Preț |
 | --- | --- | ---: | ---: |
@@ -111,7 +111,7 @@ Pentru Laminare sprâncene, cele cinci etape sunt **15 min ocupat → 20 min lib
 | Disponibilitate și rezervare | Catalog, disponibilitate și creare publică prin API. Teste PostgreSQL pentru intercalare, schimbarea orei și concurență. | Conectarea fluxurilor de echipă la același calcul. |
 | Gestiune programări | Modele pentru programări, stări și token. | Consultare, anulare și reprogramare prin token, cu aplicarea politicii Zi Full și eliberarea consecventă a etapelor. |
 | Conturi și Fidelizare | Roluri în schemă, decizie aprobată și flux demonstrativ în mock-up. | Autentificare reală și autorizare, calculul prețului pe Server, stocarea reducerii și afișarea progresului și istoricului. |
-| Waitlist, e-mail și iCal | Model WaitlistEntry și confirmări de rezervare prin Mailpit. | Notificări, remindere, blocarea slotului, revendicare și expirare, plus export privat iCal. |
+| Waitlist, e-mail și iCalendar | WaitlistEntry și confirmări prin Mailpit. | Notificări, remindere, blocarea slotului, revendicare și expirare, plus descărcarea .ics din agenda autorizată. |
 | Frontend | Pagina React de rezervare fără cont consumă API-ul prin proxy-ul Vite. | Fluxurile de cont, gestiune și echipă. |
 | Validare finală | Suite pentru disponibilitate și concurență în repository. | Testare cu PostgreSQL în Docker și verificarea fluxurilor complete, a accesului pe roluri, a politicii Zi Full, a ferestrei Waitlist, a Fidelizării și a afișării pe mobil și desktop în ambele teme. |
 

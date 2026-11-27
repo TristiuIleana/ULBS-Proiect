@@ -11,6 +11,11 @@
   "dependencies": {
     "@fontsource-variable/playfair-display": "^5.2.0",
     "@fontsource-variable/plus-jakarta-sans": "^5.2.0",
+    "@fullcalendar/core": "^6.1.22",
+    "@fullcalendar/luxon3": "^6.1.22",
+    "@fullcalendar/react": "^6.1.22",
+    "@fullcalendar/timegrid": "^6.1.22",
+    "luxon": "^3.7.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

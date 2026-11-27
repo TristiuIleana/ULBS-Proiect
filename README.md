@@ -42,7 +42,7 @@ Spre deosebire de serviciile monolitice, serviciul de **Laminare sprâncene** es
 
 Algoritmul de disponibilitate garantează că programările intercalate nu depășesc intervalul liber și că nu apar suprapuneri (15 + 20 + 15 + 25 + 15 = 90 min).
 
-### C. Programul de Fidelizare Automată (D-008)
+### C. Programul de Fidelizare Automată (D-011)
 Clientele care și-au creat un cont beneficiază de un **sistem automat de loialitate cu ciclu repetat**:
 - Se numără **toate vizitele finalizate** la nivelul întregului studio (indiferent de serviciu sau specialist).
 - La fiecare **a 5-a vizită** (5, 10, 15…), o **reducere de 10%** se aplică automat la prețul programării respective.
@@ -62,17 +62,14 @@ Clientele care și-au creat un cont beneficiază de un **sistem automat de loial
   - Primește pe email confirmarea și un **link securizat cu token unic** pentru consultarea, reprogramarea sau anularea rezervării.
   - Opțional: Poate activa un cont cu parolă pentru a avea acces la întreg istoricul programărilor sale și la **programul de fidelizare** (progres vizite, reduceri automate — vezi secțiunea 2.C).
   - Înscriere pe **Lista de așteptare** când o zi / un interval dorit nu are sloturi disponibile.
-- **Angajat (Specialistă Make-up):**
-  - Autentificare cu email și parolă.
+- **Angajat (Ana, Specialistă Make-up):**
+  - Autentificare cu contul fix de personal.
   - Vizualizează exclusiv propriul calendar de lucru și datele clientelor programate la ea.
-  - URL privat de abonare la calendar extern prin **iCal (.ics)** (Google Calendar, Apple Calendar, Outlook).
+  - Marchează propriile vizite după ora de sfârșit și descarcă agenda proprie în format `.ics`.
 - **Admin / Recepție (Ioana):**
-  - Acces complet la panoul de administrare.
-  - Calendar de recepție multi-angajat (zi/săptămână, editare rapidă, blocare manuală de intervale).
-  - Gestiune catalog servicii și configurator de etape split (ocupat/liber).
-  - Gestiune personal, orare săptămânale și excepții/concedii.
-  - Marcare calendaristică a zilelor „Full” / aglomerate.
-  - Monitorizare listă de așteptare.
+  - Calendar zilnic și săptămânal cu ambele specialiste, filtrare și descărcare `.ics`.
+  - Creare, mutare și anulare prin Recepție, inclusiv în Zi Full, marcarea vizitelor și operațiile Admin.
+  - Consultă Waitlist și poate expedia o ofertă activă nestrimisă.
 
 ---
 
@@ -83,7 +80,7 @@ Clientele care și-au creat un cont beneficiază de un **sistem automat de loial
 - **Joburi de Fundal Programate (Scheduled Crons):**
   - **Reminder automat pe e-mail:** Cronul trimite o singură dată pentru programarea confirmată când mai sunt între 2 și 24 h până la start.
   - **Procesare Waitlist:** După o anulare sau o reprogramare, prima clientă eligibilă primește un link prioritar valabil până la 30 de minute.
-- **Export iCal (.ics):** Endpoint securizat cu token pentru sincronizarea automată a calendarului fiecărui angajat.
+- **Export iCalendar (.ics):** Descărcare autentificată a programărilor confirmate din ziua sau săptămâna afișată, pentru import în Google Calendar sau Apple Calendar.
 
 ---
 
@@ -119,8 +116,21 @@ Documentația este gestionată conform regulilor de guvernanță agentică din `
 - `CONTEXT.md` — Vocabularul controlat al domeniului aplicației.
 - `AI_LOG.md` — Jurnalul transparent al sesiunilor de lucru cu asistentul AI.
 
-## 8. Operații Admin în Sprintul 3
+## 8. Configurarea locală a conturilor de personal
 
-Pentru baza locală, transmite parola de bootstrap prin variabila de mediu `ADMIN_SEED_PASSWORD` a procesului care rulează seed-ul. Rulează `docker compose run --rm -e ADMIN_SEED_PASSWORD server npm run prisma:seed`. Seed-ul actualizează parola contului Admin când variabila este furnizată.
+Configurează două parole distincte, de 12–128 caractere, în fișierul local `.env.staff`, ignorat de Git. Înlocuiește substituenții cu valori păstrate local și folosește aceleași valori la rerulare.
 
-Autentificarea prin `POST /api/client/login` emite cookie-ul de sesiune. Cu sesiunea Admin poți apela `POST /api/admin/appointments/:id/complete` după încheierea vizitei, `POST /api/admin/appointments/:id/cancel` pentru anularea prin salon și `POST /api/admin/clients/:id/unblock` pentru resetarea marcărilor. Mailpit afișează linkurile de cont, gestiune și Waitlist. În Docker Compose, Serverul folosește implicit `http://localhost:17173` la generarea linkurilor locale. Poți seta `PUBLIC_WEB_ORIGIN` dacă frontendul este accesibil la altă adresă.
+```dotenv
+IOANA_SEED_PASSWORD=<parola-locală-pentru-ioana>
+ANA_SEED_PASSWORD=<parola-locală-pentru-ana>
+```
+
+```sh
+docker compose up -d --build
+docker compose exec -T server npx prisma migrate deploy
+docker compose run --rm --env-from-file .env.staff server npm run prisma:seed
+```
+
+Deschide `http://localhost:17173/staff/login`. Folosește `ioana@admin.com` cu `IOANA_SEED_PASSWORD` pentru Recepție și `ana@admin.com` cu `ANA_SEED_PASSWORD` pentru agenda proprie. Schimbarea parolei urmată de rerularea seed-ului revocă sesiunile vechi ale contului.
+
+Autentificarea personalului folosește `POST /api/staff/login` și un cookie separat de sesiunea clientei. Pentru frontend pe altă adresă, setează `PUBLIC_WEB_ORIGIN` la originea sa, cu HTTPS în afara dezvoltării locale. Serverul folosește această origine și pentru linkurile preluate din Mailpit.

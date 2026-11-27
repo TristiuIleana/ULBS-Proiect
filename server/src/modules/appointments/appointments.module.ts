@@ -9,11 +9,16 @@ import { WaitlistController } from '../waitlist/waitlist.controller';
 import { AppointmentManagementService } from './appointment-management.service';
 import { AdminAppointmentsController, AppointmentManagementController } from './appointment-management.controller';
 import { NotificationJobsService } from '../notifications/notification-jobs.service';
+import { StaffAccessModule } from '../staff-access/staff-access.module';
+import { EmployeeCalendarController, ReceptionCalendarController } from './staff-calendar.controller';
+import { StaffCalendarService } from './staff-calendar.service';
 
 @Module({
-  imports: [AvailabilityModule, ClientAccessModule],
-  controllers: [PublicBookingsController, AppointmentManagementController, AdminAppointmentsController, WaitlistController],
-  providers: [AppointmentsService, AppointmentManagementService, BookingConfirmationService, WaitlistService, NotificationJobsService],
+  imports: [AvailabilityModule, ClientAccessModule, StaffAccessModule],
+  controllers: [PublicBookingsController, AppointmentManagementController, AdminAppointmentsController,
+    WaitlistController, EmployeeCalendarController, ReceptionCalendarController],
+  providers: [AppointmentsService, AppointmentManagementService, BookingConfirmationService, WaitlistService,
+    NotificationJobsService, StaffCalendarService],
   exports: [AppointmentsService],
 })
 export class AppointmentsModule {}

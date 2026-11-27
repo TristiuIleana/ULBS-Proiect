@@ -589,3 +589,10 @@ Jurnalul interacțiunilor și sesiunilor de lucru cu asistentul AI Antigravity p
 
 - Ioana are acces complet la calendarul salonului, Recepție, Waitlist, operații Admin și exportul fiecărei agende sau al ambelor. Ana vede și exportă exclusiv agenda proprie și își poate marca vizitele confirmate după ora de sfârșit. [Plan Sprintul 4](docs/plans/sprint-4-staff-reception.md)
 - Utilizatorul a autorizat buildul cu separarea revizuită. D-011 supersedează D-008 păstrând algoritmul Fidelizării, iar D-012 și D-013 consemnează accesul, operațiile de Recepție și descărcarea iCalendar. [Decizii](docs/agents/DECISIONS.md)
+
+### Build Sprintul 4
+
+- Serverul separă sesiunea personalului de sesiunea clientei. Seed-ul migrează identitățile existente și citește cele două parole din configurarea locală. Ioana are rute Admin și Recepție, iar agenda și exportul Anei sunt limitate prin ID-ul din sesiune. Recepția creează vizite confirmate și reutilizează disponibilitatea, blocările și fluxul Waitlist. [Configurare](README.md#8-configurarea-locală-a-conturilor-de-personal)
+- Testele noi au reprodus lipsa endpointului de login prin HTTP 404. Toate cele 54 de teste Jest au trecut cu PostgreSQL și Mailpit în Docker, împreună cu validarea Prisma și buildul NestJS. Aserțiunile existente au fost păstrate. Migrarea a fost aplicată pe baza izolată cu schema anterioară. Prima rulare a regresiei Sprintului 3 a întors HTTP 401 deoarece ceasul testului sărea peste expirarea sesiunii Admin. Fixture-ul deschide sesiunea după schimbarea ceasului.
+- Buildul Vite a trecut și Chrome a verificat ecranele cu API simulat și date sintetice, în ambele teme, inclusiv afișarea la 390 px și focusul după închiderea dialogului. Capturile sunt în registru. [Capturi](docs/design/screens/)
+- Spațiul de pe C: s-a epuizat la finalizarea imaginii Docker. După repornire, crearea containerului Server pentru stiva Playwright izolată a returnat `502 Bad Gateway`, iar C: a rămas din nou fără spațiu. Verificarea Playwright end-to-end pe stiva integrată și importul în Google Calendar sau Apple Calendar rămân nevalidate. Serializerul și domeniul exportului au fost verificate în Jest.

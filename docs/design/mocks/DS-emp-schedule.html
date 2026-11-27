@@ -129,14 +129,14 @@
         <h1>Programările mele</h1>
         <span class="muted">Ana · Agenda demonstrativă</span>
       </div>
-      <button class="primary" id="open-block" type="button">Blochează un interval</button>
+      <button id="download-calendar" type="button">Descarcă .ics</button>
     </div>
     <div class="row between">
       <label class="row" for="agenda-date">Data <input type="date" id="agenda-date" value="2026-11-21" required></label>
-      <span class="muted">Program 09:00–19:00</span>
+      <div class="row"><button id="view-day" aria-pressed="true" type="button">Zi</button><button id="view-week" aria-pressed="false" type="button">Săptămână</button></div>
     </div>
     <p id="feedback" role="status"></p>
-    <p class="card" id="empty" hidden>Nicio programare sau blocare pentru data selectată.</p>
+    <p class="card" id="empty" hidden>Nicio programare în perioada selectată.</p>
     <ul class="agenda" id="agenda" aria-label="Agenda zilei"></ul>
   </main>
 
@@ -158,25 +158,6 @@
     </div>
   </dialog>
 
-  <dialog class="card" id="block-dialog" aria-labelledby="block-title">
-    <h2 id="block-title">Blochează un interval</h2>
-    <form id="block-form">
-      <label>Motiv
-        <select id="block-kind"><option>Pauză</option><option>Concediu</option></select>
-      </label>
-      <label>Data <input id="block-date" type="date" required></label>
-      <div class="times">
-        <label>De la <input id="block-start" type="time" min="09:00" max="19:00" required></label>
-        <label>Până la <input id="block-end" type="time" min="09:00" max="19:00" required></label>
-      </div>
-      <p class="error" id="block-error" role="alert" hidden></p>
-      <div class="row">
-        <button class="primary" type="submit">Salvează blocajul</button>
-        <button type="button" id="close-block">Renunță</button>
-      </div>
-    </form>
-  </dialog>
-
   <template id="entry-template">
     <li>
       <article class="card">
@@ -196,21 +177,50 @@
       { date: '2026-11-21', start: '11:00', end: '13:00', service: 'Make-up mireasă', client: 'Clientă demo 2', phone: '0700 000 002', notes: 'Preferă un finisaj luminos și discret pentru fotografiile de la ceremonie.', status: 'Confirmată' },
       { date: '2026-11-21', start: '16:00', end: '17:30', service: 'Make-up ocazie (cu gene)', client: 'Clientă demo 3', phone: '0700 000 003', notes: 'Machiaj de seară.', status: 'Confirmată' }
     ];
-    const blocks = [];
     const date = document.getElementById('agenda-date');
     const agenda = document.getElementById('agenda');
     const feedback = document.getElementById('feedback');
     const details = document.getElementById('details');
-    const blockDialog = document.getElementById('block-dialog');
-    const blockForm = document.getElementById('block-form');
-    const blockDate = document.getElementById('block-date');
-    const blockError = document.getElementById('block-error');
     const entryTemplate = document.getElementById('entry-template');
     let selectedAppointment;
 
+    const dayButton = document.getElementById('view-day');
+    const weekButton = document.getElementById('view-week');
+    const dayMs = 86400000;
+    function visibleEntries() {
+      if (weekButton.getAttribute('aria-pressed') === 'false') return appointments.filter(entry => entry.date === date.value);
+      const day = new Date(date.value + 'T00:00:00Z');
+      const first = day.getTime() - ((day.getUTCDay() + 6) % 7) * dayMs;
+      return appointments.filter(entry => {
+        const start = Date.parse(entry.date + 'T00:00:00Z');
+        return start >= first && start < first + 7 * dayMs;
+      });
+    }
+    for (const button of [dayButton, weekButton]) {
+      button.addEventListener('click', () => {
+        dayButton.setAttribute('aria-pressed', String(button === dayButton));
+        weekButton.setAttribute('aria-pressed', String(button === weekButton));
+        renderAgenda();
+      });
+    }
+    document.getElementById('download-calendar').addEventListener('click', () => {
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Beauty Studio//Mock//RO'];
+      for (const entry of visibleEntries().filter(item => item.status === 'Confirmată')) {
+        const stamp = time => new Date(entry.date + 'T' + time + ':00+02:00').toISOString().replace(/[-:]|[.]000/g, '');
+        lines.push('BEGIN:VEVENT', 'UID:ana-demo-' + stamp(entry.start) + '@beautystudio.local',
+          'DTSTAMP:20261120T120000Z', 'DTSTART:' + stamp(entry.start), 'DTEND:' + stamp(entry.end),
+          'SUMMARY:' + entry.service, 'END:VEVENT');
+      }
+      lines.push('END:VCALENDAR', '');
+      const url = URL.createObjectURL(new Blob([lines.join('\r\n')], { type: 'text/calendar' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'agenda-ana-demo.ics';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
     function renderAgenda() {
-      const entries = [...appointments, ...blocks]
-        .filter(entry => entry.date === date.value)
+      const entries = visibleEntries()
         .sort((first, second) => first.start.localeCompare(second.start));
       agenda.replaceChildren();
       document.getElementById('empty').hidden = entries.length > 0;
@@ -256,35 +266,6 @@
       renderAgenda();
       agenda.querySelector('[aria-label="Detalii – ' + selectedAppointment.client + '"]').focus();
       feedback.textContent = 'Stare actualizată: ' + status + '.';
-    });
-    document.getElementById('open-block').addEventListener('click', () => {
-      blockForm.reset();
-      blockDate.value = date.value;
-      blockError.hidden = true;
-      blockDialog.showModal();
-    });
-    document.getElementById('close-block').addEventListener('click', () => blockDialog.close());
-    blockForm.addEventListener('submit', event => {
-      event.preventDefault();
-      const start = document.getElementById('block-start').value;
-      const end = document.getElementById('block-end').value;
-      const overlaps = [...appointments, ...blocks].some(entry =>
-        entry.date === blockDate.value && start < entry.end && entry.start < end);
-      if (start >= end || overlaps) {
-        blockError.textContent = start >= end
-          ? 'Ora de final trebuie să fie după ora de început.'
-          : 'Intervalul se suprapune cu o programare sau cu un blocaj existent.';
-        blockError.hidden = false;
-        return;
-      }
-      blocks.push({
-        date: blockDate.value, start, end,
-        service: document.getElementById('block-kind').value, status: 'Blocat'
-      });
-      date.value = blockDate.value;
-      blockDialog.close();
-      renderAgenda();
-      feedback.textContent = 'Interval blocat: ' + start + '–' + end + '.';
     });
     const themeToggle = document.getElementById('theme-toggle');
     themeToggle.addEventListener('click', () => {

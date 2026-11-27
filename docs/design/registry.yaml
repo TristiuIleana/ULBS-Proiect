@@ -78,25 +78,25 @@ designs:
   # ==========================================
   - id: DS-adm-login
     name: Autentificare Personal (Staff Login)
-    description: Autentificare demonstrativă a personalului, cu selector de rol care deschide calendarul Admin sau agenda proprie a Specialistei Make-up.
+    description: Autentificare prin e-mail și parolă pentru cele două conturi fixe. Sesiunea verificată de Server stabilește destinația.
     kind: screen
     source: frontend/src/pages/admin/StaffLoginPage.tsx
     screenshots: [screens/DS-adm-login.light.png, screens/DS-adm-login.dark.png]
     design_ref: mocks/DS-adm-login.html
     # Figma: versiunea aprobată anterior reviziei HTML.
     figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=5-43
-    status: draft
+    status: implemented
 
   - id: DS-adm-calendar
     name: Calendar Recepție Multi-Angajat
-    description: Calendar pentru Admin, cu toate specialistele și serviciile, filtrare pe specialistă, Zi Full, Waitlist și acces direct la Servicii și Rapoarte.
+    description: Calendarul Ioanei pe zi și săptămână, cu ambele specialiste, filtrare, creare și gestiune prin Recepție, Zi Full, Waitlist și export iCalendar.
     kind: screen
     source: frontend/src/pages/admin/ReceptionCalendarPage.tsx
     screenshots: [screens/DS-adm-calendar.light.png, screens/DS-adm-calendar.dark.png]
     design_ref: mocks/DS-adm-calendar.html
     # Figma: versiunea aprobată anterior reviziei HTML.
     figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=6-2
-    status: draft
+    status: implemented
 
   - id: DS-adm-services
     name: Gestiune Servicii & Etape Split
@@ -138,24 +138,24 @@ designs:
 
   - id: DS-adm-waitlist
     name: Monitorizare Listă de Așteptare
-    description: Panou administrativ pentru vizualizarea cererilor din waitlist, monitorizarea notificărilor prioritare de 30 de minute și alocarea sloturilor eliberate.
+    description: Dialogul Ioanei pentru consultarea cererilor și expedierea ofertelor active nestrimise, cu prioritatea stabilită de Server.
     kind: screen
     source: frontend/src/pages/admin/WaitlistManagementPage.tsx
     screenshots: [screens/DS-adm-waitlist.light.png, screens/DS-adm-waitlist.dark.png]
-    design_ref: none
-    status: proposed
+    design_ref: mocks/DS-adm-calendar.html#modal-waitlist
+    status: implemented
 
   # ==========================================
   # 3. Ecrane Angajat (Specialistă Make-up)
   # ==========================================
   - id: DS-emp-calendar
     name: Calendar Personal Angajat
-    description: Agenda Anei, Specialistă Make-up, cu programări proprii, detalii clientă, marcarea stărilor și blocarea intervalelor proprii.
+    description: Agenda proprie pe zi sau săptămână, cu detalii clientă, marcarea vizitelor încheiate și exportul iCalendar al specialistei.
     kind: screen
     source: frontend/src/pages/employee/EmployeeCalendarPage.tsx
     screenshots: [screens/DS-emp-calendar.light.png, screens/DS-emp-calendar.dark.png]
     design_ref: mocks/DS-emp-schedule.html
-    status: draft
+    status: implemented
 
   # ==========================================
   # 4. Componente Partajate Specifice (DS Components)

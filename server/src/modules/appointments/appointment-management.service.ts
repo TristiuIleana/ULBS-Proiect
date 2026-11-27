@@ -10,8 +10,8 @@ import { bookingResendToken, BookingConfirmationService } from './booking-confir
 import { confirmationExpiredMessage, confirmationExpiredReason, pendingConfirmationExpired } from './confirmation-deadline';
 
 const dayMs = 24 * 60 * 60_000;
-type Access = { token: string } | { id: string; clientId?: string };
-type Action = 'cancel' | 'reschedule' | 'complete';
+type Access = { token: string } | { id: string; clientId?: string; specialistId?: string };
+type Action = 'cancel' | 'reschedule' | 'complete' | 'no-show';
 
 @Injectable()
 export class AppointmentManagementService {
@@ -20,7 +20,8 @@ export class AppointmentManagementService {
     private readonly confirmation: BookingConfirmationService) {}
 
   private where(access: Access): Prisma.AppointmentWhereInput {
-    return 'token' in access ? { cancellationToken: access.token } : { id: access.id, clientId: access.clientId };
+    return 'token' in access ? { cancellationToken: access.token } :
+      { id: access.id, clientId: access.clientId, specialistId: access.specialistId };
   }
 
   private async canManage(tx: Prisma.TransactionClient, booking: Appointment, now = Date.now()) {
@@ -113,6 +114,7 @@ export class AppointmentManagementService {
   }
 
   async change(access: Access, action: Action, admin: boolean, slotUtcMs?: number) {
+    const attendance = action === 'complete' || action === 'no-show';
     const result = await this.appointments.transaction(async tx => {
       const where = this.where(access);
       const snapshot = await tx.appointment.findFirst({ where, select: { specialistId: true } });
@@ -138,13 +140,13 @@ export class AppointmentManagementService {
         return { expired: true, changed: { specialistId: booking.specialistId, startTime: booking.startTime } };
       }
 
-      const targetStatus = action === 'complete' ? 'COMPLETED' : 'CANCELLED';
+      const targetStatus = action === 'complete' ? 'COMPLETED' : action === 'no-show' ? 'NO_SHOW' : 'CANCELLED';
       if (action !== 'reschedule' && booking.status === targetStatus) return { offerId: undefined };
-      if (!activeAppointmentStatuses.includes(booking.status) || (action === 'complete' && booking.status !== 'CONFIRMED')) {
+      if (!activeAppointmentStatuses.includes(booking.status) || (attendance && booking.status !== 'CONFIRMED')) {
         throw new ConflictException('Starea programării nu permite această acțiune.');
       }
       const { canManage, date } = await this.canManage(tx, booking, now);
-      if (!admin && !canManage) {
+      if (!admin && !canManage && !(attendance && 'specialistId' in access && access.specialistId)) {
         throw new ForbiddenException('Modificarea nu mai este permisă online. Contactează salonul.');
       }
       const released = booking.stages.filter(stage => stage.isBusy).map(stage => ({
@@ -153,7 +155,7 @@ export class AppointmentManagementService {
 
       if (action === 'reschedule' && slotUtcMs !== undefined) {
         if (booking.startTime.getTime() === slotUtcMs) return { offerId: undefined };
-        assertNotBlocked(client);
+        if (!admin) assertNotBlocked(client);
         const { stages } = await this.appointments.fit(tx, {
           serviceId: booking.serviceId, specialistId: booking.specialistId, slotUtcMs,
         }, specialist?.category, { appointmentId: booking.id });
@@ -165,8 +167,8 @@ export class AppointmentManagementService {
             stages: { create: stages.map(stage => ({ ...stage, status: booking.status })) },
           },
         });
-      } else if (action === 'complete') {
-        if (booking.endTime.getTime() > Date.now()) throw new ConflictException('Vizita este încă în desfășurare sau viitoare.');
+      } else if (attendance) {
+        if (booking.endTime.getTime() > now) throw new ConflictException('Vizita este încă în desfășurare sau viitoare.');
         await tx.appointment.update({ where: { id: booking.id }, data: { status: targetStatus } });
         await tx.appointmentStage.updateMany({ where: { appointmentId: booking.id }, data: { status: targetStatus } });
       } else {
@@ -179,7 +181,7 @@ export class AppointmentManagementService {
       }
       if (booking.clientId) await allocateLoyalty(tx, booking.clientId);
 
-      const offerId = action === 'complete' ? undefined :
+      const offerId = attendance ? undefined :
         await this.waitlist.offer(tx, booking.specialistId, date, released);
       const address = action === 'reschedule' ? client?.email ?? guestEmail : null;
       return {

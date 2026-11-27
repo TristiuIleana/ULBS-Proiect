@@ -1,43 +1,50 @@
-import { PrismaClient, Role, ServiceCategory } from '@prisma/client';
-import { hashPassword } from '../src/modules/client-access/password';
+import { PrismaClient, ServiceCategory } from '@prisma/client';
+import { lockEmail } from '../src/modules/client-access/client-records';
+import { hashPassword, passwordMatches } from '../src/modules/client-access/password';
+import { staffIdentities } from '../src/modules/staff-access/staff-identities';
 
 const prisma = new PrismaClient();
 
 export async function seed() {
   console.log('Seeding Beauty Studio database...');
 
-  const adminPassword = process.env.ADMIN_SEED_PASSWORD;
-  if (adminPassword && (adminPassword.length < 12 || adminPassword.length > 128)) {
-    throw new Error('ADMIN_SEED_PASSWORD must contain 12 to 128 characters.');
-  }
-  const adminCredentials = adminPassword ? { passwordHash: await hashPassword(adminPassword) } : {};
-
-  // 1. Specialists
-  const ioana = await prisma.user.upsert({
-    where: { email: 'ioana@beautystudio.local' },
-    update: { lastName: '', specialistCategory: ServiceCategory.BROWS, ...adminCredentials },
-    create: {
-      email: 'ioana@beautystudio.local',
-      phone: '0756062883',
-      firstName: 'Ioana',
-      lastName: '',
-      role: Role.ADMIN,
-      specialistCategory: ServiceCategory.BROWS,
-      ...adminCredentials,
-    },
+  const configured = staffIdentities.map(({ passwordVariable, ...identity }) => {
+    const password = process.env[passwordVariable];
+    if (!password || password.length < 12 || password.length > 128) {
+      throw new Error(`${passwordVariable} must contain 12 to 128 characters.`);
+    }
+    return { ...identity, password };
   });
-
-  const ana = await prisma.user.upsert({
-    where: { email: 'ana@beautystudio.local' },
-    update: { specialistCategory: ServiceCategory.MAKEUP },
-    create: {
-      email: 'ana@beautystudio.local',
-      phone: '0756062883',
-      firstName: 'Ana',
-      lastName: 'Tehnician',
-      role: Role.SPECIALIST,
-      specialistCategory: ServiceCategory.MAKEUP,
-    },
+  const [ioana, ana] = await prisma.$transaction(async tx => {
+    const specialists = [];
+    for (const { legacyEmail, email, role, specialistCategory, firstName, lastName, password } of configured) {
+      await lockEmail(tx, email);
+      await lockEmail(tx, legacyEmail);
+      const matches = await tx.user.findMany({ where: {
+        email: { in: [email, legacyEmail], mode: 'insensitive' },
+      } });
+      const existing = matches[0];
+      if (matches.length > 1 || (existing &&
+          (existing.role !== role || existing.specialistCategory !== specialistCategory))) {
+        throw new Error('Staff identity collision. Resolve the conflicting account before running seed.');
+      }
+      if (!existing) {
+        specialists.push(await tx.user.create({ data: {
+          email, role, specialistCategory, firstName, lastName, phone: '0756062883',
+          passwordHash: await hashPassword(password),
+        } }));
+        continue;
+      }
+      const changed = !await passwordMatches(password, existing.passwordHash);
+      if (changed || existing.email !== email) {
+        await tx.staffSession.deleteMany({ where: { userId: existing.id } });
+      }
+      await tx.clientSession.deleteMany({ where: { userId: existing.id } });
+      specialists.push(await tx.user.update({ where: { id: existing.id }, data: {
+        email, ...(changed ? { passwordHash: await hashPassword(password) } : {}),
+      } }));
+    }
+    return specialists;
   });
 
   console.log('Seeded specialist categories.');
@@ -53,11 +60,7 @@ export async function seed() {
           dayOfWeek: day,
         },
       },
-      update: {
-        isWorking: !isSunday,
-        startTime: '09:00',
-        endTime: '19:00',
-      },
+      update: {},
       create: {
         specialistId: ioana.id,
         dayOfWeek: day,
@@ -77,11 +80,7 @@ export async function seed() {
           dayOfWeek: day,
         },
       },
-      update: {
-        isWorking: true,
-        startTime: '09:00',
-        endTime: '19:00',
-      },
+      update: {},
       create: {
         specialistId: ana.id,
         dayOfWeek: day,

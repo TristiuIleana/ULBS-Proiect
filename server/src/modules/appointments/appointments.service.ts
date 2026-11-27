@@ -112,15 +112,17 @@ export class AppointmentsService {
     if (clientId) await allocateLoyalty(tx, clientId);
   }
 
-  async reserve(tx: Prisma.TransactionClient, req: BookingInput, sessionClientId?: string, offerId?: string) {
+  async reserve(tx: Prisma.TransactionClient, req: BookingInput, sessionClientId?: string, offerId?: string,
+    channel: 'public' | 'reception' = 'public') {
     if ('slotUtcMs' in req) assertNotPast(req.slotUtcMs);
     const specialist = await lockSpecialist(tx, req.specialistId);
     const { service, stages } = await this.fit(tx, req, specialist?.category, { offerId });
+    const status = channel === 'reception' ? AppointmentStatus.CONFIRMED : AppointmentStatus.PENDING_CONFIRMATION;
     const data: Prisma.AppointmentUncheckedCreateInput = {
       specialistId: req.specialistId, serviceId: req.serviceId, startTime: stages[0].startTime,
       endTime: stages[stages.length - 1].endTime, totalPriceRon: service.priceRon, basePriceRon: service.priceRon,
-      status: AppointmentStatus.PENDING_CONFIRMATION, confirmationToken: randomUUID(),
-      stages: { create: stages.map(stage => ({ ...stage, status: AppointmentStatus.PENDING_CONFIRMATION })) },
+      status, confirmationToken: channel === 'public' ? randomUUID() : null,
+      stages: { create: stages.map(stage => ({ ...stage, status })) },
     };
     if ('clientId' in req) {
       data.clientId = req.clientId;
@@ -129,10 +131,14 @@ export class AppointmentsService {
       if (!user) throw new NotFoundException('Contul nu există.');
       assertNotBlocked(user);
       data.clientId = user.id;
-    } else if (req.email) {
-      const email = emailKey(req.email);
-      await lockEmail(tx, email);
-      assertNotBlocked(await guestProfile(tx, email));
+    } else if (req.email || channel === 'reception') {
+      if (req.email) {
+        const email = emailKey(req.email);
+        await lockEmail(tx, email);
+        const client = await guestProfile(tx, email);
+        if (channel === 'public') assertNotBlocked(client);
+        else if (client?.emailVerifiedAt) data.clientId = client.id;
+      }
       Object.assign(data, {
         guestFirstName: req.firstName, guestLastName: req.lastName,
         guestPhone: req.phone, guestEmail: req.email,
@@ -143,8 +149,9 @@ export class AppointmentsService {
     if ('slotUtcMs' in req) assertNotPast(req.slotUtcMs);
     data.createdAt = new Date(Date.now());
     const booking = await tx.appointment.create({ data, include: summaryRelations });
-    if (!sessionClientId) return booking;
-    await allocateLoyalty(tx, sessionClientId);
+    const loyaltyClientId = sessionClientId ?? (channel === 'reception' ? data.clientId : undefined);
+    if (!loyaltyClientId) return booking;
+    await allocateLoyalty(tx, loyaltyClientId);
     return tx.appointment.findUniqueOrThrow({ where: { id: booking.id }, include: summaryRelations });
   }
 

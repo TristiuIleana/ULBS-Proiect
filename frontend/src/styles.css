@@ -1,5 +1,56 @@
 @import "tailwindcss";
 
+.staff-login { display: grid; place-items: center; min-height: calc(100vh - 72px); padding: 24px; }
+.staff-login .card { width: min(100%, 424px); padding: clamp(20px, 5vw, 36px); }
+.staff-login h1 { margin: 8px 0 24px; font-size: clamp(28px, 5vw, 32px); }
+.staff-login .studio-header > .staff-brand, .staff-login h1 { text-align: center; }
+.staff-login .primary-button { width: 100%; }
+.staff-brand { color: var(--secondary); font-weight: 750; letter-spacing: .11em; text-transform: uppercase; font-size: 12px; }
+.staff-page { width: min(1080px, calc(100% - 32px)); display: grid; gap: 16px; margin: 16px auto 48px; }
+.staff-page.staff-reception { width: min(1320px, calc(100% - 32px)); }
+.staff-page h1 { margin: 4px 0; }
+.staff-page > .studio-header { display: flex; }
+.public-toolbar.staff-toolbar { width: min(1320px, calc(100% - 32px)); }
+.staff-nav { width: min(1320px, calc(100% - 32px)); display: flex; gap: 8px; flex-wrap: wrap; margin: 8px auto; }
+.staff-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.staff-form, .staff-workspace, .staff-lane { display: grid; align-content: start; gap: 12px; min-width: 0; }
+.staff-fields, .staff-columns { display: grid; gap: 16px; min-width: 0; }
+.staff-fields, .staff-columns-combined { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.staff-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.staff-controls [aria-pressed="true"], .staff-nav [aria-current="page"] { background: var(--subtle); border-color: var(--accent); }
+.staff-download { display: inline-flex; align-items: center; }
+.staff-lane h2, .staff-dialog h2 { margin: 0; }
+.staff-visit { display: grid; gap: 4px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--subtle); overflow-wrap: anywhere; }
+.staff-visit-button { text-align: start; border-inline-start: 4px solid var(--accent); }
+.staff-visit-button:hover { background: var(--hover); }
+.staff-visit-time { font-variant-numeric: tabular-nums; color: var(--secondary); font-weight: 650; }
+.staff-badge { width: fit-content; border-radius: 10px; background: var(--card); color: var(--text); padding: 2px 8px; font-size: 12px; font-weight: 700; }
+.staff-badge[data-status="COMPLETED"], .staff-notice { background: var(--success-background); color: var(--success); }
+.staff-badge[data-status="NO_SHOW"], .staff-full { background: var(--warning-background); color: var(--warning); }
+.staff-badge[data-status="CANCELLED"], .staff-error { background: var(--error-background); color: var(--error); }
+.staff-full, .staff-notice, .staff-error, .staff-empty { padding: 8px 12px; border-radius: 10px; }
+.staff-empty { background: var(--subtle); }
+.staff-stages { display: flex; flex-wrap: wrap; gap: 4px; margin-block-start: 4px; font-size: 12px; }
+.staff-stages span { border-radius: 10px; padding: 2px 8px; background: var(--success-background); color: var(--success); }
+.staff-stages [data-busy="true"] { background: var(--card); color: var(--text); }
+.staff-dialog { margin: auto; width: min(552px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; color: var(--text); }
+.staff-dialog::backdrop { background: rgba(43, 37, 35, .55); }
+.staff-dialog > header { margin-block-end: 16px; }
+.staff-details { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 16px; margin-block-end: 16px; }
+.staff-details dt { font-weight: 650; }
+.staff-details dd { color: var(--secondary); overflow-wrap: anywhere; white-space: pre-wrap; }
+.staff-lane .fc { --fc-border-color: var(--border); --fc-page-bg-color: var(--card); --fc-today-bg-color: var(--subtle); }
+.staff-lane .fc-v-event { background: var(--subtle); border: 1px solid var(--accent); }
+.staff-lane .staff-event-CANCELLED { border-color: var(--error); background: var(--error-background); }
+.staff-lane .staff-event-NO_SHOW { border-color: var(--warning); background: var(--warning-background); }
+.staff-lane .staff-event-COMPLETED { border-color: var(--success); background: var(--success-background); }
+.staff-event { display: grid; text-align: start; padding: 2px 4px; width: 100%; color: var(--text); overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .staff-columns-combined, .staff-fields { grid-template-columns: minmax(0, 1fr); }
+  .staff-lane .fc { font-size: 12px; overflow-x: auto; }
+  .staff-event strong { font-size: 11px; }
+}
+
 :root {
   color-scheme: light;
   --background: #faf7f2;

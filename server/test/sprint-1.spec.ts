@@ -25,8 +25,8 @@ integration('Sprint 1 API with migrated and seeded PostgreSQL', () => {
     await app.init();
     prisma = app.get(PrismaService);
     const [brows, makeup, services] = await Promise.all([
-      prisma.user.findUniqueOrThrow({ where: { email: 'ioana@beautystudio.local' } }),
-      prisma.user.findUniqueOrThrow({ where: { email: 'ana@beautystudio.local' } }),
+      prisma.user.findUniqueOrThrow({ where: { email: 'ioana@admin.com' } }),
+      prisma.user.findUniqueOrThrow({ where: { email: 'ana@admin.com' } }),
       prisma.service.findMany({ include: { stages: { orderBy: { stageOrder: 'asc' } } } }),
     ]);
     browsId = brows.id;

@@ -1,6 +1,6 @@
 # Plan — Sprintul 4 · Acces personal, recepție și export calendar
 
-**Stare** · Build autorizat la 27 noiembrie 2026 cu matricea de acces revizuită. D-011–D-013 sunt aprobate. Implementarea ecranelor urmează confirmarea reviziilor HTML.
+**Stare** · Build autorizat la 27 noiembrie 2026 cu matricea de acces revizuită. D-011–D-013 și reviziile HTML din secțiunea Design sunt aprobate.
 
 **Bază** · `main` sincronizat la `614dfcd`. Branch `feat/sprint-4-staff-reception`.
 
@@ -88,7 +88,7 @@ La build se rulează mai întâi cazurile de regresie noi, apoi toate suitele Je
 | `DS-adm-calendar` · [HTML](../design/mocks/DS-adm-calendar.html) | Păstrează coloanele Ioana/Ana, filtrul, etapele și dialogurile. Completează săptămâna, excepțiile recepției și butonul de descărcare. Bannerul spune „Anularea și reprogramarea se fac prin salon în Zi Full”, conform D-006 |
 | `DS-adm-waitlist` · [dialogul din mock-ul recepției](../design/mocks/DS-adm-calendar.html) | Adaptează dialogul la starea și expirarea ofertei, cu expediere doar când oferta este eligibilă |
 
-Primele trei referințe sunt `draft`, iar Waitlist este `proposed`. Revizuiește mock-urile și capturile corespunzătoare pentru confirmare înaintea implementării UI. Aplică Warm Minimalist, Nude Rose, Terracotta, Muted Gold, suprafețele light/dark, Playfair Display, Plus Jakarta Sans și ritmul de 4 px. Compară contrastul stărilor în tema întunecată și validează încărcarea, lista goală, eroarea, succesul, textele lungi, navigarea la tastatură și revenirea focusului din dialog. [DESIGN.md](../design/DESIGN.md) · [Registrul designului](../design/registry.yaml)
+Reviziile HTML din tabel sunt confirmate. Aplică Warm Minimalist, Nude Rose, Terracotta, Muted Gold, suprafețele light/dark, Playfair Display, Plus Jakarta Sans și ritmul de 4 px. Compară contrastul stărilor în tema întunecată și validează încărcarea, lista goală, eroarea, succesul, textele lungi, navigarea la tastatură și revenirea focusului din dialog. [DESIGN.md](../design/DESIGN.md) · [Registrul designului](../design/registry.yaml)
 
 ## Secvență
 
@@ -110,7 +110,7 @@ Administrarea conturilor de personal, resetarea parolei prin UI, editarea progra
 | Intrare | Aplicare | Validare |
 |---|---|---|
 | D-001, D-002, D-003, D-004, D-006, D-007, D-009, D-010, PATTERN-001, C-001, Q-004, Q-005, Q-006, Q-007, Q-009 | 15 intrări confirmate anterior. Docker, stivă și design, orar și split, politici publice, identitate clientă, remindere, confirmări publice și contractul Compose | Aplică versiunile curente. D-010 are ca domeniu rezervările publice |
-| D-011, D-012, D-013 | Fidelizare și marca vizitelor, accesul exclusiv după rol, recepție și export iCalendar | Aprobate la 27 noiembrie 2026. D-011 supersedează D-008, care explică istoricul Q-008 |
+| D-011, D-012, D-013 | Fidelizare și marcarea vizitelor, accesul exclusiv după rol, recepție și export iCalendar | Aprobate la 27 noiembrie 2026. D-011 supersedează D-008, care explică istoricul Q-008 |
 | Q-001 | Originea stivei și a funcțiilor planificate | Răspuns consemnat, aplică D-002 |
 | Q-003 | Ioana Admin și Sprâncene, Ana Specialistă Make-up | D-012 confirmă Recepția exclusiv pentru Ioana |
 | Q-010, Q-011, Q-012 | Confirmare directă, operații de recepție și Waitlist, marcarea vizitelor și exportul | Răspunsuri confirmate explicit la 27 noiembrie 2026 și aplicate conform D-011–D-013 |

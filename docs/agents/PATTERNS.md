@@ -11,6 +11,7 @@
 - PATTERN-003 · Durable claim before a scheduled SMTP send · candidate
 - PATTERN-004 · Reîncarcă disponibilitatea după commit prin SSE · candidate
 - PATTERN-005 · Verifică același termen la citirea și reutilizarea unui slot · candidate
+- PATTERN-006 · Verifică aceeași sesiune pentru documentul intern și API · candidate
 
 ---
 
@@ -62,3 +63,13 @@
 - **Example:** [AppointmentsService](../../server/src/modules/appointments/appointments.service.ts)
 - **Why:** Slotul poate fi rezervat la termen, iar baza de date continuă să verifice suprapunerile.
 - **Source:** Implementarea expirării din D-010 · confidence high
+
+---
+
+## PATTERN-006 · Verifică aceeași sesiune pentru documentul intern și API
+- **Status:** candidate
+- **Use when:** O aplicație SPA deservește pagini publice și pagini de personal pe aceeași origine.
+- **How:** Proxy-ul verifică documentele interne prin endpointul de sesiune al Serverului. Guard-urile Serverului verifică din nou sesiunea și dreptul operației la fiecare API. Derivă specialista din sesiune pentru agenda proprie și export. Restricționează rutele de echipă prin guard-ul Admin.
+- **Example:** [Proxy Vite](../../frontend/vite.config.ts) și [controlerele de calendar](../../server/src/modules/appointments/staff-calendar.controller.ts)
+- **Why:** Accesul direct la un document, o cerere API și descărcarea calendarului respectă aceeași identitate și același domeniu de acces.
+- **Source:** Implementarea D-012 și D-013 · confidence high

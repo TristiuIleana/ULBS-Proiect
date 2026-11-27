@@ -149,10 +149,10 @@ Pagina afișează mesajul despre rezervarea fără cont în antet și folosește
 
 ### 6.5. Rolurile personalului
 
-- **Admin (Ioana).** Calendarul arată toate specialistele și serviciile, cu filtru pe specialistă și acces direct la administrarea serviciilor.
-- **Specialistă Make-up (Ana).** Agenda personală afișează programările proprii și detaliile clientelor. Poate marca o programare ca finalizată sau neprezentare și își poate bloca intervale de pauză sau concediu. Catalogul, prețurile, rapoartele financiare și programările Ioanei sunt disponibile în afara acestei agende.
+- **Admin (Ioana).** Calendarul Recepției arată ambele specialiste simultan și permite filtrarea după specialistă. Recepția deschide dialogurile de creare, mutare, detalii și Waitlist. În Zi Full afișează politica online și permite gestiunea prin salon.
+- **Specialistă Make-up (Ana).** Agenda personală afișează exclusiv programările proprii și detaliile clientelor aferente, fără navigare spre Recepție. Vizitele confirmate pot fi marcate după ora de sfârșit.
 
-Selectorul din login deschide ecranul demonstrativ al rolului ales. Agenda personală se afișează ca listă cronologică, pe o singură coloană la 390 px, cu stări etichetate în Light și Dark Mode. În fluxul public, formularul afișează titlul „Acces client” înainte de panoul Contul Meu & Fidelizare.
+Loginul de personal cere e-mail și parolă. Destinația vine din sesiunea verificată de Server. Agenda zilnică se afișează ca listă cronologică, pe o singură coloană la 390 px, iar săptămâna începe luni. Exportul `.ics` respectă perioada și domeniul agendei afișate. Stările sunt etichetate în Light și Dark Mode. În fluxul public, formularul afișează titlul „Acces client” înainte de panoul Contul Meu & Fidelizare.
 
 ### 6.6. Rapoarte Admin
 

@@ -8,6 +8,7 @@ import { MailService } from '../notifications/mail.service';
 import { allocateLoyalty, emailKey, lockClient, lockEmail } from './client-records';
 import { hashPassword, passwordMatches, randomToken, tokenHash } from './password';
 import { ContactDto } from '../appointments/public-booking.dto';
+import { staffIdentities } from '../staff-access/staff-identities';
 
 export const sessionCookie = 'beauty_session';
 export const sessionMaxAge = 7 * 24 * 60 * 60_000;
@@ -21,6 +22,9 @@ export class ClientAccessService {
   async register(details: ContactDto & { password: string }) {
     const { password, ...contact } = details;
     const email = emailKey(contact.email);
+    if (staffIdentities.some(identity => identity.email === email)) {
+      throw new ConflictException('Adresa de e-mail este deja înregistrată.');
+    }
     const passwordHash = await hashPassword(password);
     const token = randomToken();
     const verification = {
@@ -51,7 +55,7 @@ export class ClientAccessService {
   async verify(token: string) {
     const digest = tokenHash(token);
     const pending = await this.db.user.findUnique({ where: { verificationHash: digest } });
-    if (!pending) throw new ForbiddenException('Linkul de confirmare a expirat sau a fost folosit.');
+    if (pending?.role !== 'CLIENT') throw new ForbiddenException('Linkul de confirmare a expirat sau a fost folosit.');
     const user = await this.db.$transaction(async tx => {
       await lockEmail(tx, pending.email);
       const locked = await lockClient(tx, pending.id);
@@ -75,11 +79,11 @@ export class ClientAccessService {
 
   async login(email: string, password: string) {
     const user = await this.db.user.findFirst({
-      where: { email: { equals: emailKey(email), mode: 'insensitive' } },
+      where: { role: 'CLIENT', email: { equals: emailKey(email), mode: 'insensitive' } },
     });
     const matches = await passwordMatches(password, user?.passwordHash);
     if (!user || !matches) throw new UnauthorizedException('E-mail sau parolă incorectă.');
-    if (user.role === 'CLIENT' && !user.emailVerifiedAt) {
+    if (!user.emailVerifiedAt) {
       throw new ForbiddenException('Confirmă adresa din e-mail înainte de autentificare.');
     }
     return this.createSession(user.id);
@@ -105,7 +109,7 @@ export class ClientAccessService {
     const session = await this.db.clientSession.findUnique({
       where: { tokenHash: digest }, include: { user: true },
     });
-    return session && session.expiresAt.getTime() > Date.now() ? session.user : null;
+    return session?.user.role === 'CLIENT' && session.expiresAt.getTime() > Date.now() ? session.user : null;
   }
 
   async requireUser(cookie: string | undefined, role: Role) {

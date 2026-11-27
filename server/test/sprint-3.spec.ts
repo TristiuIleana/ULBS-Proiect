@@ -166,8 +166,8 @@ integration('Sprint 3 client portal', () => {
     const original = await db.user.findUniqueOrThrow({ where: { id: specialistId } });
     await db.user.update({ where: { id: specialistId }, data: { passwordHash: await hashPassword(password) } });
     const admin = request.agent(app.getHttpServer());
+    const origin = process.env.PUBLIC_WEB_ORIGIN || 'http://localhost:17173';
     try {
-      await admin.post('/api/client/login').send({ email: original.email, password }).expect(200);
       const details = contact();
       const client = await register(details);
       const user = await db.user.findUniqueOrThrow({ where: { email: details.email } });
@@ -180,8 +180,9 @@ integration('Sprint 3 client portal', () => {
         await confirmBooking(details.email);
       }
       jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2097-01-12T11:00:00Z'));
+      await admin.post('/api/staff/login').set('Origin', origin).send({ email: original.email, password }).expect(200);
       await client.post(`/api/admin/appointments/${prior[0]}/complete`).expect(403);
-      for (const id of prior) await admin.post(`/api/admin/appointments/${id}/complete`).expect(200);
+      for (const id of prior) await admin.post(`/api/admin/appointments/${id}/complete`).set('Origin', origin).expect(200);
       expect((await client.get('/api/client/account').expect(200)).body.progress).toBe(4);
 
       const later = await book('2097-01-18T10:00:00Z').expect(201);
@@ -193,15 +194,15 @@ integration('Sprint 3 client portal', () => {
 
       const near = [];
       for (const hour of [12, 13, 14]) near.push((await book(`2097-01-12T${hour}:00:00Z`).expect(201)).body.id);
-      for (const id of near) await admin.post(`/api/admin/appointments/${id}/cancel`).expect(200);
-      await admin.post(`/api/admin/appointments/${near[0]}/cancel`).expect(200);
+      for (const id of near) await admin.post(`/api/admin/appointments/${id}/cancel`).set('Origin', origin).expect(200);
+      await admin.post(`/api/admin/appointments/${near[0]}/cancel`).set('Origin', origin).expect(200);
       expect((await client.get('/api/client/account').expect(200)).body.lateCancellationCount).toBe(3);
       await book('2097-01-19T10:00:00Z').expect(403);
       await client.post(`/api/admin/clients/${user.id}/unblock`).expect(403);
-      await admin.post(`/api/admin/clients/${user.id}/unblock`).expect(200);
+      await admin.post(`/api/admin/clients/${user.id}/unblock`).set('Origin', origin).expect(200);
       await book('2097-01-19T10:00:00Z').expect(201);
     } finally {
-      await admin.post('/api/client/logout');
+      await admin.post('/api/staff/logout').set('Origin', origin);
       await db.user.update({ where: { id: specialistId }, data: { passwordHash: original.passwordHash } });
     }
   });

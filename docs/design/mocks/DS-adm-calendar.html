@@ -788,29 +788,21 @@
         <div class="admin-logo-circle">B</div>
         <div class="admin-title-box">
           <h1 class="font-serif">Beauty Studio • Panou Recepție</h1>
-          <span>Admin — Vizibilitate completă</span>
+          <span>Ioana · Administratoare</span>
         </div>
       </div>
 
       <div class="admin-actions">
-        <a class="btn-action-secondary" href="DS-adm-services.html">Administrare servicii</a>
-        <a class="btn-action-secondary" href="DS-adm-reports.html">Rapoarte</a>
-        <!-- Buton Marcare Zi Full -->
-        <button id="btn-toggle-peak" class="btn-toggle-peak active" onclick="togglePeakDay()">
-          <span>⭐</span>
-          <span id="btn-peak-text">Zi Aglomerată („Zi Full” Activă)</span>
-        </button>
-
         <!-- Buton Listă de Așteptare -->
         <button class="btn-action-secondary" onclick="openWaitlistModal()">
           <span>⏳</span>
-          <span>Listă de Așteptare (2)</span>
+          <span>Waitlist</span>
         </button>
 
         <!-- Buton Export iCal -->
-        <button class="btn-action-secondary" onclick="alert('URL sincronizare iCal: https://api.beautystudio.ro/ical/staff-feed.ics\nCopiat în clipboard!')">
+        <button class="btn-action-secondary" onclick="downloadMockCalendar()">
           <span>📅</span>
-          <span>Abonare iCal</span>
+          <span>Descarcă .ics</span>
         </button>
 
         <!-- Buton Adăugare Programare -->
@@ -858,9 +850,8 @@
         <div id="calendar-peak-banner" class="calendar-peak-banner">
           <div>
             <strong>⭐ Regim Zi Aglomerată („Zi Full”) activ pentru această zi.</strong>
-            <span style="opacity:0.85; margin-left:6px;">Anulările online din partea clientelor sunt blocate sub pragul de 24 de ore.</span>
+            <span style="opacity:0.85; margin-left:6px;">Anularea și reprogramarea se fac prin salon în Zi Full.</span>
           </div>
-          <button class="btn-action-secondary" style="padding:4px 10px; font-size:11.5px;" onclick="togglePeakDay()">Dezactivează Regim Full</button>
         </div>
 
         <!-- Antet Coloane -->
@@ -1167,7 +1158,7 @@
   <div id="modal-waitlist" class="modal-backdrop">
     <div class="modal-card" style="max-width:540px;">
       <div class="modal-header">
-        <h3 class="modal-title font-serif">Listă de Așteptare (2 Cliente)</h3>
+        <h3 class="modal-title font-serif">Waitlist</h3>
         <button class="modal-close" onclick="closeModal('modal-waitlist')">✕</button>
       </div>
       <div class="modal-body">
@@ -1179,7 +1170,7 @@
         <div style="background:var(--surface-subtle); border:1px solid var(--border-subtle); border-radius:10px; padding:12px 14px; margin-bottom:10px;">
           <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
             <strong style="color:var(--text-primary);">Ioana Vasilescu</strong>
-            <span style="font-size:11px; color:var(--warning); font-weight:700;">Poziția #1 în așteptare</span>
+            <span style="font-size:11px; color:var(--warning); font-weight:700;">Ofertă activă · Expiră la 13:00</span>
           </div>
           <div style="font-size:12px; color:var(--text-secondary);">
             📞 0740 123 789 • ✉️ ioana.v@gmail.com • <strong>Laminare sprâncene</strong>
@@ -1188,7 +1179,7 @@
             Interval preferat: <em>Dimineața (09:00 - 13:00)</em> • Înscrisă acum 2 ore
           </div>
           <button class="btn-action-secondary" style="margin-top:8px; font-size:11.5px; padding:5px 10px;" onclick="notifyWaitlistClient('Ioana Vasilescu')">
-            🔔 Trimite Notificare Prioritară (30 min)
+            Trimite notificarea
           </button>
         </div>
 
@@ -1204,9 +1195,6 @@
           <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">
             Interval preferat: <em>Oricând în timpul zilei</em> • Înscrisă ieri
           </div>
-          <button class="btn-action-secondary" style="margin-top:8px; font-size:11.5px; padding:5px 10px;" onclick="notifyWaitlistClient('Denisa Popa')">
-            🔔 Trimite Notificare Prioritară (30 min)
-          </button>
         </div>
       </div>
       <div class="modal-actions" style="justify-content:flex-end;">
@@ -1227,8 +1215,18 @@
 
   <!-- SCRIPT INTERACTIV CALENDAR -->
   <script>
-    let isPeakActive = true;
     let currentDateOffset = 0;
+    function downloadMockCalendar() {
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Beauty Studio//Mock//RO', 'BEGIN:VEVENT',
+        'UID:receptie-demo@beautystudio.local', 'DTSTAMP:20261120T120000Z', 'DTSTART:20261121T090000Z',
+        'DTEND:20261121T103000Z', 'SUMMARY:Laminare sprâncene', 'END:VEVENT', 'END:VCALENDAR', ''];
+      const url = URL.createObjectURL(new Blob([lines.join('\r\n')], { type: 'text/calendar' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'beauty-studio-demo.ics';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
     const baseDate = "Sâmbătă, 21 Noiembrie 2026";
 
     const specialistFilter = document.getElementById('specialist-filter');
@@ -1243,25 +1241,6 @@
       if (toast) {
         toast.style.display = 'flex';
         setTimeout(() => { toast.style.display = 'none'; }, 3200);
-      }
-    }
-
-    function togglePeakDay() {
-      isPeakActive = !isPeakActive;
-      const btn = document.getElementById('btn-toggle-peak');
-      const btnText = document.getElementById('btn-peak-text');
-      const banner = document.getElementById('calendar-peak-banner');
-
-      if (isPeakActive) {
-        btn.classList.add('active');
-        btnText.innerText = 'Zi Aglomerată („Zi Full” Activă)';
-        if (banner) banner.style.display = 'flex';
-        showToast('Ziua a fost marcată ca Zi Full! Anulările online sub 24h sunt acum restricționate.');
-      } else {
-        btn.classList.remove('active');
-        btnText.innerText = 'Marchează ca Zi Aglomerată';
-        if (banner) banner.style.display = 'none';
-        showToast('Regimul de Zi Full a fost dezactivat pentru această zi.');
       }
     }
 

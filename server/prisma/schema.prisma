@@ -61,6 +61,7 @@ model User {
   specialistAppointments Appointment[]        @relation("SpecialistAppointments")
   waitlistEntries        WaitlistEntry[]
   sessions               ClientSession[]
+  staffSessions          StaffSession[]
 
   @@map("users")
 }
@@ -73,6 +74,16 @@ model ClientSession {
 
   @@index([userId])
   @@map("client_sessions")
+}
+
+model StaffSession {
+  tokenHash String @id @map("token_hash")
+  userId String @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz()
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("staff_sessions")
 }
 
 model Service {
