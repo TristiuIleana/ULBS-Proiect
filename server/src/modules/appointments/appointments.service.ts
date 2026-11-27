@@ -1,11 +1,13 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { AppointmentStatus, Prisma, ServiceCategory } from '@prisma/client';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
+import { Appointment, AppointmentStatus, Prisma, ServiceCategory } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AvailabilityService } from '../availability/availability.service';
 import { StageTemplate } from '../availability/availability.types';
 import { allocateLoyalty, assertNotBlocked, emailKey, guestProfile, lockClient, lockEmail } from '../client-access/client-records';
 import { ContactDto, SlotBookingDto } from './public-booking.dto';
+import { confirmationExpiredReason, pendingConfirmationExpired, pendingPastDeadline } from './confirmation-deadline';
 
 export interface BookingRequest {
   specialistId: string;
@@ -49,6 +51,8 @@ export const summaryRelations = {
 
 @Injectable()
 export class AppointmentsService {
+  private readonly logger = new Logger(AppointmentsService.name);
+
   constructor(private readonly prisma: PrismaService, private readonly availability: AvailabilityService) {}
 
   async transaction<T>(change: (tx: Prisma.TransactionClient) => Promise<T>) {
@@ -66,6 +70,46 @@ export class AppointmentsService {
     const booking = await this.transaction(tx => this.reserve(tx, req, sessionClientId));
     this.availability.invalidate(booking.specialistId, booking.startTime);
     return booking;
+  }
+
+  @Cron('*/15 * * * * *', { name: 'booking-confirmation-expiry' })
+  async expirePendingConfirmations() {
+    const now = Date.now();
+    const due = await this.prisma.appointment.findMany({
+      where: pendingPastDeadline(now), select: { id: true, specialistId: true },
+    });
+    for (const { id, specialistId } of due) {
+      try {
+        const expired = await this.transaction(async tx => {
+          await lockSpecialist(tx, specialistId);
+          const booking = await tx.appointment.findUnique({ where: { id } });
+          if (!booking || !pendingConfirmationExpired(booking, now)) return;
+          await this.cancelExpiredConfirmation(tx, booking);
+          return booking;
+        });
+        if (expired) this.availability.invalidate(specialistId, expired.startTime);
+      } catch {
+        this.logger.warn(`Expirarea programării ${id} va fi reîncercată la următoarea rulare.`);
+      }
+    }
+  }
+
+  async cancelExpiredConfirmation(tx: Prisma.TransactionClient, booking: Appointment) {
+    let { clientId } = booking;
+    if (!clientId && booking.guestEmail) {
+      await lockEmail(tx, booking.guestEmail);
+      ({ clientId } = await tx.appointment.findUniqueOrThrow({
+        where: { id: booking.id }, select: { clientId: true },
+      }));
+    }
+    if (clientId) await lockClient(tx, clientId);
+    await tx.appointment.update({
+      where: { id: booking.id }, data: { status: 'CANCELLED', cancellationReason: confirmationExpiredReason },
+    });
+    await tx.appointmentStage.updateMany({
+      where: { appointmentId: booking.id, status: 'PENDING_CONFIRMATION' }, data: { status: 'CANCELLED' },
+    });
+    if (clientId) await allocateLoyalty(tx, clientId);
   }
 
   async reserve(tx: Prisma.TransactionClient, req: BookingInput, sessionClientId?: string, offerId?: string) {
@@ -97,6 +141,7 @@ export class AppointmentsService {
       throw new BadRequestException('Datele de contact sunt obligatorii.');
     }
     if ('slotUtcMs' in req) assertNotPast(req.slotUtcMs);
+    data.createdAt = new Date(Date.now());
     const booking = await tx.appointment.create({ data, include: summaryRelations });
     if (!sessionClientId) return booking;
     await allocateLoyalty(tx, sessionClientId);
@@ -113,12 +158,23 @@ export class AppointmentsService {
     if (service.category !== category) throw new BadRequestException('Specialista nu oferă acest serviciu.');
     const date = 'slotUtcMs' in req ? this.availability.toLocalIso(req.slotUtcMs).slice(0, 10) : req.date;
     const shift = await this.availability.resolveShiftWindow(req.specialistId, date, tx);
+    const now = Date.now();
     const slots = shift
-      ? await this.availability.getSlotsForShift(req.specialistId, shift, service.stages, tx, omit)
+      ? await this.availability.getSlotsForShift(req.specialistId, shift, service.stages, tx, omit, now)
       : [];
     const slot = slots.find(({ localIso, utcMs }) => 'slotUtcMs' in req
       ? utcMs === req.slotUtcMs : localIso.startsWith(`${date}T${req.startTimeLocal}`));
     if (!slot) throw new ConflictException('Intervalul nu mai este disponibil.');
-    return { service, stages: bookingStages(slot.utcMs, req.specialistId, service.stages) };
+    const stages = bookingStages(slot.utcMs, req.specialistId, service.stages);
+    // Release expired constraints in this transaction even if the sweep has not run yet.
+    await tx.appointmentStage.updateMany({
+      where: {
+        specialistId: req.specialistId, status: 'PENDING_CONFIRMATION',
+        appointment: pendingPastDeadline(now),
+        startTime: { lt: stages[stages.length - 1].endTime }, endTime: { gt: stages[0].startTime },
+      },
+      data: { status: 'CANCELLED' },
+    });
+    return { service, stages };
   }
 }

@@ -21,7 +21,7 @@ All server-side services and backends run inside Docker containers.
 
 ## Data flow
 1. The browser opens the booking page on host port 17173. Vite listens on container port 5173 and forwards `/api` to the Server.
-2. The Server reads availability from working shifts, busy pending or confirmed appointment stages and Waitlist offers. It persists new bookings as pending in PostgreSQL, publishes an availability change through SSE after commit, and sends an email confirmation link through Mailpit. The link opens the public portal, which sends the token to the Server to confirm the booking and its stages in a transaction.
+2. The Server reads availability from working shifts, unexpired pending or confirmed busy appointment stages and Waitlist offers. It persists new bookings as pending in PostgreSQL, publishes an availability change through SSE after commit, and sends an email confirmation link through Mailpit. The link opens the public portal, which sends the token to the Server to confirm the booking and its stages in a transaction before the one-hour deadline. The Server releases expired stage constraints before reusing the slot and uses NestJS Schedule to cancel expired bookings and refresh the calendar.
 3. The Server verifies the account e-mail before linking guest bookings and Waitlist entries. Authenticated actions use a server-side session. Guest management and Waitlist offers use separate tokens.
 4. Cancellation and rescheduling update appointment stages and reserve a priority offer in the same transaction. NestJS Schedule processes expirations and reminders. PostgreSQL records a dispatch claim before SMTP so overlapping instances cannot send a duplicate.
 

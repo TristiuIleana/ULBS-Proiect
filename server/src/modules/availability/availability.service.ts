@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { AppointmentStatus, Prisma } from '@prisma/client';
 import { Subject, filter } from 'rxjs';
 import { PrismaService } from '../prisma/prisma.service';
+import { occupyingAppointment } from '../appointments/confirmation-deadline';
 import {
   AvailableSlot,
   BusyInterval,
@@ -72,8 +73,9 @@ export class AvailabilityService {
     stages: StageTemplate[],
     db: Prisma.TransactionClient,
     omit: { appointmentId?: string; offerId?: string } = {},
+    now = Date.now(),
   ): Promise<AvailableSlot[]> {
-    const choices = await this.getSlotChoices(specialistId, shift, stages, db, omit);
+    const choices = await this.getSlotChoices(specialistId, shift, stages, db, omit, now);
     return choices.filter(slot => slot.available).map(({ utcMs, localIso }) => ({ utcMs, localIso }));
   }
 
@@ -83,11 +85,11 @@ export class AvailabilityService {
     stages: StageTemplate[],
     db: Prisma.TransactionClient,
     omit: { appointmentId?: string; offerId?: string } = {},
+    now = Date.now(),
   ) {
-    const now = new Date(Date.now());
     const latestStartMs = shift.endMs - stages.reduce((sum, stage) => sum + stage.durationMinutes * 60_000, 0);
-    if (!stages.length || latestStartMs < now.getTime()) return [];
-    const busyIntervals = await this.busyIntervals(specialistId, shift, db, omit);
+    if (!stages.length || latestStartMs < now) return [];
+    const busyIntervals = await this.busyIntervals(specialistId, shift, db, omit, now);
     const slots: (AvailableSlot & { available: boolean })[] = [];
 
     for (
@@ -95,7 +97,7 @@ export class AvailabilityService {
       candMs <= latestStartMs;
       candMs += SLOT_STEP_MS
     ) {
-      if (candMs >= now.getTime()) {
+      if (candMs >= now) {
         slots.push({
           utcMs: candMs,
           localIso: this.toLocalIso(candMs),
@@ -112,6 +114,7 @@ export class AvailabilityService {
     shift: ShiftWindow,
     db: Prisma.TransactionClient,
     omit: { appointmentId?: string; offerId?: string },
+    now: number,
   ): Promise<BusyInterval[]> {
     const range = { startTime: { lt: new Date(shift.endMs) }, endTime: { gt: new Date(shift.startMs) } };
     const select = { startTime: true, endTime: true } as const;
@@ -119,6 +122,7 @@ export class AvailabilityService {
       db.appointmentStage.findMany({
         where: {
           ...range, specialistId, isBusy: true, status: { in: activeAppointmentStatuses },
+          appointment: occupyingAppointment(now),
           appointmentId: omit.appointmentId ? { not: omit.appointmentId } : undefined,
         },
         select,

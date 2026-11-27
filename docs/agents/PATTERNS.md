@@ -10,6 +10,7 @@
 - PATTERN-002 · Recheck slot availability after a PostgreSQL row lock · candidate
 - PATTERN-003 · Durable claim before a scheduled SMTP send · candidate
 - PATTERN-004 · Reîncarcă disponibilitatea după commit prin SSE · candidate
+- PATTERN-005 · Verifică același termen la citirea și reutilizarea unui slot · candidate
 
 ---
 
@@ -51,3 +52,13 @@
 - **Example:** [AvailabilityController](../../server/src/modules/availability/availability.controller.ts) și [BookingControls](../../frontend/src/components/public/BookingControls.tsx)
 - **Why:** Paginile deschise primesc rapid starea actuală, inclusiv după o reconectare.
 - **Source:** Implementarea D-010 · confidence high
+
+---
+
+## PATTERN-005 · Verifică același termen la citirea și reutilizarea unui slot
+- **Status:** candidate
+- **Use when:** O rezervare temporară are un termen de expirare, iar PostgreSQL verifică suprapunerile prin starea etapelor.
+- **How:** Exclude la citire rezervările expirate. Sub blocarea specialistei, folosește același moment pentru verificarea disponibilității și eliberarea etapelor înainte să scrii noua rezervare. Persistă anularea prin jobul periodic sau prin acțiunea care întâlnește rezervarea expirată, apoi publică actualizarea calendarului după commit.
+- **Example:** [AppointmentsService](../../server/src/modules/appointments/appointments.service.ts)
+- **Why:** Slotul poate fi rezervat la termen, iar baza de date continuă să verifice suprapunerile.
+- **Source:** Implementarea expirării din D-010 · confidence high

@@ -191,6 +191,23 @@ describe('AvailabilityService — getAvailableSlots() with mocked Prisma', () =>
 
   const pensatSimpluStages = [{ stageOrder: 1, durationMinutes: 20, isBusy: true }];
 
+  it.each([3_599_999, 3_600_000])('filters pending stages at the confirmation cutoff after %i ms', async elapsed => {
+    const created = Date.parse('2026-11-20T07:00:00Z');
+    jest.spyOn(Date, 'now').mockReturnValue(created + elapsed);
+    const prisma = buildMockPrisma({ dayOfWeek: 1, isWorking: true, serviceStages: pensatSimpluStages });
+
+    await new AvailabilityService(prisma).getAvailableSlots('ioana-id', 'svc-pensat', '2026-11-23');
+
+    expect(prisma.appointmentStage.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        appointment: { OR: [
+          { status: 'CONFIRMED' },
+          { status: 'PENDING_CONFIRMATION', createdAt: { gt: new Date(created + elapsed - 3_600_000) } },
+        ] },
+      }),
+    }));
+  });
+
   // T1: Ioana Monday (day=1) working → slots returned
   it('T1: Ioana Monday — slots are returned (working day)', async () => {
     const mockPrisma = buildMockPrisma({ dayOfWeek: 1, isWorking: true, serviceStages: pensatSimpluStages });

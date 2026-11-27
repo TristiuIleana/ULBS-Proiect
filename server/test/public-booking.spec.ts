@@ -1,8 +1,10 @@
 import { INestApplication, Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { randomUUID } from 'node:crypto';
 import request = require('supertest');
 import { AppModule } from '../src/app.module';
+import { AppointmentsService } from '../src/modules/appointments/appointments.service';
 import { PrismaService } from '../src/modules/prisma/prisma.service';
 
 const integration = process.env.RUN_POSTGRES_TESTS === '1' ? describe : describe.skip;
@@ -18,6 +20,7 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
   let makeupServiceId: string;
   const bookingIds = new Set<string>();
   const userIds: string[] = [];
+  const waitlistIds: string[] = [];
 
   async function createApp() {
     const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -51,6 +54,7 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
   afterAll(async () => {
     try {
       await prisma?.appointment.deleteMany({ where: { id: { in: [...bookingIds] } } });
+      await prisma?.waitlistEntry.deleteMany({ where: { id: { in: waitlistIds } } });
       await prisma?.user.deleteMany({ where: { id: { in: userIds } } });
     } finally {
       await app?.close();
@@ -137,6 +141,88 @@ integration('Public guest bookings with PostgreSQL and Mailpit', () => {
       localIso: '2026-11-25T12:05:00+02:00',
     });
     expect(body.slots.every((slot: { utcMs: number }) => slot.utcMs >= Date.now())).toBe(true);
+  });
+
+  it('releases the slot at one hour and rejects the original confirmation link after replacement', async () => {
+    const registry = app.get(SchedulerRegistry);
+    for (const job of registry.getCronJobs().values()) job.stop();
+    try {
+      const date = '2099-01-19';
+      const original = guestBooking(`${date}T07:00:00Z`);
+      const { body, status } = await book(original);
+      expect(status).toBe(201);
+      const row = await prisma.appointment.findUniqueOrThrow({ where: { id: body.id } });
+      const [message] = await mailFor(original.email);
+      const origin = process.env.MAILPIT_API_URL || 'http://mailpit:8025';
+      const mail = await fetch(new URL(`/api/v1/message/${message.ID}`, origin));
+      const { Text } = await mail.json() as { Text: string };
+      const token = Text.match(/\/confirmare#token=([\w-]+)/)?.[1];
+      expect(token).toBeDefined();
+      expect(Text.includes('1 oră')).toBe(true);
+      const http = () => request(app.getHttpServer());
+      const slots = async () => (await http().get('/api/availability')
+        .query({ date, serviceId: shortId, specialistId: browsId }).expect(200)).body.slots;
+      const replacement = guestBooking(`${date}T07:00:00Z`);
+      const slot = expect.objectContaining({ utcMs: original.slotUtcMs });
+      const clock = jest.spyOn(Date, 'now');
+      clock.mockReturnValue(row.createdAt.getTime() + 3_599_999);
+      expect(await slots()).not.toContainEqual(slot);
+      expect((await book(replacement)).status).toBe(409);
+      await http().post(`/api/bookings/${row.id}/resend-confirmation`)
+        .send({ resendToken: body.resendToken }).expect(200);
+
+      clock.mockReturnValue(row.createdAt.getTime() + 3_600_000);
+      expect(await slots()).toContainEqual(slot);
+      expect((await book(replacement)).status).toBe(201);
+      const expired = await http().post('/api/bookings/confirm').send({ token }).expect(410);
+      expect(expired.body.message).toMatch(/1 oră.*programare nouă/);
+      await http().post('/api/bookings/confirm').send({ token }).expect(410);
+      await http().post(`/api/bookings/${row.id}/resend-confirmation`)
+        .send({ resendToken: body.resendToken }).expect(410);
+      expect(await prisma.appointment.findUniqueOrThrow({ where: { id: row.id }, include: { stages: true } }))
+        .toMatchObject({
+          status: 'CANCELLED', cancellationReason: 'CONFIRMATION_EXPIRED', lateCancellation: false,
+          stages: [{ status: 'CANCELLED' }],
+        });
+      expect(await slots()).not.toContainEqual(slot);
+    } finally {
+      for (const job of registry.getCronJobs().values()) job.start();
+    }
+  });
+
+  it('cancels expired pending bookings on a sweep and keeps confirmed slots occupied', async () => {
+    const date = '2099-01-20';
+    const confirmed = await book(guestBooking(`${date}T07:00:00Z`));
+    const pending = await book(guestBooking(`${date}T08:00:00Z`));
+    expect([confirmed.status, pending.status]).toEqual([201, 201]);
+    const row = await prisma.appointment.findUniqueOrThrow({ where: { id: confirmed.body.id } });
+    const queued = await prisma.waitlistEntry.create({
+      data: { specialistId: browsId, serviceId: shortId, desiredDate: date, guestEmail: `${randomUUID()}@example.test` },
+    });
+    waitlistIds.push(queued.id);
+    const http = () => request(app.getHttpServer());
+    await http().post('/api/bookings/confirm').send({ token: row.confirmationToken }).expect(200);
+    const aged = new Date(Date.now() - 3_600_000);
+    await prisma.appointment.updateMany({
+      where: { id: { in: [confirmed.body.id, pending.body.id] } }, data: { createdAt: aged },
+    });
+    expect(app.get(SchedulerRegistry).getCronJobs().has('booking-confirmation-expiry')).toBe(true);
+    const appointments = app.get(AppointmentsService);
+    await appointments.expirePendingConfirmations();
+    await appointments.expirePendingConfirmations();
+    const rows = await prisma.appointment.findMany({
+      where: { id: { in: [confirmed.body.id, pending.body.id] } }, include: { stages: true },
+    });
+    expect(rows.find(booking => booking.id === pending.body.id)).toMatchObject({
+      status: 'CANCELLED', cancellationReason: 'CONFIRMATION_EXPIRED', stages: [{ status: 'CANCELLED' }],
+    });
+    expect(rows.find(booking => booking.id === confirmed.body.id)).toMatchObject({
+      status: 'CONFIRMED', stages: [{ status: 'CONFIRMED' }],
+    });
+    expect(await prisma.waitlistEntry.findUniqueOrThrow({ where: { id: queued.id } })).toMatchObject({
+      status: 'WAITING', priorityToken: null,
+    });
+    expect((await book(guestBooking(`${date}T07:00:00Z`))).status).toBe(409);
   });
 
   it.each(['2026-11-24T08:00:00Z', '2026-11-25T10:00:00Z'])(

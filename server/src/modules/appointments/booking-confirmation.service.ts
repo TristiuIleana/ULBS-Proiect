@@ -45,7 +45,7 @@ export class BookingConfirmationService {
       const confirmationLink = booking.confirmationToken
         ? this.mail.link('/confirmare', booking.confirmationToken, 'fragment') : null;
       await this.mail.send(email, confirmationLink ? 'Confirmă programarea la Beauty Studio' : 'Programare confirmată la Beauty Studio', [
-          confirmationLink ? 'Intervalul este rezervat. Accesează linkul de mai jos pentru a confirma programarea.'
+          confirmationLink ? 'Intervalul este rezervat. Linkul de confirmare este valabil 1 oră de la rezervare.'
             : 'Programarea ta la Beauty Studio este confirmată.',
           `Serviciu: ${booking.serviceName}`,
           `Specialistă: ${booking.specialistName}`,

@@ -17,7 +17,7 @@ designs:
 
   - id: DS-pub-booking
     name: Wizard Rezervare Programare
-    description: Rezervare cu sau fără cont, bandă de zile, orar grupat, Waitlist și sumar cu avertisment și retrimiterea e-mailului înainte de confirmare.
+    description: Rezervare cu sau fără cont, bandă de zile, orar grupat, Waitlist și sumar cu termenul de 1 oră și retrimiterea e-mailului înainte de confirmare.
     kind: screen
     source: frontend/src/pages/public/BookingWizardPage.tsx
     screenshots: [screens/DS-pub-booking.light.png, screens/DS-pub-booking.dark.png]
@@ -28,16 +28,20 @@ designs:
 
   - id: DS-pub-confirmation
     name: Confirmare Rezervare
-    description: Linkul din e-mail trece programarea în starea confirmată și deschide pagina de gestiune.
+    description: Linkul valid confirmă programarea și deschide pagina de gestiune. La expirarea termenului de 1 oră, pagina afișează mesajul și permite revenirea la rezervare.
     kind: screen
     source: frontend/src/pages/public/ConfirmBookingPage.tsx
-    screenshots: [screens/DS-pub-confirmation.light.png, screens/DS-pub-confirmation.dark.png]
+    screenshots:
+      - screens/DS-pub-confirmation.light.png
+      - screens/DS-pub-confirmation.dark.png
+      - screens/DS-pub-confirmation-expired.light.png
+      - screens/DS-pub-confirmation-expired.dark.png
     design_ref: mocks/DS-pub-manage.html
     status: implemented
 
   - id: DS-pub-manage
     name: Gestiune Programare Client (Token Securizat)
-    description: Gestiunea din cont sau prin link. Afișează starea confirmării și permite retrimiterea e-mailului cât timp programarea este în așteptare. Anularea și reprogramarea online sunt blocate sub 24 h sau în Zi Full.
+    description: Gestiunea din cont sau prin link. Afișează starea confirmării și termenul de 1 oră. Permite retrimiterea e-mailului cât timp confirmarea este posibilă. Anularea și reprogramarea online sunt blocate sub 24 h sau în Zi Full.
     kind: screen
     source: frontend/src/pages/public/ManageBookingPage.tsx
     screenshots: [screens/DS-pub-manage.light.png, screens/DS-pub-manage.dark.png]

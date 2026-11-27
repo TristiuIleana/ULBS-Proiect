@@ -2,6 +2,7 @@ import { Body, Controller, Get, Headers, HttpCode, Post, Res, ValidationPipe } f
 import { IsEmail, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import type { Response } from 'express';
 import { activeAppointmentStatuses } from '../availability/availability.service';
+import { pendingConfirmationExpired } from '../appointments/confirmation-deadline';
 import { ContactDto } from '../appointments/public-booking.dto';
 import { ClientAccessService, sessionCookie, sessionMaxAge } from './client-access.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -67,16 +68,20 @@ export class ClientAccessController {
   @Get('account')
   async account(@Headers('cookie') cookie: string | undefined) {
     const user = await this.access.requireUser(cookie, 'CLIENT');
-    const bookings = await this.db.appointment.findMany({
+    const now = Date.now();
+    const rows = await this.db.appointment.findMany({
       where: { clientId: user.id },
       orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
       select: {
-        id: true, status: true, startTime: true, endTime: true, totalPriceRon: true, loyaltyDiscountRon: true,
+        id: true, status: true, createdAt: true, startTime: true, endTime: true, totalPriceRon: true, loyaltyDiscountRon: true,
         service: { select: { name: true } }, specialist: { select: { firstName: true } },
       },
     });
+    const bookings = rows.map(({ createdAt, ...booking }) => ({
+      ...booking,
+      status: pendingConfirmationExpired({ status: booking.status, createdAt }, now) ? 'CANCELLED' as const : booking.status,
+    }));
     const completed = bookings.filter(booking => booking.status === 'COMPLETED').length;
-    const now = Date.now();
     const isUpcoming = (booking: typeof bookings[number]) =>
       activeAppointmentStatuses.includes(booking.status) && booking.startTime.getTime() > now;
     const progress = completed % 5;

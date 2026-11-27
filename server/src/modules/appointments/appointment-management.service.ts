@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, GoneException, Injectable, NotFoundException } from '@nestjs/common';
 import { Appointment, Prisma } from '@prisma/client';
 import { timingSafeEqual } from 'node:crypto';
 import { activeAppointmentStatuses, AvailabilityService } from '../availability/availability.service';
@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { WaitlistService } from '../waitlist/waitlist.service';
 import { AppointmentsService, lockSpecialist, summaryRelations } from './appointments.service';
 import { bookingResendToken, BookingConfirmationService } from './booking-confirmation.service';
+import { confirmationExpiredMessage, confirmationExpiredReason, pendingConfirmationExpired } from './confirmation-deadline';
 
 const dayMs = 24 * 60 * 60_000;
 type Access = { token: string } | { id: string; clientId?: string };
@@ -22,7 +23,7 @@ export class AppointmentManagementService {
     return 'token' in access ? { cancellationToken: access.token } : { id: access.id, clientId: access.clientId };
   }
 
-  private async canManage(tx: Prisma.TransactionClient, booking: Appointment) {
+  private async canManage(tx: Prisma.TransactionClient, booking: Appointment, now = Date.now()) {
     const date = this.availability.toLocalIso(booking.startTime.getTime()).slice(0, 10);
     const day = await tx.scheduleOverride.findUnique({
       where: { specialistId_date: { specialistId: booking.specialistId, date } }, select: { isFullDayPolicy: true },
@@ -30,7 +31,8 @@ export class AppointmentManagementService {
     const isFullDay = day?.isFullDayPolicy ?? false;
     return {
       isFullDay, date,
-      canManage: activeAppointmentStatuses.includes(booking.status) && !isFullDay && booking.startTime.getTime() - Date.now() >= dayMs,
+      canManage: activeAppointmentStatuses.includes(booking.status) && !pendingConfirmationExpired(booking, now) &&
+        !isFullDay && booking.startTime.getTime() - now >= dayMs,
     };
   }
 
@@ -40,10 +42,12 @@ export class AppointmentManagementService {
       include: { ...summaryRelations, client: { select: { firstName: true, lastName: true, phone: true, email: true } } },
     });
     if (!booking) throw new NotFoundException('Programarea nu este disponibilă.');
-    const { canManage, isFullDay, date } = await this.canManage(this.db, booking);
+    const now = Date.now();
+    const status = pendingConfirmationExpired(booking, now) ? 'CANCELLED' : booking.status;
+    const { canManage, isFullDay, date } = await this.canManage(this.db, booking, now);
     return {
       id: booking.id, serviceId: booking.serviceId, specialistId: booking.specialistId,
-      serviceName: booking.service.name, specialistName: booking.specialist.firstName, status: booking.status,
+      serviceName: booking.service.name, specialistName: booking.specialist.firstName, status,
       category: booking.service.category,
       contact: booking.client ?? {
         firstName: booking.guestFirstName, lastName: booking.guestLastName,
@@ -56,13 +60,18 @@ export class AppointmentManagementService {
     };
   }
 
-  confirm(token: string) {
-    return this.appointments.transaction(async tx => {
+  async confirm(token: string) {
+    const result = await this.appointments.transaction(async tx => {
       const where = { confirmationToken: token };
       const snapshot = await tx.appointment.findUnique({ where, select: { specialistId: true } });
       if (!snapshot) throw new NotFoundException('Linkul de confirmare nu este valid.');
       await lockSpecialist(tx, snapshot.specialistId);
       const booking = await tx.appointment.findUniqueOrThrow({ where });
+      if (pendingConfirmationExpired(booking, Date.now())) {
+        await this.appointments.cancelExpiredConfirmation(tx, booking);
+        return { expired: true, changed: { specialistId: booking.specialistId, startTime: booking.startTime } };
+      }
+      if (booking.cancellationReason === confirmationExpiredReason) return { expired: true, changed: undefined };
       if (!activeAppointmentStatuses.includes(booking.status)) {
         throw new ConflictException('Programarea nu mai poate fi confirmată.');
       }
@@ -72,6 +81,11 @@ export class AppointmentManagementService {
       }
       return { status: 'CONFIRMED' as const, managementToken: booking.cancellationToken };
     });
+    if ('expired' in result) {
+      if (result.changed) this.availability.invalidate(result.changed.specialistId, result.changed.startTime);
+      throw new GoneException(confirmationExpiredMessage);
+    }
+    return result;
   }
 
   async resendConfirmation(access: Access | { id: string; resendToken: string }) {
@@ -86,6 +100,9 @@ export class AppointmentManagementService {
       if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) {
         throw new NotFoundException('Programarea nu este disponibilă.');
       }
+    }
+    if (booking.cancellationReason === confirmationExpiredReason || pendingConfirmationExpired(booking, Date.now())) {
+      throw new GoneException(confirmationExpiredMessage);
     }
     const address = booking.client?.email ?? booking.guestEmail;
     if (booking.status !== 'PENDING_CONFIRMATION' || !booking.confirmationToken || !address) {
@@ -105,6 +122,9 @@ export class AppointmentManagementService {
         where, include: { stages: true, ...summaryRelations },
       });
       if (!booking) throw new NotFoundException('Programarea nu este disponibilă.');
+      if (booking.cancellationReason === confirmationExpiredReason && action !== 'cancel') {
+        throw new GoneException(confirmationExpiredMessage);
+      }
       const guestEmail = booking.guestEmail;
       if (!booking.clientId && guestEmail) {
         await lockEmail(tx, guestEmail);
@@ -112,13 +132,18 @@ export class AppointmentManagementService {
       }
       const client = booking.clientId ? await lockClient(tx, booking.clientId) :
         guestEmail ? await guestProfile(tx, guestEmail) : null;
+      const now = Date.now();
+      if (pendingConfirmationExpired(booking, now)) {
+        await this.appointments.cancelExpiredConfirmation(tx, booking);
+        return { expired: true, changed: { specialistId: booking.specialistId, startTime: booking.startTime } };
+      }
 
       const targetStatus = action === 'complete' ? 'COMPLETED' : 'CANCELLED';
       if (action !== 'reschedule' && booking.status === targetStatus) return { offerId: undefined };
       if (!activeAppointmentStatuses.includes(booking.status) || (action === 'complete' && booking.status !== 'CONFIRMED')) {
         throw new ConflictException('Starea programării nu permite această acțiune.');
       }
-      const { canManage, date } = await this.canManage(tx, booking);
+      const { canManage, date } = await this.canManage(tx, booking, now);
       if (!admin && !canManage) {
         throw new ForbiddenException('Modificarea nu mai este permisă online. Contactează salonul.');
       }
@@ -165,14 +190,15 @@ export class AppointmentManagementService {
     if (result.changed) {
       const { specialistId, startTime } = result.changed;
       this.availability.invalidate(specialistId, startTime);
-      if (action === 'reschedule' && slotUtcMs !== undefined &&
+      if (!result.expired && action === 'reschedule' && slotUtcMs !== undefined &&
           this.availability.toLocalIso(slotUtcMs).slice(0, 10) !== this.availability.toLocalIso(startTime.getTime()).slice(0, 10)) {
         this.availability.invalidate(specialistId, new Date(slotUtcMs));
       }
     }
+    if (result.expired && action !== 'cancel') throw new GoneException(confirmationExpiredMessage);
     const resultView = await this.get(access);
     if (result.offerId) await this.waitlist.notifyPending(result.offerId);
-    if (result.address) {
+    if (result.address && activeAppointmentStatuses.includes(resultView.status)) {
       const emailStatus = await this.confirmation.send(result.address, {
         ...resultView, totalPriceRon: resultView.totalPriceRon.toString(), cancellationToken: result.cancellationToken,
         confirmationToken: resultView.status === 'PENDING_CONFIRMATION' ? result.confirmationToken : undefined,

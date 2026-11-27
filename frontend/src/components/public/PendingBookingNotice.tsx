@@ -32,6 +32,7 @@ export function PendingBookingNotice({ path, credentials, emailStatus }: {
     <span aria-hidden="true">⚠️</span>
     <div>
       <strong>Programarea NU este confirmată încă — te rugăm să accesezi linkul de confirmare trimis pe email</strong>
+      <p>Linkul de confirmare este valabil 1 oră de la rezervare.</p>
       {feedback && <p role={feedback.error ? 'alert' : 'status'}>{feedback.message}</p>}
       <button type="button" className="secondary-button" onClick={() => void resend()} disabled={sending}>
         {sending ? 'Se trimite…' : 'Retrimite e-mailul de confirmare'}

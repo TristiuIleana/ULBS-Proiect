@@ -117,8 +117,9 @@
 ## D-010 · Blocarea slotului și confirmarea programării prin e-mail
 - **Status:** approved
 - **Date:** 2026-11-26
-- **Confirmed:** 2026-11-26
-- **Rule:** Rezervările fără cont, cele din cont și cele revendicate prin Waitlist pornesc în `PENDING_CONFIRMATION`. Etapele ocupate blochează sloturile imediat după salvare, inclusiv când trimiterea e-mailului eșuează. Numai accesarea linkului dedicat din e-mail trece programarea în `CONFIRMED`. Sumarul și pagina de gestiune afișează starea și permit retrimiterea în așteptarea confirmării.
-- **Why:** Protejează intervalul de rezervări concurente și comunică starea reală a programării.
-- **Evidence:** Utilizatorul a confirmat planul și decizia D-010.
+- **Confirmed:** 2026-11-27
+- **Rule:** Rezervările fără cont, cele din cont și cele revendicate prin Waitlist pornesc în `PENDING_CONFIRMATION`. Etapele ocupate blochează sloturile imediat după salvare, inclusiv când trimiterea e-mailului eșuează, până la `created_at + 60 minute`. Numai linkul dedicat din e-mail poate trece programarea în `CONFIRMED` înainte de termen. Retrimiterea e-mailului și reprogramarea păstrează termenul inițial. E-mailul și pagina de rezervare afișează durata de 1 oră.
+  La expirare, slotul redevine disponibil public, sub rezerva ofertelor Waitlist deja active conform D-004. Serverul marchează programarea și etapele `CANCELLED`, cu motivul `CONFIRMATION_EXPIRED`. Expirarea nu lansează o ofertă Waitlist și nu adaugă marcări de anulare târzie. Un link expirat îi spune clientei că termenul de 1 oră a expirat și îi cere să facă o programare nouă. Sumarul și pagina de gestiune afișează starea și permit retrimiterea cât timp confirmarea este posibilă.
+- **Why:** Protejează intervalul de rezervări concurente, îl eliberează după termen și comunică starea programării.
+- **Evidence:** Utilizatorul a confirmat planul de extindere a D-010 și regula Waitlist la expirare.
 - **Source:** user · confidence high

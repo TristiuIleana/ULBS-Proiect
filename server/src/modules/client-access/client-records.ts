@@ -1,6 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { activeAppointmentStatuses } from '../availability/availability.service';
+import { occupyingAppointment } from '../appointments/confirmation-deadline';
 
 export function emailKey(email: string) {
   return email.trim().toLowerCase();
@@ -30,7 +30,7 @@ export function assertNotBlocked(user: { lateCancellationCount: number } | null)
 
 export async function allocateLoyalty(tx: Prisma.TransactionClient, clientId: string) {
   const visits = await tx.appointment.findMany({
-    where: { clientId, status: { in: ['COMPLETED', ...activeAppointmentStatuses] } },
+    where: { clientId, OR: [{ status: 'COMPLETED' }, occupyingAppointment(Date.now())] },
     orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
     select: { id: true, status: true, basePriceRon: true, totalPriceRon: true, loyaltyDiscountRon: true },
   });

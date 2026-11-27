@@ -56,6 +56,7 @@ function buildSerialService(): AppointmentsService {
       let releaseLock: (() => void) | undefined;
       const tx = {
         service,
+        appointmentStage: { updateMany: jest.fn() },
         $queryRaw: jest.fn().mockImplementation(async () => {
           const previousLock = lockReleased;
           lockReleased = new Promise<void>((resolve) => {
