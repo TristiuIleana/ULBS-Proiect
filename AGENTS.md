@@ -105,3 +105,12 @@ Main branch is `main`. Changes are reviewed and verified locally before push.
 - Ledger lint passes (`py -3 docs/agents/tools/ledger-lint.py`).
 - All server components run cleanly in Docker containers.
 - New patterns recorded as candidate patterns; open questions recorded in Q- entries.
+
+### Mandatory local refresh after application changes
+
+At the end of every task or sprint that modifies application code, once tests pass and the changes are integrated into `main`, run these steps from the repository root without asking the user to run commands:
+
+1. Rebuild and restart the services in the main local stack with `docker compose up -d --build frontend server`.
+2. If the Prisma schema changed, apply the migrations with `docker exec beauty-studio-server npx prisma migrate deploy`.
+3. Verify that the seed accounts `ioana@admin.com` and `ana@admin.com` are present in the local database. If either is missing, run `docker compose run --rm --env-from-file .env.staff server npm run prisma:seed` using the existing local configuration, then verify both accounts again.
+4. Verify that the updated application is available at `http://localhost:17173` before marking the task or sprint complete.
