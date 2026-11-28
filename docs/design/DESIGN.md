@@ -152,7 +152,7 @@ Pagina afișează mesajul despre rezervarea fără cont în antet și folosește
 - **Admin (Ioana).** Calendarul Recepției arată ambele specialiste simultan și permite filtrarea după specialistă. Recepția deschide dialogurile de creare, mutare, detalii și Waitlist. În Zi Full afișează politica online și permite gestiunea prin salon.
 - **Specialistă Make-up (Ana).** Agenda personală afișează exclusiv programările proprii și detaliile clientelor aferente, fără navigare spre Recepție. Vizitele confirmate pot fi marcate după ora de sfârșit.
 
-Loginul de personal cere e-mail și parolă. Destinația vine din sesiunea verificată de Server. Agenda zilnică se afișează ca listă cronologică, pe o singură coloană la 390 px, iar săptămâna începe luni. Exportul `.ics` respectă perioada și domeniul agendei afișate. Stările sunt etichetate în Light și Dark Mode. În fluxul public, formularul afișează titlul „Acces client” înainte de panoul Contul Meu & Fidelizare.
+Loginul de personal cere e-mail și parolă. Destinația vine din sesiunea verificată de Server. Agenda zilnică se afișează ca listă cronologică, pe o singură coloană la 390 px, iar săptămâna începe luni. Exportul `.ics` respectă perioada și domeniul agendei afișate. Stările sunt etichetate în Light și Dark Mode. Cardul din `/cont` deschide implicit „Acces client”, cu autentificare și creare cont, înainte de panoul Contul Meu & Fidelizare. Tab-ul „Acces personal” afișează formularul de autentificare disponibil și pe ruta directă `/staff/login`.
 
 ### 6.6. Rapoarte Admin
 

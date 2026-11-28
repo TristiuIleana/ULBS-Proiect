@@ -3,6 +3,7 @@ import type { FormEvent, KeyboardEvent } from 'react';
 import { ApiError, fetchAccount, post } from '../../booking-api';
 import type { Account, AccountBooking } from '../../booking-api';
 import { ContactFields, emptyContact, errorMessage, price, salonTimeZone } from '../../components/public/BookingControls';
+import { StaffLoginForm } from '../../components/staff/StaffLoginForm';
 
 const time = new Intl.DateTimeFormat('ro-RO', { timeZone: salonTimeZone, timeStyle: 'short' });
 const day = new Intl.DateTimeFormat('ro-RO', { timeZone: salonTimeZone, day: '2-digit' });
@@ -37,6 +38,7 @@ function BookingList({ title, bookings, upcoming }: { title: string; bookings: A
 export function ClientAccountPage() {
   const [account, setAccount] = useState<Account | null>();
   const [verifyToken, setVerifyToken] = useState(() => new URLSearchParams(location.search).get('token'));
+  const [access, setAccess] = useState<'client' | 'staff'>('client');
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [contact, setContact] = useState(emptyContact);
   const [email, setEmail] = useState('');
@@ -45,6 +47,8 @@ export function ClientAccountPage() {
   const [message, setMessage] = useState('');
   const [pending, setPending] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
+  const clientTab = useRef<HTMLButtonElement>(null);
+  const staffTab = useRef<HTMLButtonElement>(null);
   const loginTab = useRef<HTMLButtonElement>(null);
   const registerTab = useRef<HTMLButtonElement>(null);
 
@@ -62,8 +66,24 @@ export function ClientAccountPage() {
   }, []);
 
   useEffect(() => {
-    if (account) heading.current?.focus();
-  }, [account]);
+    if (access === 'client' && account) heading.current?.focus();
+  }, [access, account]);
+
+  function selectAccess(value: 'client' | 'staff') {
+    if (pending || value === access) return;
+    setAccess(value);
+    setError('');
+    setMessage('');
+    setPassword('');
+  }
+
+  function accessTabKey(event: KeyboardEvent<HTMLDivElement>) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const target = event.key === 'Home' || (event.key !== 'End' && access === 'staff') ? 'client' : 'staff';
+    selectAccess(target);
+    (target === 'client' ? clientTab : staffTab).current?.focus();
+  }
 
   function selectMode(value: 'login' | 'register') {
     setMode(value);
@@ -107,7 +127,7 @@ export function ClientAccountPage() {
     });
   }
 
-  if (account && !verifyToken) return <main className="account-page">
+  if (access === 'client' && account && !verifyToken) return <main className="account-page">
     <div className="account-toolbar"><a href="/" className="text-link">Înapoi la rezervare</a>
       <button type="button" className="secondary-button" disabled={pending} onClick={() => void action(async () => {
         await post('/api/client/logout');
@@ -144,7 +164,15 @@ export function ClientAccountPage() {
   </main>;
 
   return <main className="access-page"><section className="card auth-card" aria-labelledby="auth-title">
-    <header className="account-title"><h1 id="auth-title">Acces client</h1><p>Beauty Studio</p></header>
+    {!verifyToken && <div className="auth-tabs" role="tablist" aria-label="Tip de acces" onKeyDown={accessTabKey}>
+      <button ref={clientTab} type="button" id="client-access-tab" role="tab" aria-controls="client-access-panel"
+        aria-selected={access === 'client'} tabIndex={access === 'client' ? 0 : -1} disabled={pending}
+        onClick={() => selectAccess('client')}>Acces client</button>
+      <button ref={staffTab} type="button" id="staff-access-tab" role="tab" aria-controls="staff-access-panel"
+        aria-selected={access === 'staff'} tabIndex={access === 'staff' ? 0 : -1} disabled={pending}
+        onClick={() => selectAccess('staff')}>Acces personal</button>
+    </div>}
+    <header className="account-title"><h1 id="auth-title">{access === 'staff' ? 'Autentificare personal' : 'Acces client'}</h1><p>Beauty Studio</p></header>
     {verifyToken ? <div className="auth-form">
       <p>Confirmă adresa pentru a activa contul și a accesa programările asociate.</p>
       <button className="primary-button" type="button" disabled={pending} onClick={() => void action(async () => {
@@ -153,31 +181,38 @@ export function ClientAccountPage() {
         setVerifyToken(null);
         setAccount(await fetchAccount());
       })}>{pending ? 'Se confirmă…' : 'Confirmă adresa'}</button>
-    </div> : account === undefined ? <p role="status">Se încarcă…</p> : <>
-      <div className="auth-tabs" role="tablist" aria-labelledby="auth-title" onKeyDown={tabKey}>
-        <button ref={loginTab} type="button" id="login-tab" role="tab" aria-controls="auth-panel" aria-selected={mode === 'login'}
-          tabIndex={mode === 'login' ? 0 : -1} disabled={pending} onClick={() => selectMode('login')}>Autentificare</button>
-        <button ref={registerTab} type="button" id="register-tab" role="tab" aria-controls="auth-panel" aria-selected={mode === 'register'}
-          tabIndex={mode === 'register' ? 0 : -1} disabled={pending} onClick={() => selectMode('register')}>Creează cont nou</button>
+    </div> : <>
+      <div id="staff-access-panel" role="tabpanel" aria-labelledby="staff-access-tab" hidden={access !== 'staff'}>
+        {access === 'staff' && <StaffLoginForm className="auth-form" busy={pending} setBusy={setPending} />}
       </div>
-      <div id="auth-panel" role="tabpanel" aria-labelledby={`${mode}-tab`}>
-        <form className="auth-form" onSubmit={submit}>
-          <fieldset disabled={pending}>
-            {mode === 'register' ? <ContactFields value={contact} change={setContact} /> :
-              <label className="field">E-mail<input type="email" value={email} onChange={event => setEmail(event.target.value)}
-                autoComplete="username" maxLength={254} required /></label>}
-            <label className="field">Parolă<input type="password" value={password} onChange={event => setPassword(event.target.value)}
-              autoComplete={mode === 'register' ? 'new-password' : 'current-password'} minLength={mode === 'register' ? 8 : undefined}
-              maxLength={128} required /></label>
-          </fieldset>
-          <button className="primary-button" disabled={pending} type="submit">
-            {pending ? 'Se trimite…' : mode === 'login' ? 'Intră în cont' : 'Creează cont'}
-          </button>
-        </form>
+      <div id="client-access-panel" role="tabpanel" aria-labelledby="client-access-tab" hidden={access !== 'client'}>
+        {access === 'client' && (account === undefined ? <p role="status">Se încarcă…</p> : <>
+          <div className="auth-tabs" role="tablist" aria-labelledby="auth-title" onKeyDown={tabKey}>
+            <button ref={loginTab} type="button" id="login-tab" role="tab" aria-controls="auth-panel" aria-selected={mode === 'login'}
+              tabIndex={mode === 'login' ? 0 : -1} disabled={pending} onClick={() => selectMode('login')}>Autentificare</button>
+            <button ref={registerTab} type="button" id="register-tab" role="tab" aria-controls="auth-panel" aria-selected={mode === 'register'}
+              tabIndex={mode === 'register' ? 0 : -1} disabled={pending} onClick={() => selectMode('register')}>Creează cont nou</button>
+          </div>
+          <div id="auth-panel" role="tabpanel" aria-labelledby={`${mode}-tab`}>
+            <form className="auth-form" onSubmit={submit}>
+              <fieldset disabled={pending}>
+                {mode === 'register' ? <ContactFields value={contact} change={setContact} /> :
+                  <label className="field">E-mail<input type="email" value={email} onChange={event => setEmail(event.target.value)}
+                    autoComplete="username" maxLength={254} required /></label>}
+                <label className="field">Parolă<input type="password" value={password} onChange={event => setPassword(event.target.value)}
+                  autoComplete={mode === 'register' ? 'new-password' : 'current-password'} minLength={mode === 'register' ? 8 : undefined}
+                  maxLength={128} required /></label>
+              </fieldset>
+              <button className="primary-button" disabled={pending} type="submit">
+                {pending ? 'Se trimite…' : mode === 'login' ? 'Intră în cont' : 'Creează cont'}
+              </button>
+            </form>
+          </div>
+        </>)}
       </div>
     </>}
-    {error && <p className="feedback error" role="alert">{error}</p>}
-    {message && <p className="waitlist-success" role="status">{message}</p>}
+    {access === 'client' && error && <p className="feedback error" role="alert">{error}</p>}
+    {access === 'client' && message && <p className="waitlist-success" role="status">{message}</p>}
     <a href="/" className="text-link">Înapoi la rezervare</a>
   </section></main>;
 }

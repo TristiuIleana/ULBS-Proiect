@@ -61,15 +61,23 @@ designs:
   - id: DS-pub-auth
     name: Contul Meu & Fidelizare
     description: >-
-      Ecranul „Acces client” pentru autentificare și creare cont, urmat de panoul
-      de cont: card de progres fidelizare (N/5 vizite
+      Card de autentificare cu tab-urile „Acces client” (implicit) și „Acces personal”.
+      Accesul client include autentificare și creare cont, iar accesul personal
+      afișează formularul de autentificare și deschide agenda permisă de sesiune.
+      Panoul de cont include cardul de progres Fidelizare (N/5 vizite
       spre reducerea de 10%), badge vizual la atingerea pragului, lista
       programărilor viitoare, inclusiv cele în așteptarea confirmării, istoric programări finalizate cu evidența
       reducerilor aplicate, și acțiuni rapide de gestionare a contului.
-      Implementează D-008 (alocarea automată și cronologică a reducerii).
+      Implementează D-011 (alocarea automată și cronologică a reducerii).
     kind: screen
     source: frontend/src/pages/public/ClientAccountPage.tsx
-    screenshots: [screens/DS-pub-auth.light.png, screens/DS-pub-auth.dark.png]
+    screenshots:
+      - screens/DS-pub-auth.client.light.png
+      - screens/DS-pub-auth.client.dark.png
+      - screens/DS-pub-auth.staff.light.png
+      - screens/DS-pub-auth.staff.dark.png
+      - screens/DS-pub-auth.light.png
+      - screens/DS-pub-auth.dark.png
     design_ref: mocks/DS-pub-auth.html
     status: implemented
 
