@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 
@@ -10,6 +11,102 @@ test('protects a direct request for an internal document', async ({ request }) =
   const response = await request.get('/staff/receptie', { maxRedirects: 0 });
   expect(response.status()).toBe(303);
   expect(response.headers().location).toBe('/staff/login');
+});
+
+test('closes confirmed visits from Reception and Agenda and counts both outcomes in Reports', async ({ browser, baseURL }) => {
+  const databaseUrl = process.env.BOOKING_E2E_DATABASE_URL;
+  test.skip(!ioanaPassword || !anaPassword || !databaseUrl, 'Requires the seed accounts and isolated PostgreSQL.');
+  test.setTimeout(60_000);
+  const database = new URL(databaseUrl!);
+  const psql = (sql: string) => execFileSync('psql', ['-XAt', '-v', 'ON_ERROR_STOP=1'], {
+    env: { ...process.env, PGHOST: database.hostname, PGPORT: database.port || '5432',
+      PGDATABASE: decodeURIComponent(database.pathname.slice(1)), PGUSER: decodeURIComponent(database.username),
+      PGPASSWORD: decodeURIComponent(database.password) },
+    input: sql, encoding: 'utf8',
+  }).trim();
+  const ids = [randomUUID(), randomUUID(), randomUUID()];
+  const names = ids.map(id => `Vizita test ${id.slice(0, 8)}`);
+  const offsets = ['-3 hours', '-2 hours', '2 hours'];
+  const admin = await browser.newContext({ baseURL, colorScheme: 'light' });
+  const employee = await browser.newContext({ baseURL, colorScheme: 'light' });
+  try {
+    const dates = psql(`
+      WITH visits AS (
+        INSERT INTO appointments (id, specialist_id, service_id, start_time, end_time, total_price_ron,
+          guest_first_name, guest_last_name, guest_phone, status)
+        SELECT cases.id::uuid, users.id, '00000000-0000-0000-0000-000000000004',
+          now() + offset_time::interval, now() + offset_time::interval + interval '1 hour', 150,
+          'Clienta', title, '0700000000', 'CONFIRMED'
+        FROM (VALUES ${ids.map((id, i) => `('${id}', '${names[i]}', '${offsets[i]}')`).join(', ')}) AS cases(id, title, offset_time)
+        CROSS JOIN users WHERE users.role = 'SPECIALIST' AND users.specialist_category = 'MAKEUP'
+        RETURNING guest_last_name, start_time
+      )
+      SELECT string_agg(guest_last_name || '|' || to_char(start_time AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD'), E'\\n')
+      FROM visits;
+    `).split('\n');
+    const dateFor = (name: string) => dates.find(row => row.startsWith(`${name}|`))!.split('|')[1];
+    const adminPage = await admin.newPage();
+    const employeePage = await employee.newPage();
+    const assignments = [
+      { page: adminPage, email: 'ioana@admin.com', password: ioanaPassword!, route: '/staff/receptie',
+        screen: 'DS-adm-calendar', index: 0, action: 'Marchează finalizată', status: 'Finalizată' },
+      { page: employeePage, email: 'ana@admin.com', password: anaPassword!, route: '/staff/agenda',
+        screen: 'DS-emp-calendar', index: 1, action: 'Neprezentare', status: 'Neprezentare' },
+    ];
+    for (const { page, email, password, route } of assignments) {
+      await page.goto('/staff/login');
+      await page.getByLabel('E-mail').fill(email);
+      await page.getByLabel('Parolă').fill(password);
+      await page.getByRole('button', { name: 'Autentifică-te' }).click();
+      await expect(page).toHaveURL(new RegExp(route + '$'));
+    }
+    async function counts() {
+      const response = await adminPage.request.get('/api/staff/reports?period=quarter');
+      expect(response.ok()).toBe(true);
+      return (await response.json()).kpis as { completed: number; noShows: number };
+    }
+    const before = await counts();
+    const future = employeePage.getByRole('button').filter({ hasText: names[2] });
+    await employeePage.getByLabel('Data calendarului').fill(dateFor(names[2]));
+    await future.click();
+    const futureDialog = employeePage.getByRole('dialog');
+    await expect(futureDialog.getByRole('button', { name: 'Marchează finalizată' })).toBeDisabled();
+    await expect(futureDialog.getByRole('button', { name: 'Neprezentare' })).toBeDisabled();
+    await futureDialog.getByRole('button', { name: 'Închide' }).click();
+
+    for (const { page, screen, index, action, status } of assignments) {
+      await page.getByLabel('Data calendarului').fill(dateFor(names[index]));
+      const visit = page.getByRole('button').filter({ hasText: names[index] });
+      await visit.click();
+      const dialog = page.getByRole('dialog', { name: 'Detalii programare' });
+      await expect(dialog.getByRole('button', { name: 'Marchează finalizată' })).toBeEnabled();
+      await expect(dialog.getByRole('button', { name: 'Neprezentare' })).toBeEnabled();
+      const attendanceScreens = process.env.ATTENDANCE_SCREENSHOT_DIR;
+      if (attendanceScreens) {
+        for (const [theme, width] of [['light', 1440], ['light', 390], ['dark', 1440], ['dark', 390]] as const) {
+          await page.setViewportSize({ width, height: 960 });
+          await page.emulateMedia({ colorScheme: theme });
+          await page.evaluate(value => {
+            if (document.documentElement.dataset.theme !== value) document.querySelector<HTMLButtonElement>('.staff-toolbar button')?.click();
+          }, theme);
+          await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+          await page.screenshot({ path: join(attendanceScreens, `${screen}.${theme}${width === 390 ? '.mobile' : ''}.png`) });
+        }
+      }
+      await dialog.getByRole('button', { name: action, exact: true }).click();
+      await expect(visit.getByText(status, { exact: true })).toBeVisible();
+    }
+    const after = await counts();
+    expect(after.completed).toBe(before.completed + 1);
+    expect(after.noShows).toBe(before.noShows + 1);
+    const commonAction = `/api/staff/appointments/${ids[0]}/complete`;
+    const adminReplay = await adminPage.request.post(commonAction, { headers: { Origin: baseURL! } });
+    expect(adminReplay.status()).toBe(200);
+    expect((await adminReplay.json()).status).toBe('COMPLETED');
+  } finally {
+    await Promise.all([admin.close(), employee.close()]);
+    psql(`DELETE FROM appointments WHERE id IN (${ids.map(id => `'${id}'`).join(', ')});`);
+  }
 });
 
 test('Ioana can create a visit at reception and Ana sees only her own calendar', async ({ browser, baseURL }) => {
