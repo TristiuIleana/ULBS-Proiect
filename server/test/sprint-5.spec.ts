@@ -108,6 +108,8 @@ integration('Sprint 5 Admin', () => {
       offeredStartAt: startTime, expiresAt: new Date(Date.now() + 60_000),
       offerStages: { create: { startTime, endTime: new Date(startTime.getTime() + 30 * 60_000) } },
     } });
+    await admin.patch(`/api/staff/services/${service.id}`).set('Origin', origin).send({ isActive: false }).expect(409);
+    await admin.patch(`/api/staff/services/${service.id}`).set('Origin', origin).send({ priceRon: '120' }).expect(200);
     const converted = await admin.post(`/api/staff/reception/waitlist/${entry.id}/convert`)
       .set('Origin', origin).expect(201);
     expect(converted.body).toMatchObject({ status: 'CONFIRMED', serviceId: service.id });
@@ -117,5 +119,23 @@ integration('Sprint 5 Admin', () => {
     ]);
     expect(repeats.map(response => response.status)).toEqual([409, 409]);
     expect(await db.appointment.count({ where: { serviceId: service.id } })).toBe(1);
+    await admin.patch(`/api/staff/services/${service.id}`).set('Origin', origin).send({
+      totalDurationMinutes: 45, stages: [{ name: 'Execuție', durationMinutes: 45, isBusy: true }],
+    }).expect(409);
+
+    const anotherStart = new Date('2099-06-16T10:00:00Z');
+    const contested = await db.waitlistEntry.create({ data: {
+      specialistId: ana.id, serviceId: service.id, desiredDate: '2099-06-16', status: 'NOTIFIED',
+      guestFirstName: 'Test', guestLastName: 'Concurență', guestPhone: '0700000000',
+      guestEmail: `${randomUUID()}@example.test`, priorityToken: randomUUID(),
+      offeredStartAt: anotherStart, expiresAt: new Date(Date.now() + 60_000),
+      offerStages: { create: { startTime: anotherStart, endTime: new Date(anotherStart.getTime() + 30 * 60_000) } },
+    } });
+    const contenders = await Promise.all([
+      api().post('/api/waitlist/claim').send({ token: contested.priorityToken }),
+      admin.post(`/api/staff/reception/waitlist/${contested.id}/convert`).set('Origin', origin),
+    ]);
+    expect(contenders.map(response => response.status).sort()).toEqual([201, 409]);
+    expect(await db.appointment.count({ where: { serviceId: service.id, startTime: anotherStart } })).toBe(1);
   });
 });

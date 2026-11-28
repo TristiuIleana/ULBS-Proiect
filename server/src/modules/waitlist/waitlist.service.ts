@@ -101,21 +101,30 @@ export class WaitlistService {
   async expire() {
     const now = new Date(Date.now());
     const expired = await this.db.waitlistEntry.findMany({
-      where: { status: 'NOTIFIED', expiresAt: { lte: now } }, select: { id: true, specialistId: true },
+      where: { status: 'NOTIFIED', expiresAt: { lte: now } },
+      select: { specialistId: true, desiredDate: true }, distinct: ['specialistId', 'desiredDate'],
     });
-    for (const { id, specialistId } of expired) {
-      await this.db.$transaction(async tx => {
+    for (const { desiredDate, specialistId } of expired) {
+      const released = await this.db.$transaction(async tx => {
         await lockSpecialist(tx, specialistId);
-        const entry = await tx.waitlistEntry.findFirst({
-          where: { id, status: 'NOTIFIED', expiresAt: { lte: now } }, include: { offerStages: true },
-        });
-        if (!entry) return;
-        await tx.waitlistEntry.update({ where: { id }, data: { status: 'EXPIRED' } });
-        await this.offer(tx, specialistId, entry.desiredDate, entry.offerStages.map(stage => ({
-          startMs: stage.startTime.getTime(), endMs: stage.endTime.getTime(),
-        })));
+        return this.rotateExpired(tx, specialistId, desiredDate, new Date(Date.now()));
       });
+      if (released) this.availability.invalidate(specialistId, released);
     }
+  }
+
+  async rotateExpired(tx: Prisma.TransactionClient, specialistId: string, date: string, now: Date) {
+    const expired = await tx.waitlistEntry.findMany({
+      where: { specialistId, desiredDate: date, status: 'NOTIFIED', expiresAt: { lte: now } },
+      include: { offerStages: true }, orderBy: [{ expiresAt: 'asc' }, { id: 'asc' }],
+    });
+    for (const entry of expired) {
+      await tx.waitlistEntry.update({ where: { id: entry.id }, data: { status: 'EXPIRED' } });
+      await this.offer(tx, specialistId, date, entry.offerStages.map(stage => ({
+        startMs: stage.startTime.getTime(), endMs: stage.endTime.getTime(),
+      })));
+    }
+    return expired.find(entry => entry.offeredStartAt)?.offeredStartAt;
   }
 
   async notifyPending(id?: string) {
@@ -135,6 +144,9 @@ export class WaitlistService {
       });
       if (claimed.count !== 1) continue;
       try {
+        const active = await this.db.waitlistEntry.findFirst({ where: { id: entry.id, status: 'NOTIFIED',
+          expiresAt: { gt: new Date(Date.now()) } }, select: { id: true } });
+        if (!active) continue;
         const when = this.availability.toLocalIso(entry.offeredStartAt.getTime());
         const link = this.mail.link('/oferta', entry.priorityToken);
         await this.mail.send(address, 'Un interval s-a eliberat la Beauty Studio',

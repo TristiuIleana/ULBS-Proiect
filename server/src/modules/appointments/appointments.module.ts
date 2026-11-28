@@ -12,11 +12,13 @@ import { NotificationJobsService } from '../notifications/notification-jobs.serv
 import { StaffAccessModule } from '../staff-access/staff-access.module';
 import { EmployeeCalendarController, ReceptionCalendarController } from './staff-calendar.controller';
 import { StaffCalendarService } from './staff-calendar.service';
+import { StaffReportsController } from '../staff-access/staff-reports.controller';
+import { StaffServicesController } from '../staff-access/staff-services.controller';
 
 @Module({
   imports: [AvailabilityModule, ClientAccessModule, StaffAccessModule],
   controllers: [PublicBookingsController, AppointmentManagementController, AdminAppointmentsController,
-    WaitlistController, EmployeeCalendarController, ReceptionCalendarController],
+    WaitlistController, EmployeeCalendarController, ReceptionCalendarController, StaffReportsController, StaffServicesController],
   providers: [AppointmentsService, AppointmentManagementService, BookingConfirmationService, WaitlistService,
     NotificationJobsService, StaffCalendarService],
   exports: [AppointmentsService],

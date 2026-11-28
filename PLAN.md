@@ -2,7 +2,7 @@
 
 **Proiect universitar ULBS · Sistem de programări online**
 
-**Stadiu documentat la 25 noiembrie 2026**
+**Stadiu documentat la 28 noiembrie 2026**
 
 ## 1. Obiectiv și viziune
 
@@ -46,8 +46,8 @@ Sursă pentru formularea completă a regulilor aprobate. [D-001–D-004 și D-00
 | `DS-pub-auth` | Acces client, creare cont, progres N/5, programări viitoare și istoric cu reduceri. | Draft |
 | `DS-adm-login` | Autentificare demonstrativă cu sesiune de rol. | Draft |
 | `DS-adm-calendar` | Calendar de recepție pe specialiste și navigare către Servicii și Rapoarte. | Draft |
-| `DS-adm-services` | Configurarea serviciilor, duratelor, prețurilor și etapelor, cu navigare către Rapoarte. | Draft |
-| `DS-adm-reports` | Rapoarte demo pentru Admin, KPI, defalcări, filtre și export CSV/PDF. | Draft |
+| `DS-adm-services` | Configurarea serviciilor, duratelor, prețurilor și etapelor, cu activare și dezactivare. | Implementat |
+| `DS-adm-reports` | Rapoarte Admin bazate pe programări, cu KPI, defalcări, filtre și export CSV/PDF. | Implementat |
 | `DS-emp-calendar` | Agenda proprie a specialistei Make-up, cu detalii, stări și blocaje. | Draft |
 
 Traseul demonstrativ pornește din rezervare, continuă prin autentificare sau creare cont și deschide panoul cu progres 4/5. Acțiunea „Programare nouă cu −10%” revine în rezervare cu reducerea demonstrativă aplicată. Demo-ul păstrează indicatorul de autentificare în `sessionStorage` și permite deconectarea. Jurnalul consemnează verificarea în Chrome, inclusiv după reîncărcare și deconectare. Designul include teme luminoasă și întunecată. [Design](docs/design/DESIGN.md) · [Registru](docs/design/registry.yaml) · [Jurnal, sesiunile 14–17](AI_LOG.md)
@@ -107,13 +107,16 @@ Pentru Laminare sprâncene, cele cinci etape sunt **15 min ocupat → 20 min lib
 
 **Sprintul 4 este finalizat.** Ioana administrează ambele agende din Recepție, creează programări direct `CONFIRMED`, gestionează anulările și mutările și poate consulta Waitlist și expedia oferte active nestrimise. Ana consultă și exportă propria agendă și își marchează vizitele încheiate. Playwright a trecut ambele teste integrate pe stiva Docker izolată după mutarea proiectului pe D:. Verificarea importului în Google Calendar și Apple Calendar rămâne manuală. [Plan Sprintul 4](docs/plans/sprint-4-staff-reception.md) · [Jurnal](AI_LOG.md)
 
+**Sprintul 5** adaugă conversia ofertelor Waitlist active în Recepție și paginile Admin pentru Rapoarte și Gestiunea Serviciilor. Înscrierea publică și rotația ofertelor păstrează regula de prioritate, iar istoricul programărilor păstrează prețurile și etapele salvate. [Decizia D-014](docs/agents/decisions/sprint-5.md)
+
 | Componentă | Disponibil acum | Urmează |
 | --- | --- | --- |
 | Infrastructură și date | Compose, Dockerfile, Prisma, migrare și seed. | Verificare integrată cu pornirea containerelor, migrare și seed. |
 | Disponibilitate și rezervare | Catalog, disponibilitate și creare publică prin API. Teste PostgreSQL pentru intercalare, schimbarea orei și concurență. | Conectarea fluxurilor de echipă la același calcul. |
 | Gestiune programări | Modele pentru programări, stări și token. | Consultare, anulare și reprogramare prin token, cu aplicarea politicii Zi Full și eliberarea consecventă a etapelor. |
 | Conturi și Fidelizare | Roluri în schemă, decizie aprobată și flux demonstrativ în mock-up. | Autentificare reală și autorizare, calculul prețului pe Server, stocarea reducerii și afișarea progresului și istoricului. |
-| Waitlist, e-mail și iCalendar | Confirmări și remindere prin Mailpit, listare și expedierea manuală a ofertelor eligibile din Recepție, export `.ics` din agenda autorizată. | Verificarea și completarea înscrierii publice, a automatizării ofertelor Waitlist și a conversiei directe din Recepție în Sprintul 5. |
+| Waitlist, e-mail și iCalendar | Înscriere publică, oferte prioritare prin Mailpit cu expirare și rotație, conversia unei oferte active din Recepție, confirmări, remindere și export `.ics` din agenda autorizată. | Verificarea manuală a importului `.ics` în Google Calendar și Apple Calendar. |
+| Gestiunea Serviciilor și Rapoarte | Catalog Admin cu configurare de etape și activare, rapoarte cu filtre de perioadă și specialistă și export CSV/PDF. | — |
 | Frontend | Pagina React de rezervare fără cont consumă API-ul prin proxy-ul Vite. | Fluxurile de cont, gestiune și echipă. |
 | Validare finală | Suite pentru disponibilitate și concurență în repository. | Testare cu PostgreSQL în Docker și verificarea fluxurilor complete, a accesului pe roluri, a politicii Zi Full, a ferestrei Waitlist, a Fidelizării și a afișării pe mobil și desktop în ambele teme. |
 

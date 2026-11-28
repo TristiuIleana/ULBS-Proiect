@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { isStaffRoute } from './src/staff-routes';
 
 const hmrClientPort = process.env.VITE_HMR_CLIENT_PORT;
 const serverOrigin = 'http://server:3000';
@@ -11,7 +12,7 @@ export default defineConfig({
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
         const path = request.url?.split('?')[0].replace(/\/+$/, '');
-        if (path !== '/staff/agenda' && path !== '/staff/receptie') return next();
+        if (!isStaffRoute(path)) return next();
         response.setHeader('Cache-Control', 'no-store');
         try {
           const session = await fetch(`${serverOrigin}/api/staff/session`, {
@@ -23,8 +24,8 @@ export default defineConfig({
           }
           if (!session.ok) throw new Error('Staff session unavailable');
           const { role } = await session.json() as { role: string };
-          if (path === '/staff/receptie' && role !== 'ADMIN') {
-            response.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Acces rezervat recepției.');
+          if (path !== '/staff/agenda' && role !== 'ADMIN') {
+            response.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Acces rezervat administratoarei.');
             return;
           }
           next();

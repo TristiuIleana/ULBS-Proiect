@@ -19,6 +19,9 @@
 - D-012 · Acces exclusiv și drepturi distincte pentru personal
 - D-013 · Recepție Admin, Waitlist și export iCalendar
 
+### [Sprint 5](decisions/sprint-5.md)
+- D-014 · Conversie Waitlist, Rapoarte și Gestiunea Serviciilor
+
 ---
 
 ## D-001 · Docker for all server components

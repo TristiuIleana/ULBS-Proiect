@@ -156,10 +156,14 @@ Loginul de personal cere e-mail și parolă. Destinația vine din sesiunea verif
 
 ### 6.6. Rapoarte Admin
 
-„Rapoarte” este disponibil din Calendar și Servicii. Ecranul și exporturile demo verifică rolul Admin din sesiunea de personal, inclusiv la deschiderea directă și în grila de previzualizare. Pentru celelalte sesiuni, ecranul oferă acces la login. Mock-ul conține date fictive.
+„Rapoarte” este disponibil din Recepție și Servicii. Pagina și datele pentru export cer sesiunea Admin. Prototipul comparativ folosește date fictive.
 
-Cardurile KPI și defalcările folosesc perioada selectată. Săptămâna începe luni. Ultimele 3 luni cuprind luna curentă și cele două luni calendaristice anterioare. Intervalele sunt afișate în raport și se raportează la data demonstrativă în Europe/Bucharest.
+Cardurile KPI, defalcările și exporturile folosesc perioada și specialista selectate. Săptămâna începe luni. Ultimele 3 luni cuprind luna curentă și cele două luni calendaristice anterioare. Intervalele din aplicație folosesc data curentă în Europe/Bucharest.
 
 - Încasările nete și ponderea pe categorii, servicii și specialiste folosesc programările finalizate, după reduceri. Fidelizarea arată numărul și valoarea reducerilor aplicate acestor programări.
-- Prezentare = finalizate / (finalizate + neprezentări). Anulare = anulate / (finalizate + neprezentări + anulate). Un numitor zero se afișează ca „—”.
+- Prezentare = finalizate / (finalizate + neprezentări). Anulare = anulate / (finalizate + neprezentări + anulate). Expirarea confirmării prin e-mail este exclusă. Un numitor zero se afișează ca „—”.
 - Cardurile și tabelele trec pe o singură coloană pe mobil. Exportul CSV include KPI și defalcările, iar salvarea ca PDF folosește dialogul de tipărire cu aspect dedicat raportului.
+
+### 6.7. Gestiunea Serviciilor
+
+Ioana filtrează catalogul după categorie și poate crea, edita, activa sau dezactiva un serviciu. Lista indică starea și afișează etapele ocupate și libere pentru serviciile Split service. Editorul arată suma minutelor și păstrează datele completate când Serverul refuză salvarea. Catalogul public afișează serviciile active.

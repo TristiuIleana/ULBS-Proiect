@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AppointmentStatus, Prisma } from '@prisma/client';
 import { Subject, filter } from 'rxjs';
 import { PrismaService } from '../prisma/prisma.service';
@@ -31,6 +31,35 @@ export class AvailabilityService {
 
   invalidate(specialistId: string, startTime: Date) {
     this.updates.next({ specialistId, date: this.toLocalIso(startTime.getTime()).slice(0, 10) });
+  }
+
+  async getDays(specialistId: string, date: string, stages: StageTemplate[], appointmentId?: string) {
+    const start = Date.parse(`${date}T00:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(start) ||
+        date < '0001-01-01' || new Date(start).toISOString().slice(0, 10) !== date) {
+      throw new BadRequestException('Data nu este validă.');
+    }
+    const dayMs = 86_400_000;
+    const count = Math.min(6, 1 + (Date.UTC(9999, 11, 30) - start) / dayMs);
+    const days = await Promise.all(Array.from({ length: count }, async (_, index) => {
+      const day = new Date(start + index * dayMs).toISOString().slice(0, 10);
+      const [shift, override] = await Promise.all([
+        this.resolveShiftWindow(specialistId, day),
+        this.prisma.scheduleOverride.findUnique({
+          where: { specialistId_date: { specialistId, date: day } }, select: { isFullDayPolicy: true },
+        }),
+      ]);
+      const choices = shift ? await this.getSlotChoices(specialistId, shift, stages, this.prisma, { appointmentId }) : [];
+      const morning = choices.filter(slot => slot.localIso.slice(11, 16) < '13:00');
+      const afternoon = choices.filter(slot => slot.localIso.slice(11, 16) >= '13:00');
+      const group = (slots: typeof choices) => ({
+        total: slots.length, free: slots.filter(slot => slot.available).length,
+      });
+      const status = !shift || !choices.length ? 'closed' : choices.some(slot => slot.available) ? 'available' : 'full';
+      return { date: day, status, isFullDay: override?.isFullDayPolicy ?? false, morning: group(morning),
+        afternoon: group(afternoon), choices };
+    }));
+    return { days };
   }
 
   /**

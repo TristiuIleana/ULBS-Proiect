@@ -5,7 +5,7 @@ import { AvailabilityService, SALON_TZ } from '../availability/availability.serv
 import { PrismaService } from '../prisma/prisma.service';
 import { staffIdentities } from '../staff-access/staff-identities';
 import { WaitlistService } from '../waitlist/waitlist.service';
-import { AppointmentsService } from './appointments.service';
+import { AppointmentsService, savedStageTemplates } from './appointments.service';
 import { serializeCalendar } from './calendar-export';
 import { pendingConfirmationExpired } from './confirmation-deadline';
 import { ContactDto, SlotBookingDto } from './public-booking.dto';
@@ -100,18 +100,19 @@ export class StaffCalendarService {
   async slots(specialistId: string, serviceId: string, date: string, appointmentId?: string) {
     calendarRange(date);
     const [specialist] = await this.specialists(specialistId);
-    const service = await this.db.service.findUnique({
-      where: { id: serviceId, isActive: true },
-      include: { stages: { orderBy: { stageOrder: 'asc' } } },
+    const booking = appointmentId && await this.db.appointment.findFirst({
+      where: { id: appointmentId, specialistId, serviceId }, include: { stages: true },
     });
-    if (!service || specialist.specialistCategory !== service.category) {
+    if (appointmentId && !booking) throw new NotFoundException('Programarea nu este disponibilă.');
+    const templates = booking ? savedStageTemplates(booking.stages) : [];
+    const service = templates.length ? null : await this.db.service.findUnique({
+      where: { id: serviceId, isActive: booking ? undefined : true }, include: { stages: { orderBy: { stageOrder: 'asc' } } },
+    });
+    if (!templates.length && (!service || specialist.specialistCategory !== service.category)) {
       throw new BadRequestException('Specialista nu oferă acest serviciu.');
     }
-    if (appointmentId && !await this.db.appointment.findFirst({ where: { id: appointmentId, specialistId, serviceId } })) {
-      throw new NotFoundException('Programarea nu este disponibilă.');
-    }
     const shift = await this.availability.resolveShiftWindow(specialistId, date);
-    return { slots: shift ? await this.availability.getSlotsForShift(specialistId, shift, service.stages,
+    return { slots: shift ? await this.availability.getSlotsForShift(specialistId, shift, service?.stages ?? templates,
       this.db, { appointmentId }) : [] };
   }
 
@@ -130,16 +131,23 @@ export class StaffCalendarService {
       where: { specialistId: { in: specialists.map(specialist => specialist.id) }, desiredDate: { gte: first, lt: last } },
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       select: {
-        id: true, specialistId: true, desiredDate: true, window: true, status: true, expiresAt: true,
+        id: true, specialistId: true, desiredDate: true, window: true, status: true, expiresAt: true, offeredStartAt: true,
         notifiedAt: true, emailClaimedAt: true, guestFirstName: true, guestLastName: true,
         service: { select: { name: true } }, client: { select: { firstName: true, lastName: true } },
       },
     });
-    return { entries: entries.map(({ emailClaimedAt, client, guestFirstName, guestLastName, ...entry }) => ({
-      ...entry, firstName: client?.firstName ?? guestFirstName, lastName: client?.lastName ?? guestLastName,
-      canNotify: entry.status === 'NOTIFIED' && (entry.expiresAt?.getTime() ?? 0) > Date.now() &&
-        !entry.notifiedAt && !emailClaimedAt,
-    })) };
+    const now = Date.now();
+    return { entries: entries.map(({ emailClaimedAt, client, guestFirstName, guestLastName, ...entry }) => {
+      const active = entry.status === 'NOTIFIED' && (entry.expiresAt?.getTime() ?? 0) > now;
+      return { ...entry, status: entry.status === 'NOTIFIED' && !active ? 'EXPIRED' : entry.status,
+        firstName: client?.firstName ?? guestFirstName, lastName: client?.lastName ?? guestLastName,
+        canNotify: active && !entry.notifiedAt && !emailClaimedAt, canConvert: active && Boolean(entry.offeredStartAt) };
+    }) };
+  }
+
+  async convert(id: string) {
+    const { booking } = await this.appointments.claimWaitlist({ id }, 'reception');
+    return this.detail(booking.id);
   }
 
   async notify(id: string) {

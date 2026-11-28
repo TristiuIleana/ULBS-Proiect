@@ -16,6 +16,7 @@ export type StaffCalendar = {
 export type QueueEntry = {
   id: string; desiredDate: string; window: string; status: string; expiresAt: string | null;
   notifiedAt: string | null; canNotify: boolean; firstName: string | null; lastName: string | null;
+  offeredStartAt: string | null; canConvert: boolean;
   service: { name: string };
 };
 
@@ -54,6 +55,7 @@ export const fetchDeskSlots = (params: Record<string, string>, signal: AbortSign
 export const fetchQueue = (params: Record<string, string>, signal: AbortSignal) =>
   request<{ entries: QueueEntry[] }>(calendarUrl(true, '/waitlist', params), { signal });
 export const notifyEntry = (id: string) => post<{ notified: boolean }>(`/api/staff/reception/waitlist/${id}/notify`);
+export const convertEntry = (id: string) => post<Appointment>(`/api/staff/reception/waitlist/${id}/convert`);
 
 export function staffError(error: unknown) {
   if (error instanceof ApiError && error.status === 401) location.replace('/staff/login');

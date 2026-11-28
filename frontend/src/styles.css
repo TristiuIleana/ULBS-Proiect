@@ -45,6 +45,40 @@
 .staff-lane .staff-event-NO_SHOW { border-color: var(--warning); background: var(--warning-background); }
 .staff-lane .staff-event-COMPLETED { border-color: var(--success); background: var(--success-background); }
 .staff-event { display: grid; text-align: start; padding: 2px 4px; width: 100%; color: var(--text); overflow-wrap: anywhere; }
+.staff-services h2, .report-table h2 { margin: 0 0 8px; }
+.staff-services .service-card { overflow-wrap: anywhere; }
+.service-stages { padding: 0; list-style: none; }
+.service-stages li { flex-basis: 0; min-width: 100px; padding: 8px; border-radius: 10px;
+  background: var(--success-background); color: var(--success); }
+.service-stages li[data-busy="true"] { background: var(--subtle); color: var(--text); }
+.staff-report > header p, .report-detail { color: var(--secondary); }
+.report-controls .field { min-width: 144px; }
+.report-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.report-kpis .card { display: grid; align-content: start; gap: 4px; padding: 16px; overflow-wrap: anywhere; }
+.report-kpis dt { font-weight: 650; }
+.report-kpis dd { margin: 0; font-size: 24px; font-weight: 750; }
+.report-kpis .report-detail { font-size: 12px; font-weight: 550; }
+.report-table table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.report-table :is(th, td) { border-bottom: 1px solid var(--border); padding: 8px 4px; text-align: end; overflow-wrap: anywhere; }
+.report-table th:first-child { width: 40%; text-align: start; }
+@media (max-width: 700px) {
+  .report-kpis { grid-template-columns: minmax(0, 1fr); }
+  .report-table :is(th, td) { font-size: 12px; }
+  .report-table th:first-child { width: 35%; }
+  .report-table thead th:nth-child(2) { width: 21%; }
+  .report-table thead th:nth-child(3) { width: 25%; }
+}
+@media print {
+  body:has(.staff-report) { background: white; color: black; }
+  body:has(.staff-report) :is(.staff-nav, .staff-toolbar), .report-controls { display: none; }
+  .staff-report.staff-reception { width: 100%; color: black; margin: 0; }
+  .staff-report :is(.card, .staff-empty) {
+    background: white; color: black; border-color: #ccc; box-shadow: none;
+  }
+  .staff-report :is(header p, .report-detail) { color: black; }
+  .report-kpis, .report-table tr { break-inside: avoid; }
+  .report-table h2 { break-after: avoid; }
+}
 @media (max-width: 760px) {
   .staff-columns-combined, .staff-fields { grid-template-columns: minmax(0, 1fr); }
   .staff-lane .fc { font-size: 12px; overflow-x: auto; }

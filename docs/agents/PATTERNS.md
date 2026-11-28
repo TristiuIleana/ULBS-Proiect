@@ -12,6 +12,7 @@
 - PATTERN-004 · Reîncarcă disponibilitatea după commit prin SSE · candidate
 - PATTERN-005 · Verifică același termen la citirea și reutilizarea unui slot · candidate
 - PATTERN-006 · Verifică aceeași sesiune pentru documentul intern și API · candidate
+- PATTERN-007 · Blochează schimbările de catalog împreună cu rezervările · candidate
 
 ---
 
@@ -73,3 +74,13 @@
 - **Example:** [Proxy Vite](../../frontend/vite.config.ts) și [controlerele de calendar](../../server/src/modules/appointments/staff-calendar.controller.ts)
 - **Why:** Accesul direct la un document, o cerere API și descărcarea calendarului respectă aceeași identitate și același domeniu de acces.
 - **Source:** Implementarea D-012 și D-013 · confidence high
+
+---
+
+## PATTERN-007 · Blochează schimbările de catalog împreună cu rezervările
+- **Status:** candidate
+- **Use when:** O editare de catalog poate afecta disponibilitatea unui serviciu rezervabil.
+- **How:** Ia în tranzacție aceeași blocare a specialistei folosită pentru rezervare. Recitește serviciul, verifică programările și ofertele active și salvează serviciul cu etapele într-o singură tranzacție.
+- **Example:** [StaffServicesController](../../server/src/modules/staff-access/staff-services.controller.ts)
+- **Why:** O rezervare și o modificare a duratei nu pot trece simultan verificările pe configurații diferite.
+- **Source:** Implementarea D-014 · confidence high

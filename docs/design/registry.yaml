@@ -108,23 +108,23 @@ designs:
 
   - id: DS-adm-services
     name: Gestiune Servicii & Etape Split
-    description: Configurator servicii - durată totală, preț, asociere angajați calificați și configurator de etape (ocupat / liber / ocupat) pentru servicii split (laminare sprâncene).
+    description: Catalog Admin cu editare de preț, durată și etape, activare și dezactivare. Categoria determină specialista.
     kind: screen
     source: frontend/src/pages/admin/ServicesManagementPage.tsx
     screenshots: [screens/DS-adm-services.light.png, screens/DS-adm-services.dark.png]
     design_ref: mocks/DS-adm-services.html
     # Figma: versiunea aprobată anterior reviziei de navigare.
     figma_ref: https://www.figma.com/design/Tl2JUVQKpVMcApSRJ56N9V/Untitled?node-id=7-2
-    status: draft
+    status: implemented
 
   - id: DS-adm-reports
     name: Rapoarte Admin
-    description: Indicatori demonstrativi pentru încasări, finalizări, prezentare, anulări și Fidelizare, cu defalcări, filtru de perioadă și export CSV/PDF disponibil în sesiunea demo Admin.
+    description: Indicatori reali pentru încasări, finalizări, prezentare, anulări și Fidelizare, cu defalcări, filtre de perioadă și specialistă și export CSV/PDF pentru Admin.
     kind: screen
     source: frontend/src/pages/admin/ReportsPage.tsx
     screenshots: [screens/DS-adm-reports.light.png, screens/DS-adm-reports.dark.png]
     design_ref: mocks/DS-adm-reports.html
-    status: draft
+    status: implemented
 
   - id: DS-adm-staff
     name: Gestiune Angajați & Orare de Lucru
@@ -146,7 +146,7 @@ designs:
 
   - id: DS-adm-waitlist
     name: Monitorizare Listă de Așteptare
-    description: Dialogul Ioanei pentru consultarea cererilor și expedierea ofertelor active nestrimise, cu prioritatea stabilită de Server.
+    description: Dialogul Ioanei pentru consultarea cererilor, expedierea ofertelor active nestrimise și conversia unei oferte active în programare confirmată.
     kind: screen
     source: frontend/src/pages/admin/WaitlistManagementPage.tsx
     screenshots: [screens/DS-adm-waitlist.light.png, screens/DS-adm-waitlist.dark.png]

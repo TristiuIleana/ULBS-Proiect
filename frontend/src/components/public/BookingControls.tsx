@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ApiError, fetchDays } from '../../booking-api';
+import { ApiError, fetchDays, request } from '../../booking-api';
 import type { BookingDay, Contact, GroupCount } from '../../booking-api';
 
 export const salonTimeZone = 'Europe/Bucharest';
@@ -37,8 +37,9 @@ export function errorMessage(error: unknown, fallback: string) {
   return error instanceof ApiError ? error.message : fallback;
 }
 
-export function useBookingDays(serviceId: string, specialistId: string | undefined, start: string, refresh: number) {
-  const key = `${serviceId}/${specialistId}/${start}/${refresh}`;
+export function useBookingDays(serviceId: string, specialistId: string | undefined, start: string, refresh: number,
+  managementDaysUrl?: string) {
+  const key = `${managementDaysUrl ?? serviceId}/${specialistId}/${start}/${refresh}`;
   const [liveRefresh, setLiveRefresh] = useState(0);
   const [result, setResult] = useState<{ key: string; days: BookingDay[]; error?: string }>();
   useEffect(() => {
@@ -59,7 +60,10 @@ export function useBookingDays(serviceId: string, specialistId: string | undefin
   useEffect(() => {
     if (!serviceId || !specialistId) return;
     const controller = new AbortController();
-    fetchDays(serviceId, specialistId, start, controller.signal).then(({ days }) => {
+    const daysRequest = managementDaysUrl
+      ? request<{ days: BookingDay[] }>(`${managementDaysUrl}&date=${encodeURIComponent(start)}`, { signal: controller.signal })
+      : fetchDays(serviceId, specialistId, start, controller.signal);
+    daysRequest.then(({ days }) => {
       if (!controller.signal.aborted) setResult({ key, days });
     }).catch(error => {
       if (!controller.signal.aborted) {
@@ -67,7 +71,7 @@ export function useBookingDays(serviceId: string, specialistId: string | undefin
       }
     });
     return () => controller.abort();
-  }, [key, serviceId, specialistId, start, liveRefresh]);
+  }, [key, serviceId, specialistId, start, liveRefresh, managementDaysUrl]);
   return result?.key === key ? result : undefined;
 }
 

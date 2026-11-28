@@ -44,26 +44,7 @@ export class AvailabilityController {
     @Query('specialistId') specialistId: string,
   ) {
     const { stages } = await this.validate(serviceId, specialistId, date);
-    const start = Date.parse(`${date}T00:00:00Z`);
-    const dayCount = Math.min(6, 1 + (Date.UTC(9999, 11, 30) - start) / 86_400_000);
-    const days = await Promise.all(Array.from({ length: dayCount }, async (_, index) => {
-      const day = new Date(start + index * 86_400_000).toISOString().slice(0, 10);
-      const [shift, override] = await Promise.all([
-        this.availabilityService.resolveShiftWindow(specialistId, day),
-        this.prisma.scheduleOverride.findUnique({
-          where: { specialistId_date: { specialistId, date: day } }, select: { isFullDayPolicy: true },
-        }),
-      ]);
-      const choices = shift ? await this.availabilityService.getSlotChoices(specialistId, shift, stages, this.prisma) : [];
-      const morning = choices.filter(slot => slot.localIso.slice(11, 16) < '13:00');
-      const afternoon = choices.filter(slot => slot.localIso.slice(11, 16) >= '13:00');
-      const group = (slots: typeof choices) => ({
-        total: slots.length, free: slots.filter(slot => slot.available).length,
-      });
-      const status = !shift || !choices.length ? 'closed' : choices.some(slot => slot.available) ? 'available' : 'full';
-      return { date: day, status, isFullDay: override?.isFullDayPolicy ?? false, morning: group(morning), afternoon: group(afternoon), choices };
-    }));
-    return { days };
+    return this.availabilityService.getDays(specialistId, date, stages);
   }
 
   private async validate(serviceId: string, specialistId: string, date: string) {

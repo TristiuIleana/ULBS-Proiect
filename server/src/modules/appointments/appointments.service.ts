@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { Appointment, AppointmentStatus, Prisma, ServiceCategory } from '@prisma/client';
+import { Appointment, AppointmentStage, AppointmentStatus, Prisma, ServiceCategory } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AvailabilityService } from '../availability/availability.service';
@@ -8,6 +8,7 @@ import { StageTemplate } from '../availability/availability.types';
 import { allocateLoyalty, assertNotBlocked, emailKey, guestProfile, lockClient, lockEmail } from '../client-access/client-records';
 import { ContactDto, SlotBookingDto } from './public-booking.dto';
 import { confirmationExpiredReason, pendingConfirmationExpired, pendingPastDeadline } from './confirmation-deadline';
+import { WaitlistService } from '../waitlist/waitlist.service';
 
 export interface BookingRequest {
   specialistId: string;
@@ -29,6 +30,13 @@ export function bookingStages(startMs: number, specialistId: string, templates: 
       startTime, endTime: new Date(cursor),
     };
   });
+}
+
+export function savedStageTemplates(stages: Pick<AppointmentStage, 'stageOrder' | 'isBusy' | 'startTime' | 'endTime'>[]) {
+  return [...stages].sort((a, b) => a.stageOrder - b.stageOrder).map(stage => ({
+    stageOrder: stage.stageOrder, isBusy: stage.isBusy,
+    durationMinutes: (stage.endTime.getTime() - stage.startTime.getTime()) / 60_000,
+  }));
 }
 
 export async function lockSpecialist(tx: Prisma.TransactionClient, specialistId: string) {
@@ -53,7 +61,8 @@ export const summaryRelations = {
 export class AppointmentsService {
   private readonly logger = new Logger(AppointmentsService.name);
 
-  constructor(private readonly prisma: PrismaService, private readonly availability: AvailabilityService) {}
+  constructor(private readonly prisma: PrismaService, private readonly availability: AvailabilityService,
+    private readonly waitlist: WaitlistService) {}
 
   async transaction<T>(change: (tx: Prisma.TransactionClient) => Promise<T>) {
     try {
@@ -70,6 +79,35 @@ export class AppointmentsService {
     const booking = await this.transaction(tx => this.reserve(tx, req, sessionClientId));
     this.availability.invalidate(booking.specialistId, booking.startTime);
     return booking;
+  }
+
+  async claimWaitlist(where: Prisma.WaitlistEntryWhereUniqueInput, channel: 'public' | 'reception') {
+    const unavailable = 'Oferta a expirat sau a fost folosită.';
+    const result = await this.transaction(async tx => {
+      const lookup = await tx.waitlistEntry.findUnique({ where, select: { id: true, specialistId: true, guestEmail: true } });
+      if (!lookup) throw new ConflictException(unavailable);
+      await lockSpecialist(tx, lookup.specialistId);
+      if (lookup.guestEmail) await lockEmail(tx, lookup.guestEmail);
+      const entry = await tx.waitlistEntry.findFirst({
+        where: { id: lookup.id, status: 'NOTIFIED', expiresAt: { gt: new Date(Date.now()) } },
+        include: { client: { select: { email: true } } },
+      });
+      const address = entry?.client?.email ?? entry?.guestEmail;
+      if (!entry?.offeredStartAt || !address) throw new ConflictException(unavailable);
+      const booking = await this.reserve(tx, {
+        specialistId: entry.specialistId, serviceId: entry.serviceId, slotUtcMs: entry.offeredStartAt.getTime(),
+        firstName: entry.guestFirstName ?? undefined, lastName: entry.guestLastName ?? undefined,
+        phone: entry.guestPhone ?? undefined, email: address,
+      }, entry.clientId ?? undefined, entry.id, channel);
+      const claimed = await tx.waitlistEntry.updateMany({
+        where: { id: entry.id, status: 'NOTIFIED', expiresAt: { gt: new Date(Date.now()) } },
+        data: { status: 'CLAIMED' },
+      });
+      if (!claimed.count) throw new ConflictException(unavailable);
+      return { booking, address };
+    });
+    this.availability.invalidate(result.booking.specialistId, result.booking.startTime);
+    return result;
   }
 
   @Cron('*/15 * * * * *', { name: 'booking-confirmation-expiry' })
@@ -129,7 +167,7 @@ export class AppointmentsService {
     } else if (sessionClientId) {
       const user = await lockClient(tx, sessionClientId);
       if (!user) throw new NotFoundException('Contul nu există.');
-      assertNotBlocked(user);
+      if (channel === 'public') assertNotBlocked(user);
       data.clientId = user.id;
     } else if (req.email || channel === 'reception') {
       if (req.email) {
@@ -156,9 +194,9 @@ export class AppointmentsService {
   }
 
   async fit(tx: Prisma.TransactionClient, req: BookingInput, category: ServiceCategory | null | undefined,
-    omit: { appointmentId?: string; offerId?: string } = {}) {
+    omit: { appointmentId?: string; offerId?: string } = {}, savedStages?: StageTemplate[]) {
     const service = await tx.service.findUnique({
-      where: { id: req.serviceId, isActive: true },
+      where: { id: req.serviceId, isActive: savedStages ? undefined : true },
       include: { stages: { orderBy: { stageOrder: 'asc' } } },
     });
     if (!category || !service) throw new NotFoundException('Serviciul sau specialista nu este disponibilă.');
@@ -166,13 +204,15 @@ export class AppointmentsService {
     const date = 'slotUtcMs' in req ? this.availability.toLocalIso(req.slotUtcMs).slice(0, 10) : req.date;
     const shift = await this.availability.resolveShiftWindow(req.specialistId, date, tx);
     const now = Date.now();
+    await this.waitlist.rotateExpired(tx, req.specialistId, date, new Date(now));
+    const templates = savedStages?.length ? savedStages : service.stages;
     const slots = shift
-      ? await this.availability.getSlotsForShift(req.specialistId, shift, service.stages, tx, omit, now)
+      ? await this.availability.getSlotsForShift(req.specialistId, shift, templates, tx, omit, now)
       : [];
     const slot = slots.find(({ localIso, utcMs }) => 'slotUtcMs' in req
       ? utcMs === req.slotUtcMs : localIso.startsWith(`${date}T${req.startTimeLocal}`));
     if (!slot) throw new ConflictException('Intervalul nu mai este disponibil.');
-    const stages = bookingStages(slot.utcMs, req.specialistId, service.stages);
+    const stages = bookingStages(slot.utcMs, req.specialistId, templates);
     // Release expired constraints in this transaction even if the sweep has not run yet.
     await tx.appointmentStage.updateMany({
       where: {

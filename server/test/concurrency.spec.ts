@@ -13,6 +13,7 @@
 
 import { ConflictException } from '@nestjs/common';
 import { AppointmentsService } from '../src/modules/appointments/appointments.service';
+import type { WaitlistService } from '../src/modules/waitlist/waitlist.service';
 import { AvailabilityService } from '../src/modules/availability/availability.service';
 
 // ---------------------------------------------------------------------------
@@ -80,7 +81,8 @@ function buildSerialService(): AppointmentsService {
     }),
   } as any;
 
-  return new AppointmentsService(mockPrisma, mockAvailability);
+  const waitlist = { rotateExpired: jest.fn() } as unknown as WaitlistService;
+  return new AppointmentsService(mockPrisma, mockAvailability, waitlist);
 }
 
 // ---------------------------------------------------------------------------

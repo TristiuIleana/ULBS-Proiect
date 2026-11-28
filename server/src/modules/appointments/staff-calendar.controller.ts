@@ -131,6 +131,11 @@ export class ReceptionCalendarController {
     return this.calendar.notify(id);
   }
 
+  @Post('waitlist/:id/convert')
+  convert(@Param('id', ParseUUIDPipe) id: string) {
+    return this.calendar.convert(id);
+  }
+
   @Get('calendar.ics')
   export(@Query(strictBody) query: ReceptionQuery, @Res() response: Response) {
     return sendCalendar(response, this.calendar.export(query.date, query.view, query.specialistId));

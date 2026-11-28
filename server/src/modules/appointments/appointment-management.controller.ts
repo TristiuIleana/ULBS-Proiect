@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, Headers, HttpCode, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { IsInt, IsUUID, Max, Min } from 'class-validator';
 import { strictBody } from '../client-access/client-access.controller';
 import { ClientAccessService } from '../client-access/client-access.service';
@@ -27,6 +27,12 @@ export class AppointmentManagementController {
     return this.appointments.get({ token });
   }
 
+  @Get('by-token/reschedule-days')
+  @Header('Cache-Control', 'no-store')
+  daysByToken(@Query('token', ParseUUIDPipe) token: string, @Query('date') date: string) {
+    return this.appointments.rescheduleDays({ token }, date);
+  }
+
   @Post('by-token/resend-confirmation')
   @HttpCode(200)
   resendByToken(@Body(strictBody) { token }: TokenDto) {
@@ -49,6 +55,14 @@ export class AppointmentManagementController {
   async get(@Param('id', ParseUUIDPipe) id: string, @Headers('cookie') cookie: string | undefined) {
     const user = await this.access.requireUser(cookie, 'CLIENT');
     return this.appointments.get({ id, clientId: user.id });
+  }
+
+  @Get(':id/reschedule-days')
+  @Header('Cache-Control', 'no-store')
+  async days(@Param('id', ParseUUIDPipe) id: string, @Query('date') date: string,
+    @Headers('cookie') cookie: string | undefined) {
+    const user = await this.access.requireUser(cookie, 'CLIENT');
+    return this.appointments.rescheduleDays({ id, clientId: user.id }, date);
   }
 
   @Post(':id/resend-confirmation')

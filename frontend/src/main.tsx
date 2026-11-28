@@ -10,21 +10,29 @@ import { WaitlistOfferPage } from './pages/public/WaitlistOfferPage';
 import { ApiError } from './booking-api';
 import { StaffLoginPage } from './pages/admin/StaffLoginPage';
 import { getSession, staffLogout, type Staff } from './staff-api';
+import { isStaffRoute, staffRoutes, type StaffRoute } from './staff-routes';
 import './styles.css';
 
 const ReceptionCalendarPage = lazy(() => import('./pages/admin/ReceptionCalendarPage')
   .then(module => ({ default: module.ReceptionCalendarPage })));
 const EmployeeCalendarPage = lazy(() => import('./pages/employee/EmployeeCalendarPage')
   .then(module => ({ default: module.EmployeeCalendarPage })));
+const ReportsPage = lazy(() => import('./pages/admin/ReportsPage')
+  .then(module => ({ default: module.ReportsPage })));
+const ServicesManagementPage = lazy(() => import('./pages/admin/ServicesManagementPage')
+  .then(module => ({ default: module.ServicesManagementPage })));
 
-function StaffArea({ reception }: { reception: boolean }) {
+function StaffArea({ path }: { path: StaffRoute }) {
   const [staff, setStaff] = useState<Staff | null>(null);
   const [error, setError] = useState('');
   useEffect(() => {
     const abort = new AbortController();
     const verify = () => {
       getSession(abort.signal).then(user => {
-        if (reception && user.role !== 'ADMIN') location.replace('/staff/agenda');
+        if (path !== '/staff/agenda' && user.role !== 'ADMIN') {
+          setStaff(null);
+          location.replace('/staff/agenda');
+        }
         else { setError(''); setStaff(user); }
       }).catch(failure => {
         if (abort.signal.aborted) return;
@@ -37,7 +45,7 @@ function StaffArea({ reception }: { reception: boolean }) {
     const revalidate = () => { if (document.visibilityState === 'visible') verify(); };
     document.addEventListener('visibilitychange', revalidate);
     return () => { abort.abort(); document.removeEventListener('visibilitychange', revalidate); };
-  }, [reception]);
+  }, [path]);
 
   async function logout() {
     try {
@@ -51,15 +59,17 @@ function StaffArea({ reception }: { reception: boolean }) {
 
   return <>
     {staff && <nav className="staff-nav" aria-label="Navigare personal">
-      <a className="secondary-button staff-download" href="/staff/agenda" aria-current={!reception ? 'page' : undefined}>Agenda mea</a>
-      {staff.role === 'ADMIN' && <a className="secondary-button staff-download"
-        href="/staff/receptie" aria-current={reception ? 'page' : undefined}>Recepție</a>}
+      {Object.entries(staffRoutes).filter(([route]) => route === '/staff/agenda' || staff.role === 'ADMIN')
+        .map(([route, label]) => <a key={route} className="secondary-button staff-download" href={route}
+          aria-current={route === path ? 'page' : undefined}>{label}</a>)}
       <button className="secondary-button" onClick={() => void logout()}>Deconectare</button>
     </nav>}
     {error && <p className="staff-error staff-nav" role="alert">{error}</p>}
     {!staff && !error && <p className="staff-nav" role="status">Se verifică sesiunea…</p>}
-    {staff && <Suspense fallback={<p className="staff-nav" role="status">Se încarcă agenda…</p>}>
-      {reception ? <ReceptionCalendarPage staff={staff} /> : <EmployeeCalendarPage staff={staff} />}
+    {staff && <Suspense fallback={<p className="staff-nav" role="status">Se încarcă…</p>}>
+      {path === '/staff/receptie' ? <ReceptionCalendarPage staff={staff} /> :
+        path === '/staff/servicii' ? <ServicesManagementPage /> :
+        path === '/staff/rapoarte' ? <ReportsPage /> : <EmployeeCalendarPage staff={staff} />}
     </Suspense>}
   </>;
 }
@@ -81,7 +91,7 @@ function App() {
       </button>
     </div>
     {path === '/staff/login' ? <StaffLoginPage /> :
-      path === '/staff/agenda' || path === '/staff/receptie' ? <StaffArea reception={path === '/staff/receptie'} /> :
+      isStaffRoute(path) ? <StaffArea path={path} /> :
       path === '/cont' ? <ClientAccountPage /> : path === '/programare' ? <ManageBookingPage /> :
       path === '/confirmare' ? <ConfirmBookingPage /> :
       path === '/oferta' ? <WaitlistOfferPage /> : <BookingWizardPage />}

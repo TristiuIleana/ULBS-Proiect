@@ -160,7 +160,7 @@ export function EmployeeCalendarPage({ staff, reception = false }: { staff: Staf
       </div>}
     </section>
     {dialog?.type === 'waitlist' && <StaffDialog title="Waitlist" onClose={() => open(null)}>
-      <WaitlistManagementPage query={query} />
+      <WaitlistManagementPage query={query} refreshCalendar={() => setRevision(value => value + 1)} />
     </StaffDialog>}
     {(dialog?.type === 'create' || dialog?.type === 'move') && <StaffDialog
       title={dialog.type === 'create' ? 'Programare nouă' : 'Reprogramează vizita'} onClose={() => open(null)}>

@@ -6,13 +6,13 @@ import { DayStrip, SlotGroups, errorMessage, localDateTime, price, salonToday, u
 
 const phone = { display: '0756 062 883', href: 'tel:+40756062883' };
 
-function RescheduleOptions({ booking, selected, onSelect }: {
-  booking: ManagedBooking; selected?: number; onSelect: (slot?: number) => void;
+function RescheduleOptions({ booking, url, selected, onSelect }: {
+  booking: ManagedBooking; url: string; selected?: number; onSelect: (slot?: number) => void;
 }) {
   const [start, setStart] = useState(salonToday);
   const [date, setDate] = useState(start);
   const [refresh, setRefresh] = useState(0);
-  const result = useBookingDays(booking.serviceId, booking.specialistId, start, refresh);
+  const result = useBookingDays(booking.serviceId, booking.specialistId, start, refresh, url);
   const day = result?.days.find(item => item.date === date);
   function select(value: string) {
     setDate(value);
@@ -150,7 +150,9 @@ export function ManageBookingPage() {
       {action && <>
         <h2 id="dialog-title">{action === 'cancel' ? 'Confirmare Anulare' : 'Reprogramare'}</h2>
         {action === 'cancel' ? <p>Vrei să anulezi programarea pentru {booking.serviceName}?</p> :
-          <RescheduleOptions key={refresh} booking={booking} selected={selected} onSelect={setSelected} />}
+          <RescheduleOptions key={refresh} booking={booking}
+            url={`${path}/reschedule-days?${token ? `token=${encodeURIComponent(token)}` : ''}`}
+            selected={selected} onSelect={setSelected} />}
         {error && <p className="feedback error" role="alert">{error}</p>}
         <div className="manage-actions">
           <button type="button" className="secondary-button" disabled={pending} onClick={() => dialog.current?.close()}>Renunță</button>

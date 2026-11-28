@@ -5,7 +5,7 @@ import { activeAppointmentStatuses, AvailabilityService } from '../availability/
 import { allocateLoyalty, assertNotBlocked, guestProfile, lockClient, lockEmail } from '../client-access/client-records';
 import { PrismaService } from '../prisma/prisma.service';
 import { WaitlistService } from '../waitlist/waitlist.service';
-import { AppointmentsService, lockSpecialist, summaryRelations } from './appointments.service';
+import { AppointmentsService, lockSpecialist, savedStageTemplates, summaryRelations } from './appointments.service';
 import { bookingResendToken, BookingConfirmationService } from './booking-confirmation.service';
 import { confirmationExpiredMessage, confirmationExpiredReason, pendingConfirmationExpired } from './confirmation-deadline';
 
@@ -59,6 +59,20 @@ export class AppointmentManagementService {
       totalPriceRon: booking.totalPriceRon, loyaltyDiscountRon: booking.loyaltyDiscountRon,
       canManage, isFullDay, date,
     };
+  }
+
+  async rescheduleDays(access: Access, date: string) {
+    const booking = await this.db.appointment.findFirst({
+      where: this.where(access), include: { stages: true, service: { include: {
+        stages: { orderBy: { stageOrder: 'asc' } },
+      } } },
+    });
+    if (!booking) throw new NotFoundException('Programarea nu este disponibilă.');
+    if (!(await this.canManage(this.db, booking)).canManage) {
+      throw new ForbiddenException('Modificarea nu mai este permisă online. Contactează salonul.');
+    }
+    return this.availability.getDays(booking.specialistId, date,
+      booking.stages.length ? savedStageTemplates(booking.stages) : booking.service.stages, booking.id);
   }
 
   async confirm(token: string) {
@@ -158,7 +172,7 @@ export class AppointmentManagementService {
         if (!admin) assertNotBlocked(client);
         const { stages } = await this.appointments.fit(tx, {
           serviceId: booking.serviceId, specialistId: booking.specialistId, slotUtcMs,
-        }, specialist?.category, { appointmentId: booking.id });
+        }, specialist?.category, { appointmentId: booking.id }, savedStageTemplates(booking.stages));
         await tx.appointmentStage.deleteMany({ where: { appointmentId: booking.id } });
         await tx.appointment.update({
           where: { id: booking.id },
