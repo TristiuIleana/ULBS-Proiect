@@ -97,7 +97,7 @@ designs:
 
   - id: DS-adm-calendar
     name: Calendar Recepție Multi-Angajat
-    description: Calendarul Ioanei pe zi și săptămână, cu ambele specialiste, filtrare, creare și gestiune prin Recepție, Zi Full, Waitlist și export iCalendar.
+    description: Calendarul Ioanei pe zi și săptămână, cu ambele specialiste, gestiune prin Recepție, marcarea vizitelor încheiate, Zi Full, Waitlist și export iCalendar.
     kind: screen
     source: frontend/src/pages/admin/ReceptionCalendarPage.tsx
     screenshots: [screens/DS-adm-calendar.light.png, screens/DS-adm-calendar.dark.png]
@@ -158,7 +158,7 @@ designs:
   # ==========================================
   - id: DS-emp-calendar
     name: Calendar Personal Angajat
-    description: Agenda proprie pe zi sau săptămână, cu detalii clientă, marcarea vizitelor încheiate și exportul iCalendar al specialistei.
+    description: Agenda proprie pe zi sau săptămână, cu detalii clientă, acțiuni de finalizare și neprezentare după ora de sfârșit și export iCalendar.
     kind: screen
     source: frontend/src/pages/employee/EmployeeCalendarPage.tsx
     screenshots: [screens/DS-emp-calendar.light.png, screens/DS-emp-calendar.dark.png]

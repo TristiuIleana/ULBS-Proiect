@@ -74,7 +74,8 @@ export class EmployeeCalendarController {
   @HttpCode(200)
   mark(@Param('id', ParseUUIDPipe) id: string, @Param('action', new ParseEnumPipe(Attendance)) action: Attendance,
     @CurrentStaff() user: StaffUser) {
-    return this.appointments.change({ id, specialistId: user.id }, action, false);
+    const admin = user.role === 'ADMIN';
+    return this.appointments.change(admin ? { id } : { id, specialistId: user.id }, action, admin);
   }
 
   @Get('calendar.ics')

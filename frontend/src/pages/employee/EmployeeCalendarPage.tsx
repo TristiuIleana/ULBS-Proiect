@@ -78,8 +78,9 @@ export function EmployeeCalendarPage({ staff, reception = false }: { staff: Staf
 
   const dayStep = view === 'week' ? 7 : 1;
   const selected = dialog && 'appointment' in dialog ? dialog.appointment : null;
-  const active = selected?.status === 'CONFIRMED' || selected?.status === 'PENDING_CONFIRMATION';
-  const mayMark = selected?.status === 'CONFIRMED' && Date.parse(selected.endTime) <= Date.now();
+  const confirmed = selected?.status === 'CONFIRMED';
+  const active = confirmed || selected?.status === 'PENDING_CONFIRMATION';
+  const mayMark = confirmed && Date.parse(selected.endTime) <= Date.now();
   const splitStageLabel = (stage: Appointment['stages'][number]) =>
     `${studioTime(stage.startTime)}–${studioTime(stage.endTime)} ${stage.isBusy ? 'Ocupat' : 'Liber'}`;
 
@@ -179,10 +180,13 @@ export function EmployeeCalendarPage({ staff, reception = false }: { staff: Staf
         <dt>Stare</dt><dd>{visitLabels[selected.status]}</dd>
       </dl>
       {dialogError && <p role="alert" className="staff-error">{dialogError}</p>}
+      {confirmed && !mayMark && <p>Marcarea este disponibilă după ora de sfârșit.</p>}
       <div className="staff-controls">
-        {mayMark && <>
-          <button className="primary-button" disabled={pending} onClick={() => void action(selected, 'complete')}>Finalizată</button>
-          <button className="secondary-button" disabled={pending} onClick={() => void action(selected, 'no-show')}>Neprezentare</button>
+        {confirmed && <>
+          <button className="primary-button" disabled={pending || !mayMark}
+            onClick={() => void action(selected, 'complete')}>Marchează finalizată</button>
+          <button className="secondary-button" disabled={pending || !mayMark}
+            onClick={() => void action(selected, 'no-show')}>Neprezentare</button>
         </>}
         {reception && active && <>
           <button className="secondary-button" disabled={pending} onClick={() => open({ type: 'move', appointment: selected })}>Reprogramează</button>

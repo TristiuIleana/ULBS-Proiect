@@ -1085,6 +1085,12 @@
         </div>
       </div>
       <div class="modal-actions">
+        <button class="btn-action-primary" type="button"
+          onclick="closeModal('modal-detail'); showToast('Programarea a fost marcată finalizată.');">Marchează finalizată</button>
+        <button class="btn-action-secondary" type="button"
+          onclick="closeModal('modal-detail'); showToast('Programarea a fost marcată ca neprezentare.');">Neprezentare</button>
+      </div>
+      <div class="modal-actions">
         <button class="btn-action-secondary" style="color:var(--destructive); border-color:var(--destructive);" onclick="cancelAppointmentFromModal()">
           🗑️ Anulează Programarea
         </button>
